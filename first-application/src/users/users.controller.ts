@@ -1,4 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { CloudinaryService } from "src/upload/upload.service";
 import { UserService } from "./users.service";
 
 @Controller("users")

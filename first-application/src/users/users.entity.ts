@@ -10,4 +10,13 @@ export class User {
 
   @Column()
   email: string;
+
+  @Column({nullable: true})
+  password: string;
+
+  @Column({nullable:true})
+  registartionToken: string;
+
+  @Column({nullable: true})
+  profile: string
 }

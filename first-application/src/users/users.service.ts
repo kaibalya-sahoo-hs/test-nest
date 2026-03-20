@@ -1,5 +1,6 @@
 import { Body, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CloudinaryService } from 'src/upload/upload.service';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
 
@@ -8,7 +9,8 @@ import { User } from './users.entity';
 export class UserService{
     constructor(
         @InjectRepository(User)
-        private userRepo: Repository<User>
+        private userRepo: Repository<User>,
+        private cloudinarySevice: CloudinaryService
     ){}
 
     findAllUsers(){
@@ -28,4 +30,7 @@ export class UserService{
         const user = this.userRepo.delete(id)
         return user
     }
+
+    
+
 }
