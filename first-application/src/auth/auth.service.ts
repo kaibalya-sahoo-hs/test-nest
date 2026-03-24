@@ -46,6 +46,7 @@ export class AuthService {
 
 
     async completeRegistartion({ token, password }) {
+        console.log(token, password)
         const user = await this.userRepo.findOneBy({ registartionToken: token })
         console.log("User from registartionToken - ", user)
         if (!user) {

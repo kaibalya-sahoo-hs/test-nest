@@ -5,6 +5,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class MailService {
     constructor(private mailerService: MailerService) { }
     async sendMail(email:string, name: string, token:string) {
+        console.log(email, name, token)
         try {
             const url = `${process.env.FRONTRND_URL+token}`;
             await this.mailerService.sendMail({

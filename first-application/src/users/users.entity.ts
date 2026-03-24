@@ -19,4 +19,7 @@ export class User {
 
   @Column({nullable: true})
   profile: string
+
+  @Column({default: 'guest'})
+  role: string
 }

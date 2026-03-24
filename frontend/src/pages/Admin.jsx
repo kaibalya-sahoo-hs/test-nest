@@ -7,7 +7,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [members, setMembers] = useState([]);
-  const [newMember, setNewMember] = useState({ name: '', designation: '' });
+  const [newMember, setNewMember] = useState({ name: '', email: '', password: ''});
   const [message, setMessage] = useState('');
 
   // 2. State for Modal and Selected User
@@ -29,13 +29,16 @@ const Admin = () => {
   // --- API Calls ---
   const fetchData = async () => {
     try {
-      const [uRes, mRes] = await Promise.all([
-        fetch(`${BASE_URL}/admin/users`),
-        fetch(`${BASE_URL}/admin/members`)
-      ]);
-      setUsers(await uRes.json());
-      setMembers(await mRes.json());
+      const res = await fetch(`${BASE_URL}/admin/users`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      
+      const allData = await res.json();
+      console.log(allData)
+      // Filtering based on role
+      setUsers(allData.filter(user => user.role === 'guest'));
+      setMembers(allData.filter(user => user.role === 'member'));
     } catch (err) {
+      toast.error('Error loading data');
       setMessage('Error loading data');
     }
   };
@@ -66,7 +69,7 @@ const Admin = () => {
 
   const createMember = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${BASE_URL}/admin/members`, {
+    const res = await fetch(`${BASE_URL}/admin/member`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newMember)
@@ -74,7 +77,7 @@ const Admin = () => {
     const data = await res.json();
     if (res.ok) {
       setMembers([...members, data]);
-      setNewMember({ name: '', designation: '' });
+      setNewMember({ name: '', email: '', password: '' });
       toast.success("Member created");
     }
   };
@@ -213,9 +216,15 @@ const Admin = () => {
               />
               <input
                 className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
-                placeholder="DESIGNATION"
-                value={newMember.designation}
-                onChange={e => setNewMember({ ...newMember, designation: e.target.value })}
+                placeholder="EMAIL"
+                value={newMember.email}
+                onChange={e => setNewMember({ ...newMember, email: e.target.value })}
+              />
+              <input
+                className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
+                placeholder="PASSWORD"
+                value={newMember.password}
+                onChange={e => setNewMember({ ...newMember, password: e.target.value })}
               />
               <button className="w-full bg-black text-white font-black p-3 hover:bg-gray-800">CREATE</button>
             </form>

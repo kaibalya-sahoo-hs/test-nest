@@ -1,12 +1,14 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { MailService } from "src/mail/mail.service";
 import { MemberService } from "src/member/member.service";
+import { UserService } from "src/users/users.service";
 import { AuthService } from "../auth/auth.service";
 import { AdminService } from "./admin.service";
 
 @Controller('admin')
 export class AdminController {
-    constructor(private readonly adminService: AdminService, private readonly memberService: MemberService,) { }
+    constructor(private readonly adminService: AdminService, private readonly memberService: MemberService, private userSevice: UserService, private mailService: MailService) { }
     @Get('users')
     getAllUsers() {
         return this.adminService.findAllUsers()
@@ -17,14 +19,9 @@ export class AdminController {
         return this.adminService.deletUser(body.id)
     }
 
-    @Post('members')
-    async addMember(@Body() body: { name: string; designation: string }) {
-        return await this.memberService.createMember(body.name, body.designation);
-    }
-
-    @Get('members')
-    async listMembers() {
-        return await this.memberService.getAllMembers();
+    @Post('member')
+    async addMember(@Body() body: { name: string; email: string; password: string }) {
+        return await this.memberService.createMember(body.name, body.email, body.password);
     }
 
     @Patch('edit')
@@ -44,6 +41,16 @@ export class AdminController {
         console.log("File:", file)
         console.log("Body: ", body)
         return this.adminService.saveImage(body.id, file)
+    }
+
+    @Post('send-mail')
+    async sendmail(@Body() body: any){
+        const {name, email, registartionToken} = body
+        const result = await this.mailService.sendMail(email, name, registartionToken)
+        if(!result){
+            return {"message": "Error while sending mail", success: false}
+        }
+        return {message: `Email sent to the user ${name}`, success: true}
     }
 
 }
