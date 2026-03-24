@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Navigate } from 'react-router';
 import { toast } from "react-hot-toast";
 
 const Login = () => {
@@ -7,6 +7,9 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const admin = localStorage.getItem('admin')
+  const token = localStorage.getItem('token')
 
   const navigate = useNavigate();
 
@@ -50,6 +53,15 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+
+if(token){
+  return <Navigate to={'/profile'}/>
+}
+
+if(admin){
+  return <Navigate to={'/admin'} />
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 text-black">

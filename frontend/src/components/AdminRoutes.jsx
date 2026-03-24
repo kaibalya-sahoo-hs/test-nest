@@ -1,11 +1,17 @@
 import React from 'react'
-import {useNavigate} from 'react-router'
+import toast from 'react-hot-toast'
+import {Navigate, useNavigate} from 'react-router'
 
 function AdminRoutes({children}) {
     const admin = localStorage.getItem("admin")
+    if(!admin){
+      console.log("Called")
+      toast('You are not the admin')
+      return <Navigate to={'/profile'}/>
+    }
   return (
     <>
-        {admin ? children : <div>Yu are not the admin</div>}
+        {children}
     </>
   )
 }
