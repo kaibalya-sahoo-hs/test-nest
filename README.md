@@ -9,8 +9,6 @@ The system allows managing users by performing operations such as creating, view
 ## Project Structure
 
 ```
-myproject/
-│
 ├── frontend/        # React frontend 
 │
 ├── backend/         # NestJS backend API
@@ -93,7 +91,6 @@ Make sure PostgreSQL is running and the database configuration is correctly set 
 Frontend:
 
 * React
-* JavaScript / TypeScript
 
 Backend:
 
@@ -102,4 +99,4 @@ Backend:
 
 Database:
 
-* PostgreSQL
+* PostgreSQL (TypeORM)
