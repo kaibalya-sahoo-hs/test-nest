@@ -1,5 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ApiLog } from 'src/api-logs/api-logs.entity';
+import { ApiLogsModule } from 'src/api-logs/api-logs.module';
+import { LoggerMiddleware } from 'src/common/middlewares/logger.middleware';
 import { MailModule } from 'src/mail/mail.module';
 import { Member } from 'src/member/member.entity';
 import { MembersModule } from 'src/member/member.module';
@@ -12,9 +15,21 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Member]),UsersModule ,MembersModule, CloudinaryModule, MailModule],
+    imports: [
+        TypeOrmModule.forFeature([User, Member, ApiLog]),
+        UsersModule ,
+        MembersModule, 
+        CloudinaryModule, 
+        MailModule, 
+        ApiLogsModule],
     providers: [AdminService],
     controllers: [AdminController],
     exports: [AdminService]
 })
-export class AdminModule {}
+export class AdminModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(LoggerMiddleware)
+            .forRoutes('*'); // Log everything, or specify routes
+    }
+}

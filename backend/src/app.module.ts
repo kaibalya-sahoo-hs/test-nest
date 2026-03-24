@@ -12,6 +12,12 @@ import { CloudinaryModule } from './upload/upload.module';
 import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
 import { MembersModule } from './member/member.module';
+import { ApiLogsService } from './api-logs/api-logs.service';
+import { ApiLogsModule } from './api-logs/api-logs.module';
+import { ApiLog } from './api-logs/api-logs.entity';
+import { User } from './users/users.entity';
+import { redisStore } from 'cache-manager-redis-yet'
+import { CacheModule } from "@nestjs/cache-manager"
 
 @Module({
   imports: [
@@ -21,6 +27,16 @@ import { MembersModule } from './member/member.module';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60s' },
     }),
+    CacheModule.registerAsync({
+      useFactory: async () => ({
+          isGlobal: true,
+          store: await redisStore({
+              url: 'redis://localhost:6379',
+              ttl: 60000,
+          })
+      })
+  }),
+    TypeOrmModule.forFeature([User ,ApiLog]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -31,14 +47,16 @@ import { MembersModule } from './member/member.module';
       autoLoadEntities: true,
       synchronize: true, // dev only
     }),
+    
     UsersModule,
     MembersModule,
     AuthModule,
     MailModule,
     CloudinaryModule,
     AdminModule,
+    ApiLogsModule,
   ],
   controllers: [AppController, TestController, AdminController],
-  providers: [AppService, CloudinaryService],
+  providers: [AppService, CloudinaryService, ApiLogsService],
 })
 export class AppModule {}

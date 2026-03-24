@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-hot-toast';
 import UserModal from '../components/UserModal'; // 1. Import your Modal
+import "../AdminTable.css"
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -9,6 +10,7 @@ const Admin = () => {
   const [members, setMembers] = useState([]);
   const [newMember, setNewMember] = useState({ name: '', email: '', password: ''});
   const [message, setMessage] = useState('');
+  const [isMemberFormOpen, setIsMemberFormOpen] = useState(false)
 
   // 2. State for Modal and Selected User
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,27 +126,41 @@ const Admin = () => {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-12 border-b-2 border-black pb-6">
-          <h1 className="text-4xl font-black uppercase tracking-tighter">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="border-2 border-black px-6 py-2 font-bold hover:bg-black hover:text-white transition-all"
-          >
-            LOGOUT
-          </button>
-        </div>
+        <div className="flex justify-between items-center mb-12 border-b-4 border-black pb-6">
+  <div>
+    <h1 className="text-4xl font-black uppercase tracking-tighter">Admin Dashboard</h1>
+    <p className="text-[10px] font-bold uppercase text-gray-400 mt-1 tracking-widest">System Control Panel v2.0</p>
+  </div>
+
+  <div className="flex gap-4">
+    {/* New Link to ApiLogs */}
+    <button 
+      onClick={() => navigate('/admin/apilogs')}
+      className="border-2 border-black px-6 py-2 font-black bg-white hover:bg-yellow-400 transition-all shadow-[4px_4px_0px_0px_black] active:translate-y-1 active:shadow-none uppercase text-xs"
+    >
+      View Logs
+    </button>
+
+    <button 
+      onClick={handleLogout}
+      className="border-2 border-black px-6 py-2 font-black bg-black text-white hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)] active:translate-y-1 active:shadow-none uppercase text-xs"
+    >
+      LOGOUT
+    </button>
+  </div>
+</div>
 
         {/* Navigation Tabs */}
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => setActiveTab('users')}
-            className={`px-8 py-3 font-bold border-2 border-black ${activeTab === 'users' ? 'bg-black text-white' : 'bg-transparent text-black'}`}
+            className={`px-8 py-3 rounded-lg font-bold border-2 border-black ${activeTab === 'users' ? 'bg-black text-white' : 'bg-transparent text-black'}`}
           >
             USERS
           </button>
           <button
             onClick={() => setActiveTab('members')}
-            className={`px-8 py-3 font-bold border-2 border-black ${activeTab === 'members' ? 'bg-black text-white' : 'bg-transparent text-black'}`}
+            className={`px-8 py-3 font-bold rounded-lg border-2 border-black ${activeTab === 'members' ? 'bg-black text-white' : 'bg-transparent text-black'}`}
           >
             MEMBERS
           </button>
@@ -152,8 +168,8 @@ const Admin = () => {
 
         {/* Content: Users */}
         {activeTab === 'users' && (
-          <div className="border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <table className="w-full text-left">
+          <div className="border-2 border-blackshadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-lg overflow-hidden">
+            <table className="w-full text-left bg-gray-300">
               <thead>
                 <tr className="border-b-2 border-black bg-gray-100">
                   <th className="p-4 font-black">NAME</th>
@@ -206,35 +222,41 @@ const Admin = () => {
         {/* Content: Members */}
         {activeTab === 'members' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <form onSubmit={createMember} className="md:col-span-1 border-2 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <h2 className="text-xl font-black mb-6 uppercase">Add Member</h2>
-              <input
-                className="w-full border-2 border-black p-3 mb-4 focus:outline-none"
-                placeholder="NAME"
-                value={newMember.name}
-                onChange={e => setNewMember({ ...newMember, name: e.target.value })}
-              />
-              <input
-                className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
-                placeholder="EMAIL"
-                value={newMember.email}
-                onChange={e => setNewMember({ ...newMember, email: e.target.value })}
-              />
-              <input
-                className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
-                placeholder="PASSWORD"
-                value={newMember.password}
-                onChange={e => setNewMember({ ...newMember, password: e.target.value })}
-              />
-              <button className="w-full bg-black text-white font-black p-3 hover:bg-gray-800">CREATE</button>
-            </form>
+            {isMemberFormOpen ? 
+            <div>
+              <form onSubmit={createMember} className="md:col-span-1 border-2 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-xl font-black mb-6 uppercase">Add Member</h2>
+            <input
+              className="w-full border-2 border-black p-3 mb-4 focus:outline-none"
+              placeholder="NAME"
+              value={newMember.name}
+              onChange={e => setNewMember({ ...newMember, name: e.target.value })}
+            />
+            <input
+              className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
+              placeholder="EMAIL"
+              value={newMember.email}
+              onChange={e => setNewMember({ ...newMember, email: e.target.value })}
+            />
+            <input
+              className="w-full border-2 border-black p-3 mb-6 focus:outline-none"
+              placeholder="PASSWORD"
+              value={newMember.password}
+              onChange={e => setNewMember({ ...newMember, password: e.target.value })}
+            />
+            <button className="w-full bg-black text-white font-black p-3 hover:bg-gray-800">CREATE</button>
+          </form>
+          <button className='border rounded-md p-4 px-3 py-2 border-[#f19090] bg-[#7a0000]' onClick={() => setIsMemberFormOpen(false)}>Close form</button>
+            </div>
+            : <button onClick={() => setIsMemberFormOpen(true)} className='rounded-md border-2 bg-[#d1ffd1] border-[#ffd1d1] px-4 py-2 w-fit'>Add memebr</button>}
+            
 
             <div className="md:col-span-2 space-y-4">
               {members.map(m => (
                 <div key={m.id} className="border-2 border-black p-4 bg-white flex justify-between items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   <div>
                     <p className="font-black text-lg uppercase">{m.name}</p>
-                    <p className="text-sm font-bold text-gray-600 uppercase">{m.designation}</p>
+                    <p className="text-sm font-bold text-[gray] uppercase">{m.designation}</p>
                   </div>
                   <button onClick={() => deleteMember(m.id)} className="border-2 border-black p-2 hover:bg-black hover:text-white transition-all">
                     DELETE

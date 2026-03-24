@@ -11,6 +11,7 @@ import Admin from './pages/Admin'
 import UserRoutes from './components/UserRoutes'
 import {Toaster} from "react-hot-toast"
 import CompleteRegistartion from './pages/CompleteRegistartion'
+import ApiLogs from './pages/ApiLogs'
 
 createRoot(document.getElementById('root')).render(
     <BrowserRouter>
@@ -21,6 +22,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/auth/register/complete' element={<CompleteRegistartion/>}/>
         <Route path="/profile" element={<UserRoutes><Profile /></UserRoutes>} />
         <Route path="/admin" element={<AdminRoutes><Admin /></AdminRoutes>} />
+        <Route path='/admin/apilogs' element={<AdminRoutes><ApiLogs /></AdminRoutes>}/>
         <Route path="/" element={<App/>} />
       </Routes>
     </BrowserRouter>
