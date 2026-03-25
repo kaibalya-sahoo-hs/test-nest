@@ -50,8 +50,7 @@ const ApiLogs = () => {
         {/* Header */}
         <div className="flex justify-between items-end mb-8 border-b-4 border-black pb-4">
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter italic">System API Logs</h1>
-            <p className="font-bold text-xs uppercase text-gray-500 mt-1">Real-time traffic monitor</p>
+            <h1 className="text-4xl font-black uppercase tracking-tighter">System API Logs</h1>
           </div>
           <div className=''>
           <button 
@@ -59,12 +58,6 @@ const ApiLogs = () => {
             className="border-2 mx-2 rounded-md border-black px-4 py-2 font-black text-xs uppercase hover:bg-black hover:text-white transition-all shadow-black shadow-sm active:translate-y-1 active:shadow-none bg-white"
           >
             Refresh Feed
-          </button>
-          <button 
-            onClick={() => navigate('/admin')}
-            className="border-2 mx-2 rounded-md border-black px-4 py-2 font-black text-xs uppercase hover:bg-black hover:text-white transition-all shadow-black shadow-sm active:translate-y-1 active:shadow-none bg-white"
-          >
-            Dashboard
           </button>
           </div>
         </div>
@@ -93,7 +86,7 @@ const ApiLogs = () => {
                   <tr key={log.id} className="border-b-2 border-black hover:bg-gray-50 transition-colors">
                     <td className="p-4 border-r-2 border-black">
                       <span className={`font-black px-2 py-1 border-2 rounded-md border-black shadow-[2px_2px_0px_0px_black]
-                        ${log.method === 'GET' ? 'text-[black] bg-[green]' : 'text-[white] bg-[#d10404]'}`}>
+                        ${log.method === 'GET' ? 'text-[white] bg-[green]' : 'text-[white] bg-[#d10404]'}`}>
                         {log.method}
                       </span>
                     </td>

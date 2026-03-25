@@ -178,9 +178,6 @@ const UserModal = ({ isOpen, onClose, name, email, id, password, registartionTok
             Close Record
           </button>
         )}
-        <button onClick={onClose} className="w-full mt-8 bg-black text-white font-black py-3 uppercase tracking-widest hover:bg-gray-800 transition-all shadow-[4px_4px_0px_0px_rgba(75,85,99,1)]">
-          Close Record
-        </button>
       </div>
     </div>
   );
