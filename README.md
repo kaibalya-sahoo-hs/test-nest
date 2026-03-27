@@ -52,6 +52,13 @@ npm install
 
 ---
 
+### Run redis
+```
+docker run -d --name my-redis -p 6379:6379 redis:latest
+```
+
+---
+
 ## Running the Project
 
 ### Start Backend (NestJS Dev Server)

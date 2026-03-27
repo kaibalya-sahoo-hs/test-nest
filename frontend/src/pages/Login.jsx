@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Navigate } from 'react-router';
 import { toast } from "react-hot-toast";
 
@@ -37,7 +37,7 @@ const Login = () => {
         if (data.admin) {
           toast.success(data.message);
           localStorage.setItem("admin", JSON.stringify(data.admin));
-          navigate("/admin");
+          navigate("/admin/dashboard");
         } else {
           toast.success(data.mesage || "Login successful");
           localStorage.setItem('token', data.token);
@@ -55,13 +55,11 @@ const Login = () => {
   };
 
 
-if(token){
-  return <Navigate to={'/profile'}/>
-}
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
+  
 
-if(admin){
-  return <Navigate to={'/admin'} />
-}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 text-black">
