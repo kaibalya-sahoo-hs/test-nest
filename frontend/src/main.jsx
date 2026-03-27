@@ -13,6 +13,7 @@ import {Toaster} from "react-hot-toast"
 import CompleteRegistartion from './pages/CompleteRegistartion'
 import ApiLogs from './pages/ApiLogs'
 import Stats from './pages/Stats'
+import Products from './pages/Products'
 
 createRoot(document.getElementById('root')).render(
     <BrowserRouter>
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/admin" element={<AdminRoutes><Admin /></AdminRoutes>} />
         <Route path='/admin/apilogs' element={<AdminRoutes><ApiLogs /></AdminRoutes>}/>
         <Route path='/admin/charts' element={<AdminRoutes><Stats /></AdminRoutes>}/>
+        <Route path='/admin/products' element={<AdminRoutes><Products /></AdminRoutes>}/>
         <Route path="/" element={<App/>} />
       </Routes>
     </BrowserRouter>
