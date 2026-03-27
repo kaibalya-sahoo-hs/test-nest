@@ -1,33 +1,8 @@
-import { StrictMode } from 'react'
+
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.jsx'
-import {BrowserRouter, Route, Routes} from 'react-router'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Profile from './pages/Profile'
-import AdminRoutes from './components/AdminRoutes'
-import Admin from './pages/Admin'
-import UserRoutes from './components/UserRoutes'
-import {Toaster} from "react-hot-toast"
-import CompleteRegistartion from './pages/CompleteRegistartion'
-import ApiLogs from './pages/ApiLogs'
-import Stats from './pages/Stats'
-import Products from './pages/Products'
+import AllRoute from './routes/AllRoute'
 
 createRoot(document.getElementById('root')).render(
-    <BrowserRouter>
-    <Toaster/>
-    <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path='/auth/register/complete' element={<CompleteRegistartion/>}/>
-        <Route path="/profile" element={<UserRoutes><Profile /></UserRoutes>} />
-        <Route path="/admin" element={<AdminRoutes><Admin /></AdminRoutes>} />
-        <Route path='/admin/apilogs' element={<AdminRoutes><ApiLogs /></AdminRoutes>}/>
-        <Route path='/admin/charts' element={<AdminRoutes><Stats /></AdminRoutes>}/>
-        <Route path='/admin/products' element={<AdminRoutes><Products /></AdminRoutes>}/>
-        <Route path="/" element={<App/>} />
-      </Routes>
-    </BrowserRouter>
+    <AllRoute/>
 )
