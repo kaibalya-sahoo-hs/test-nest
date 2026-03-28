@@ -21,12 +21,11 @@ export class AuthController {
 
     @Post('login')
     loginUser(@Body() body: any){
-        const {email, password} = body
-        console.log("Trigrred")
-        if(email == "admin@gmail.com" && password == "admin@123"){
-            console.log("Admin controller called")
-            return {message: "Loggedin as admin", success: true, admin: {name: "Admin", email, admin: true}}
-        }
         return this.authService.loginUser(body)
+    }
+
+    @Post('refresh')
+    refreshTokens(@Body() body: { refreshToken: string }){
+        return this.authService.refreshTokens(body.refreshToken)
     }
 }

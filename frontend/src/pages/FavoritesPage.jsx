@@ -18,11 +18,11 @@ const FavoritesPage = () => {
   ];
 
   return (
-    <div className=" bg-[#F5F6FA]">
-      <h1 className="text-2xl font-bold text-[#202224] mb-8">Favorites</h1>
+    <div className="bg-[#F5F6FA]">
+      <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-6 sm:mb-8">Favorites</h1>
 
       {/* Responsive Grid: 1 col on mobile, 3 cols on desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         {favorites.map((product) => (
           <div key={product.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-50 relative group">
             

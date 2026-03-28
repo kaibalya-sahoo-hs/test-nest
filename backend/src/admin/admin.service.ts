@@ -17,6 +17,10 @@ export class AdminService{
         return this.userRepo.find()
     }
 
+    findUserById(id: number) {
+        return this.userRepo.findOneBy({ id })
+    }
+
     deletAllUsers(){
         return this.userRepo.deleteAll()
     }

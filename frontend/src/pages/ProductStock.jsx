@@ -10,22 +10,23 @@ const ProductStock = () => {
   ];
 
   return (
-    <div className="p-8 bg-[#F5F6FA] min-h-screen font-sans mt-15">
+    <div className="bg-[#F5F6FA] min-h-screen font-sans">
       {/* Header Area */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[#202224]">Product Stock</h1>
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#202224]">Product Stock</h1>
+        <div className="relative w-full sm:w-auto">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search product name"
-            className="pl-10 pr-4 py-2 w-72 bg-white border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="pl-10 pr-4 py-2 w-full sm:w-72 bg-white border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Table Container */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-100">
@@ -77,6 +78,7 @@ const ProductStock = () => {
         </table>
       </div>
     </div>
+  </div>
   );
 };
 

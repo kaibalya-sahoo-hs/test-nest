@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApiLog } from 'src/api-logs/api-logs.entity';
 import { ApiLogsModule } from 'src/api-logs/api-logs.module';

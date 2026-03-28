@@ -44,18 +44,18 @@ const ApiLogs = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 text-black">
+    <div className="min-h-screen bg-gray-50 text-black">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex justify-between items-end mb-8 border-b-4 border-black pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-6 sm:mb-8 border-b-4 border-black pb-4">
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter">System API Logs</h1>
+            <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter">System API Logs</h1>
           </div>
-          <div className=''>
+          <div>
           <button 
             onClick={fetchLogs}
-            className="border-2 mx-2 rounded-md border-black px-4 py-2 font-black text-xs uppercase hover:bg-black hover:text-white transition-all shadow-black shadow-sm active:translate-y-1 active:shadow-none bg-white"
+            className="border-2 mx-2 rounded-md border-black px-3 sm:px-4 py-2 font-black text-xs uppercase hover:bg-black hover:text-white transition-all shadow-black shadow-sm active:translate-y-1 active:shadow-none bg-white"
           >
             Refresh Feed
           </button>
@@ -63,7 +63,8 @@ const ApiLogs = () => {
         </div>
 
         {/* Logs Table */}
-        <div className="border-4 border-black bg-white rounded-xl overflow-hidden overflow-hidden">
+        <div className="border-4 border-black bg-white rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-black text-white uppercase text-xs tracking-widest">
@@ -113,6 +114,7 @@ const ApiLogs = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

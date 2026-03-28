@@ -9,11 +9,11 @@ import { FaStar } from "react-icons/fa";
 function Products() {
   const products = [1, 2, 3];
   return (
-    <div className=" bg-[#F5F6FA] min-h-screen font-sans">
-      <h1 className="text-2xl font-bold text-[#202224] mb-6">Products</h1>
+    <div className="bg-[#F5F6FA] min-h-screen font-sans">
+      <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-6">Products</h1>
 
       {/* Hero Banner Section */}
-      <div className="relative w-full h-[280px] bg-[#4379EE] rounded-lg overflow-hidden mb-8 flex items-center px-12 shadow-lg">
+      <div className="relative w-full h-[200px] sm:h-[280px] bg-[#4379EE] rounded-lg overflow-hidden mb-8 flex items-center px-6 sm:px-12 shadow-lg">
         {/* Background SVG Pattern (Wavy Lines) */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -23,28 +23,28 @@ function Products() {
         </div>
 
         {/* Banner Content */}
-        <div className="relative z-10 text-white max-w-lg ml-6">
-          <p className="text-sm font-medium mb-2 opacity-90">September 12-22</p>
-          <h2 className="text-4xl font-bold mb-4 leading-tight">
-            Enjoy free home <br /> delivery in this summer
+        <div className="relative z-10 text-white max-w-lg ml-2 sm:ml-6">
+          <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2 opacity-90">September 12-22</p>
+          <h2 className="text-xl sm:text-4xl font-bold mb-2 sm:mb-4 leading-tight">
+            Enjoy free home <br className="hidden sm:block" />delivery in this summer
           </h2>
-          <p className="text-sm mb-6 opacity-80">Designer Dresses - Pick from trendy Designer Dress.</p>
-          <button className="bg-[#FF8743] hover:bg-[#e67635] text-white px-4 py-2 rounded-lg font-bold transition-colors">
+          <p className="text-xs sm:text-sm mb-4 sm:mb-6 opacity-80">Designer Dresses - Pick from trendy Designer Dress.</p>
+          <button className="bg-[#FF8743] hover:bg-[#e67635] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold text-sm transition-colors">
             Get Started
           </button>
         </div>
 
         {/* Banner Navigation Arrows */}
-        <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
+        <button className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
           <FaAngleLeft size={20} />
         </button>
-        <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
+        <button className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
           <FaAngleRight size={20} />
         </button>
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         {products.map((item) => (
           <div key={item} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
             {/* Product Image & Inner Arrows */}

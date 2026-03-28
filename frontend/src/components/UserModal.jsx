@@ -159,7 +159,7 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSave}
-                  className="flex-1 bg-[#4379EE] text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#4379EE] text-white font-bold py-3 rounded-md shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all flex items-center justify-center gap-2"
                 >
                   <FiCheck /> Save Changes
                 </button>
@@ -180,7 +180,7 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setIsEditMode(true)}
-                  className="bg-[#F5F6FA] text-[#202224] font-bold py-3 rounded-xl hover:bg-[#E5E7EB] transition-all flex items-center justify-center gap-2"
+                  className="bg-[#F5F6FA] text-[#202224] font-bold py-3 rounded-sm hover:bg-[#E5E7EB] transition-all flex items-center justify-center gap-2"
                 >
                   <FiEdit2 size={16} /> Edit Profile
                 </button>

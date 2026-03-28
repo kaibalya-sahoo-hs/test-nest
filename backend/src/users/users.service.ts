@@ -31,6 +31,34 @@ export class UserService{
         return user
     }
 
-    
+    async updateProfile(id: number, updatedCredentials: Partial<User>){
+        try {
+            // Only allow updating name (not role/email for self-service)
+            const allowedUpdates: Partial<User> = {};
+            if (updatedCredentials.name) allowedUpdates.name = updatedCredentials.name;
+            
+            await this.userRepo.update(id, allowedUpdates)
+            const updatedUser = await this.userRepo.findOneBy({ id })
+            return { success: true, message: "Profile updated successfully", user: updatedUser }
+        } catch (error) {
+            console.log("Error while updating profile", error)
+            return { success: false, message: "Error while updating profile" }
+        }
+    }
 
+    async uploadProfilePhoto(id: number, file: Express.Multer.File){
+        try {
+            const result = await this.cloudinarySevice.uploadImage(file)
+            const user = await this.userRepo.findOneBy({ id })
+            if (user && result && result.url) {
+                user.profile = result.url
+                await this.userRepo.save(user)
+                return { success: true, url: result.url }
+            }
+            return { success: false, message: "Error while saving the image" }
+        } catch (error) {
+            console.log("Error while uploading profile photo", error)
+            return { success: false, message: "Error while uploading the image" }
+        }
+    }
 }

@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'react-hot-toast';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 function CompleteRegistration() {
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [errors, setErrors] = useState({});
+
   const navigate = useNavigate();
   const token = searchParams.get("token");
 
+  const validate = () => {
+    const newErrors = {};
+    if (!password) {
+      newErrors.password = 'Password is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (!token) {
       toast.error("Invalid or missing registration token.");
       return;
     }
+
+    if (!validate()) return;
 
     setIsLoading(true);
     try {
@@ -30,7 +45,6 @@ function CompleteRegistration() {
 
       if (response.ok && data.success) {
         toast.success(data.message || "Password set successfully!");
-        // Redirect to login after success
         navigate('/login');
       } else {
         toast.error(data.message || "Failed to complete registration.");
@@ -44,47 +58,63 @@ function CompleteRegistration() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 text-black">
-      <div className="max-w-md w-full bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-        
-        {/* Header */}
-        <div className="text-center mb-10 border-b-4 border-black pb-6">
-          <h2 className="text-3xl font-black uppercase tracking-tighter italic">Final Step</h2>
-          <p className="font-bold text-gray-600 mt-2 uppercase text-xs tracking-widest">Secure your account access</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)' }}>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-xs font-black uppercase mb-2 ml-1">Setup New Password</label>
-            <input 
-              type="password"
-              required
-              minLength="6"
-              className="w-full px-4 py-4 bg-white border-2 border-black font-bold focus:outline-none focus:bg-gray-50 transition-all placeholder-gray-300"
-              onChange={(e) => setPassword(e.target.value)} 
-              value={password}
-            />
-            <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase px-1">
-              Token detected: <span className="text-black">{token ? "VERIFIED" : "MISSING"}</span>
-            </p>
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-10">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-[#202224] mb-2">Complete Registration</h1>
+            <p className="text-gray-400 text-sm">Set your password to finalize your account</p>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading || !token}
-            className="w-full py-4 bg-black text-white font-black uppercase tracking-widest hover:bg-gray-800 transition-all active:translate-y-1 active:shadow-none shadow-[4px_4px_0px_0px_rgba(75,85,99,1)] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "PROCESSSING..." : "FINALIZE ACCOUNT"}
-          </button>
-        </form>
+          {/* Token status */}
+          <div className={`mb-6 p-3 rounded-xl text-sm font-medium text-center ${
+            token
+              ? 'bg-green-50 border border-green-100 text-green-600'
+              : 'bg-red-50 border border-red-100 text-red-500'
+          }`}>
+            {token ? '✓ Registration token verified' : '✕ Missing or invalid token'}
+          </div>
 
-        <div className="mt-8 pt-6 border-t-2 border-black text-center">
-          <button 
-            onClick={() => navigate('/login')}
-            className="text-xs font-black uppercase hover:underline underline-offset-4"
-          >
-            Back to Login
-          </button>
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <div>
+              <label className="block text-sm font-semibold text-[#202224] mb-2">New Password:</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  className={`w-full px-4 py-3.5 pr-12 bg-[#F5F6FA] border rounded-xl text-sm text-[#202224] font-medium outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all placeholder-gray-400 ${errors.password ? 'border-red-400' : 'border-gray-100 focus:border-[#4379EE]/30'}`}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: '' }); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#202224] transition-colors"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.password}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !token}
+              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {isLoading ? "Setting up..." : "Finalize Account"}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-gray-400">
+            <button onClick={() => navigate('/login')}
+              className="text-[#4379EE] font-bold hover:underline">
+              Back to Login
+            </button>
+          </p>
         </div>
       </div>
     </div>

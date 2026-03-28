@@ -1,28 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { toast } from "react-hot-toast";
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const admin = localStorage.getItem('admin')
-  const token = localStorage.getItem('token')
+  const [errors, setErrors] = useState({});
+  const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
 
+  const validate = () => {
+    const newErrors = {};
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Enter a valid email address';
+    }
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsLoading(true);
-    setError('');
 
     try {
       const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       const data = await response.json();
@@ -30,96 +47,98 @@ const Login = () => {
 
       if (response.ok) {
         if (!data.success) {
-          toast.error("Invalid password, or user does not exist");
+          toast.error(data.message || "Invalid password, or user does not exist");
           return;
         }
 
-        if (data.admin) {
-          toast.success(data.message);
-          localStorage.setItem("admin", JSON.stringify(data.admin));
+        toast.success(data.message || "Login successful");
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        if (data.user.role === 'admin') {
           navigate("/admin/dashboard");
         } else {
-          toast.success(data.mesage || "Login successful");
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
           navigate('/profile');
         }
       } else {
-        setError(data.message || 'Login failed. Please check your credentials.');
+        toast.error(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Server connection failed. Is your backend running?');
+      toast.error('Server connection failed. Is your backend running?');
     } finally {
       setIsLoading(false);
     }
   };
 
-
   useEffect(() => {
-    localStorage.clear()
-  }, [])
-  
-
+    localStorage.clear();
+  }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 text-black">
-      <div className="max-w-md w-full bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-        
-        {/* Header */}
-        <div className="text-center mb-10 border-b-4 border-black pb-6">
-          <h2 className="text-4xl font-black uppercase tracking-tighter italic">Welcome Back</h2>
-          <p className="font-bold text-gray-600 mt-2 uppercase text-sm">Access your secure terminal</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)' }}>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-3 bg-white border-2 border-black font-bold text-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-xs font-black uppercase mb-1 ml-1">Email Address</label>
-            <input
-              type="email"
-              required
-              className="w-full px-4 py-3 bg-white border-2 border-black font-bold focus:outline-none focus:bg-gray-50 transition-all placeholder-gray-400"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white rounded-3xl shadow-md p-10">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-[#202224] mb-2">Login to Account</h1>
+            <p className="text-gray-400 text-sm">Please enter your email and password to continue</p>
           </div>
 
-          <div>
-            <div className="flex justify-between mb-1">
-              <label className="block text-xs font-black uppercase ml-1">Password</label>
+          <form onSubmit={handleLogin} className="space-y-6" noValidate>
+            <div>
+              <label className="block text-sm font-semibold text-[#202224] mb-2">Email address:</label>
+              <input
+                type="email"
+                placeholder="esteban_schiller@gmail.com"
+                className={`w-full px-4 py-3.5 bg-[#F5F6FA] border rounded-xl text-sm text-[#202224] font-medium outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all placeholder-gray-400 ${errors.email ? 'border-red-400' : 'border-gray-100 focus:border-[#4379EE]/30'}`}
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors({ ...errors, email: '' }); }}
+              />
+              {errors.email && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.email}</p>}
             </div>
-            <input
-              type="password"
-              required
-              className="w-full px-4 py-3 bg-white border-2 border-black font-bold focus:outline-none focus:bg-gray-50 transition-all placeholder-gray-400"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-5 py-4 bg-black text-white font-black uppercase tracking-widest hover:bg-gray-800 transition-all active:translate-y-1 active:shadow-none shadow-[4px_4px_0px_0px_rgba(75,85,99,1)] disabled:opacity-50"
-          >
-            {isLoading ? "Authenticating..." : "Sign In"}
-          </button>
-        </form>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-semibold text-[#202224]">Password</label>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••"
+                  className={`w-full px-4 py-3.5 pr-12 bg-[#F5F6FA] border rounded-xl text-sm text-[#202224] font-medium outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all placeholder-gray-400 ${errors.password ? 'border-red-400' : 'border-gray-100 focus:border-[#4379EE]/30'}`}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: '' }); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#202224] transition-colors"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.password}</p>}
+            </div>
 
-        <div className="mt-8 pt-6 border-t-2 border-black flex flex-col items-center gap-2">
-          <p className="text-sm font-bold text-gray-500 uppercase">New Personnel?</p>
-          <button 
-            onClick={() => navigate('/register')} 
-            className="font-black text-black hover:underline underline-offset-4 uppercase"
-          >
-            Create Account
-          </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 text-sm"
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-gray-400">
+            Don't have an account?{' '}
+            <button onClick={() => navigate('/register')}
+              className="text-[#4379EE] font-bold hover:underline">
+              Create Account
+            </button>
+          </p>
         </div>
       </div>
     </div>

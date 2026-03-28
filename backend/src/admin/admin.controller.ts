@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiLogsService } from "src/api-logs/api-logs.service";
+import { AdminGuard } from "src/common/guards/admin.guard";
 import { MailService } from "src/mail/mail.service";
 import { MemberService } from "src/member/member.service";
 import { UserService } from "src/users/users.service";
@@ -8,6 +9,7 @@ import { AuthService } from "../auth/auth.service";
 import { AdminService } from "./admin.service";
 
 @Controller('admin')
+@UseGuards(AdminGuard)
 export class AdminController {
     constructor(
         private readonly adminService: AdminService, 
@@ -19,6 +21,11 @@ export class AdminController {
     @Get('users')
     getAllUsers() {
         return this.adminService.findAllUsers()
+    }
+
+    @Get('users/:id')
+    getUserById(@Param('id', ParseIntPipe) id: number) {
+        return this.adminService.findUserById(id)
     }
 
     @Delete(':id')
