@@ -37,10 +37,17 @@ export class ProductService {
   }
 
   // Edit / Update product
-  async update(id: string, updateData: Partial<Product>): Promise<Product> {
-    const product = await this.findOne(id); // Reuses the check above
-    const updated = Object.assign(product, updateData);
-    return await this.productRepo.save(updated);
+  async update(id: string, updateData: any, file?: Express.Multer.File) {
+    const product = await this.productRepo.findOneBy({ id });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    if (file) {
+      const upload = await this.cloudinaryService.uploadImage(file);
+      updateData.image = upload?.secure_url;
+    }
+    Object.assign(product, updateData);
+    return await this.productRepo.save(product);
   }
 
   // Delete product

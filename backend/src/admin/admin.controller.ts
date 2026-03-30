@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors, HttpCode, HttpStatus } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiLogsService } from "src/api-logs/api-logs.service";
 import { AdminGuard } from "src/common/guards/admin.guard";
@@ -18,13 +18,13 @@ export class AdminController {
     constructor(
         @InjectQueue('user')
         private readonly importQueue: Queue,
-        private readonly adminService: AdminService, 
-        private readonly memberService: MemberService, 
+        private readonly adminService: AdminService,
+        private readonly memberService: MemberService,
         private readonly productService: ProductService,
-        private userSevice: UserService, 
+        private userSevice: UserService,
         private mailService: MailService,
         private apiLogService: ApiLogsService
-        ) { }
+    ) { }
     @Get('users')
     getAllUsers() {
         return this.adminService.findAllUsers()
@@ -80,15 +80,15 @@ export class AdminController {
     }
 
     @Post('users')
-    async createUsers(@Body() body, @Req() req){
+    async createUsers(@Body() body, @Req() req) {
         const admin = req.user
-        const job = await this.importQueue.add('process-job', {users: body.users, adminEmail: admin.email})
+        const job = await this.importQueue.add('process-job', { users: body.users, adminEmail: admin.email })
         console.log(job.id)
-        return { 
+        return {
             message: 'Import started in the background. You will be notified when the report is ready.',
             status: 'processing',
             success: true
-          };
+        };
     }
 
     @Post('products')
@@ -102,7 +102,7 @@ export class AdminController {
     async getAllProducts() {
         try {
             const products = await this.productService.findAll();
-            
+
             return {
                 success: true,
                 count: products.length,
@@ -129,6 +129,22 @@ export class AdminController {
             success: true,
             product,
         };
+    }
+
+    @Delete('products/:id')
+    @HttpCode(HttpStatus.NO_CONTENT) // Returns 204 No Content on success
+    async deleteProduct(@Param('id') id: string) {
+        return await this.productService.remove(id);
+    }
+
+    @Patch(':id')
+    @UseInterceptors(FileInterceptor('file')) // 'file' must match your frontend formData key
+    async updateProduct(
+        @Param('id') id: string,
+        @Body() updateData: any, // Use a DTO here for better validation
+        @UploadedFile() file,
+    ) {
+        return await this.productService.update(id, updateData, file);
     }
 
 }
