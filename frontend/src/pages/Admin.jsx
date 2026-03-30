@@ -87,8 +87,6 @@ const Admin = () => {
       setMembers(allData.filter((user) => user.role === "member"));
     } catch (err) {
       console.log(err);
-      toast.error("Error loading data");
-      setMessage("Error loading data");
     }
   };
 

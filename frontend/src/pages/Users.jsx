@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import Papa from 'papaparse'
 import { FiFilter, FiPlus, FiX, FiChevronDown } from 'react-icons/fi';
 import { LuRotateCcw } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
@@ -26,15 +27,40 @@ const Users = () => {
   const roleRef = useRef(null);
   const sortRef = useRef(null);
 
+  const [isUplaoding, setIsUploading] = useState(false)
+
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
   });
+
+  const handleImport = async (e) => {
+    setIsUploading(true)
+    try {
+      const file = e.target.files[0]
+      console.log(file)
+      Papa.parse(file, { header: true, skipEmptyLines: true, complete: async (result) => {
+        console.log('Sending post request')
+        const {data} = await api.post('/admin/users', {users: result.data})
+        console.log(data)
+        if(data.success){
+          toast.success(data.message)
+        }else{
+          toast.error(data.message)
+        }
+        setIsUploading(false)
+      } })
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsUploading(false)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
       const usersData = await api.get('http://localhost:8000/admin/users')
       console.log(usersData);
-      
+
       const res = await api.get('http://localhost:8000/admin/users', getAuthHeaders());
       setUsers(res.data);
     } catch (err) {
@@ -123,120 +149,87 @@ const Users = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[#202224]">Users List</h1>
-
-        {roleFilter === 'member' && (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-[#4379EE] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-100 hover:bg-[#3768D1] transition-all"
-          >
-            {showAddForm ? <FiX /> : <FiPlus className='text-white' />} {showAddForm ? "Cancel" : "Add Member"}
-          </button>
-        )}
       </div>
 
-      {/* Add member form */}
-      {showAddForm && (
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
-          <h2 className="text-lg font-bold text-[#202224] mb-4">Create New Member</h2>
-          <form onSubmit={handleAddMember} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase ml-1 block mb-1">Full Name</label>
-              <input required type="text" placeholder="John Doe"
-                className="w-full bg-[#F5F6FA] border border-gray-100 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4379EE]/20"
-                value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase ml-1 block mb-1">Email</label>
-              <input required type="email" placeholder="member@gmail.com"
-                className="w-full bg-[#F5F6FA] border border-gray-100 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4379EE]/20"
-                value={newMember.email} onChange={(e) => setNewMember({ ...newMember, email: e.target.value })} />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase ml-1 block mb-1">Password</label>
-              <input required type="password" placeholder="••••••••"
-                className="w-full bg-[#F5F6FA] border border-gray-100 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4379EE]/20"
-                value={newMember.password} onChange={(e) => setNewMember({ ...newMember, password: e.target.value })} />
-            </div>
-            <button disabled={isSubmitting}
-              className="bg-[#00B69B] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#00947e] transition-all disabled:opacity-50">
-              {isSubmitting ? "Creating..." : "Save Member"}
-            </button>
-          </form>
-        </div>
-      )}
-
       {/* ── FILTER BAR ── responsive: stack on mobile, row on desktop */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-6">
-        <div className="flex flex-wrap items-center">
-          {/* Filter icon */}
-          <div className="px-4 sm:px-5 py-3 sm:py-4 text-gray-400 border-r border-gray-100">
-            <FiFilter size={18} />
-          </div>
+      <div className='flex justify-between items-center mb-6'>
 
-          {/* Filter By label */}
-          <div className="px-4 sm:px-5 py-3 sm:py-4 border-r border-gray-100">
-            <span className="text-sm font-semibold text-gray-500">Filter By</span>
-          </div>
+        <div className="bg-white w-fit rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex flex-wrap items-center">
+            {/* Filter icon */}
+            <div className="px-4 sm:px-5 py-3 sm:py-4 text-gray-400 border-r border-gray-100">
+              <FiFilter size={18} />
+            </div>
 
-          {/* Role Dropdown */}
-          <div className="relative" ref={roleRef}>
-            <button
-              onClick={() => { setRoleDropOpen(!roleDropOpen); setSortDropOpen(false); }}
-              className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition-colors border-r border-gray-100"
-            >
-              <span className="truncate">Role{roleFilter !== 'All' && `: ${roleFilter}`}</span>
-              <FiChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${roleDropOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {roleDropOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-[160px] overflow-hidden">
-                {roleOptions.map(opt => (
-                  <button key={opt}
-                    onClick={() => { setRoleFilter(opt); setRoleDropOpen(false); }}
-                    className={`block w-full text-left px-5 py-3 text-sm transition-colors ${
-                      roleFilter === opt
+            {/* Filter By label */}
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-r border-gray-100">
+              <span className="text-sm font-semibold text-gray-500">Filter By</span>
+            </div>
+
+            {/* Role Dropdown */}
+            <div className="relative" ref={roleRef}>
+              <button
+                onClick={() => { setRoleDropOpen(!roleDropOpen); setSortDropOpen(false); }}
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition-colors border-r border-gray-100"
+              >
+                <span className="truncate">Role{roleFilter !== 'All' && `: ${roleFilter}`}</span>
+                <FiChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${roleDropOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {roleDropOpen && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-[160px] overflow-hidden">
+                  {roleOptions.map(opt => (
+                    <button key={opt}
+                      onClick={() => { setRoleFilter(opt); setRoleDropOpen(false); }}
+                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${roleFilter === opt
                         ? 'bg-[#4379EE] text-white font-bold'
                         : 'text-[#202224] hover:bg-gray-50 font-medium'
-                    }`}>
-                    {opt === 'All' ? 'All Roles' : opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                        }`}>
+                      {opt === 'All' ? 'All Roles' : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Sort Dropdown */}
-          <div className="relative" ref={sortRef}>
-            <button
-              onClick={() => { setSortDropOpen(!sortDropOpen); setRoleDropOpen(false); }}
-              className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition-colors border-r border-gray-100"
-            >
-              <span className="truncate">Sort{sortOrder !== 'Default' && `: ${sortOrder}`}</span>
-              <FiChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${sortDropOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {sortDropOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-[160px] overflow-hidden">
-                {sortOptions.map(opt => (
-                  <button key={opt}
-                    onClick={() => { setSortOrder(opt); setSortDropOpen(false); }}
-                    className={`block w-full text-left px-5 py-3 text-sm transition-colors ${
-                      sortOrder === opt
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortRef}>
+              <button
+                onClick={() => { setSortDropOpen(!sortDropOpen); setRoleDropOpen(false); }}
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-semibold text-[#202224] hover:bg-gray-50 transition-colors border-r border-gray-100"
+              >
+                <span className="truncate">Sort{sortOrder !== 'Default' && `: ${sortOrder}`}</span>
+                <FiChevronDown className={`text-gray-400 transition-transform flex-shrink-0 ${sortDropOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {sortDropOpen && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 min-w-[160px] overflow-hidden">
+                  {sortOptions.map(opt => (
+                    <button key={opt}
+                      onClick={() => { setSortOrder(opt); setSortDropOpen(false); }}
+                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${sortOrder === opt
                         ? 'bg-[#4379EE] text-white font-bold'
                         : 'text-[#202224] hover:bg-gray-50 font-medium'
-                    }`}>
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                        }`}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Reset Filter */}
-          <button
-            onClick={resetFilter}
-            className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-bold text-[#F93C65] transition-colors ml-auto"
-          >
-            <LuRotateCcw size={14} /> <span className="hidden sm:inline">Reset Filter</span><span className="sm:hidden">Reset</span>
-          </button>
+            {/* Reset Filter */}
+            <button
+              onClick={resetFilter}
+              className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 text-sm font-bold text-[#F93C65] transition-colors ml-auto"
+            >
+              <LuRotateCcw size={14} /> <span className="hidden sm:inline">Reset Filter</span><span className="sm:hidden">Reset</span>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="bg-[#4379EE] text-white px-4 py-4 text-sm font-bold rounded-lg cursor-pointer shadow-lg hover:scale-110 transition-transform">
+            Import from a CSV
+            <input type="file" className="hidden" accept=".csv" onChange={handleImport} />
+          </label>
         </div>
       </div>
 

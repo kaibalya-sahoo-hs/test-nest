@@ -52,19 +52,16 @@ const UserProfile = () => {
     setIsUploading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:8000/admin/uploadProfile', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: uploadData,
-      });
-      if (res.ok) {
+      const res = await api.post('http://localhost:8000/admin/uploadProfile', uploadData);
+      console.log(res)
+      if (res.data.success) {
         toast.success('Photo updated!');
         fetchUser();
       } else {
         toast.error('Upload failed');
       }
-    } catch {
-      toast.error('Server error during upload');
+    } catch(error) {
+      console.log(error)
     } finally {
       setIsUploading(false);
     }
@@ -78,16 +75,9 @@ const UserProfile = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:8000/admin/edit', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          id: user.id,
-          updatedCredentials: { name: formData.name, role: formData.role }
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const res = await api.patch('http://localhost:8000/admin/edit', {id: user.id,
+      updatedCredentials: { name: formData.name }})
+      if (res.data.success) {
         toast.success('User updated successfully');
         setIsEditing(false);
         fetchUser();
@@ -105,11 +95,7 @@ const UserProfile = () => {
     setIsSendingMail(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:8000/admin/send-mail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: user.name, email: user.email, registartionToken: user.registartionToken }),
-      });
+      const res = await axios.post('http://localhost:8000/admin/send-mail', { name: user.name, email: user.email, registartionToken: user.registartionToken });
       if (res.ok) toast.success('Invite sent!');
       else toast.error('Failed to send mail');
     } catch {
@@ -253,7 +239,7 @@ const UserProfile = () => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm font-medium text-[#202224] outline-none focus:ring-2 focus:ring-[#4379EE]/20 focus:border-[#4379EE]/30 transition-all appearance-none cursor-pointer"
+                    className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm font-medium text-[#202224] outline-none focus:ring-2 focus:ring-[#4379EE]/20 focus:border-[#4379EE]/30 transition-all cursor-pointer"
                   >
                     <option value="guest">Guest</option>
                     <option value="member">Member</option>

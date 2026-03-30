@@ -1,0 +1,7 @@
+"id","name","email","password","registartionToken","profile","role","result"
+"1","Alice Johnson","alice.j@example.com","$2b$10$ExmplPass1","tok_88221","https://api.dicebear.com/7.x/avataaars/svg?seed=Alice","member","user created successfully"
+"2","Bob Smith","bob.smith99@provider.net","$2b$10$ExmplPass2","","https://api.dicebear.com/7.x/avataaars/svg?seed=Bob","guest","user created successfully"
+"3","Charlie Davis","charlie.d@startup.io","$2b$10$ExmplPass3","tok_99102","","member","user created successfully"
+"4","Diana Prince","diana.p@webmail.com","$2b$10$ExmplPass4","","","guest","user created successfully"
+"5","Ethan Hunt","mission.ethan@imf.org","$2b$10$ExmplPass5","tok_00721","https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan","member","user created successfully"
+"6","Fiona Gallagher","fiona.g@southside.com","$2b$10$ExmplPass6","","","guest","user created successfully"

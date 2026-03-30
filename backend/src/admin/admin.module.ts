@@ -14,16 +14,23 @@ import { UsersModule } from 'src/users/users.module';
 import { UserService } from 'src/users/users.service';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
+import { BullModule } from '@nestjs/bull';
+import { ProcesUser } from './admin.processes';
+import { ProductModule } from 'src/product/product.module';
+import { Product } from 'src/product/product.entity';
+
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Member, ApiLog]),
+        TypeOrmModule.forFeature([User, Member, ApiLog, Product]),
+        BullModule.registerQueue({name: 'user'}),
+        ProductModule,
         UsersModule ,
         MembersModule, 
         CloudinaryModule, 
         MailModule, 
         ApiLogsModule],
-    providers: [AdminService],
+    providers: [AdminService, ProcesUser],
     controllers: [AdminController],
     exports: [AdminService]
 })

@@ -48,6 +48,7 @@ export class UserService{
 
     async uploadProfilePhoto(id: number, file: Express.Multer.File){
         try {
+            console.log(id, file)
             const result = await this.cloudinarySevice.uploadImage(file)
             const user = await this.userRepo.findOneBy({ id })
             if (user && result && result.url) {

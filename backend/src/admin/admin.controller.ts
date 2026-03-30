@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiLogsService } from "src/api-logs/api-logs.service";
 import { AdminGuard } from "src/common/guards/admin.guard";
@@ -7,13 +7,20 @@ import { MemberService } from "src/member/member.service";
 import { UserService } from "src/users/users.service";
 import { AuthService } from "../auth/auth.service";
 import { AdminService } from "./admin.service";
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bullmq';
+import { ProductService } from "src/product/product.service";
+import { Product } from "src/product/product.entity";
 
 @Controller('admin')
 @UseGuards(AdminGuard)
 export class AdminController {
     constructor(
+        @InjectQueue('user')
+        private readonly importQueue: Queue,
         private readonly adminService: AdminService, 
         private readonly memberService: MemberService, 
+        private readonly productService: ProductService,
         private userSevice: UserService, 
         private mailService: MailService,
         private apiLogService: ApiLogsService
@@ -70,6 +77,58 @@ export class AdminController {
     @Get('apilogs')
     async getApiLogs() {
         return this.apiLogService.getAllLogs()
+    }
+
+    @Post('users')
+    async createUsers(@Body() body, @Req() req){
+        const admin = req.user
+        const job = await this.importQueue.add('process-job', {users: body.users, adminEmail: admin.email})
+        console.log(job.id)
+        return { 
+            message: 'Import started in the background. You will be notified when the report is ready.',
+            status: 'processing',
+            success: true
+          };
+    }
+
+    @Post('products')
+    @UseInterceptors(FileInterceptor('file'))
+    async adminCreateProduct(@Body() data: Partial<Product>, @UploadedFile() file: Express.Multer.File) {
+        console.log(file)
+        return await this.productService.create(data, file);
+    }
+
+    @Get('products')
+    async getAllProducts() {
+        try {
+            const products = await this.productService.findAll();
+            
+            return {
+                success: true,
+                count: products.length,
+                data: products,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: 'Failed to fetch products',
+                error: error.message,
+            };
+        }
+    }
+
+    @Get('products/:id')
+    async getProductById(@Param('id') id: string) {
+        const product = await this.productService.findOne(id);
+
+        if (!product) {
+            throw new NotFoundException(`Product with ID ${id} not found`);
+        }
+
+        return {
+            success: true,
+            product,
+        };
     }
 
 }

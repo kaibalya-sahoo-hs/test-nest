@@ -108,13 +108,6 @@ function CompleteRegistration() {
               {isLoading ? "Setting up..." : "Finalize Account"}
             </button>
           </form>
-
-          <p className="mt-8 text-center text-sm text-gray-400">
-            <button onClick={() => navigate('/login')}
-              className="text-[#4379EE] font-bold hover:underline">
-              Back to Login
-            </button>
-          </p>
         </div>
       </div>
     </div>

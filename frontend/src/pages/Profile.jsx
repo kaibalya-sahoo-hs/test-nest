@@ -51,11 +51,9 @@ const Profile = () => {
 
     setIsUploading(true);
     try {
-      const res = await fetch('http://localhost:8000/users/profile/upload', {
-        method: 'POST',
-        body: uploadData,
-      });
-      if (res.ok) {
+      const res = await api.post('http://localhost:8000/users/profile/upload', uploadData);
+      console.log(res)
+      if (res.data.success) {
         toast.success('Photo updated!');
         fetchUser();
         // Update localStorage so navbar reflects new photo
@@ -66,8 +64,8 @@ const Profile = () => {
       } else {
         toast.error('Upload failed');
       }
-    } catch {
-      toast.error('Server error during upload');
+    } catch(error) {
+      console.log(error)
     } finally {
       setIsUploading(false);
     }
@@ -80,16 +78,9 @@ const Profile = () => {
     }
     setIsSaving(true);
     try {
-      const res = await fetch('http://localhost:8000/users/profile/update', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: user.id,
-          updatedCredentials: { name: formData.name }
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const res = await api.patch('http://localhost:8000/users/profile/update', {id: user.id,
+      updatedCredentials: { name: formData.name }})
+      if (res.data.success) {
         toast.success('Profile updated!');
         setIsEditing(false);
         fetchUser();
@@ -98,6 +89,7 @@ const Profile = () => {
         stored.name = formData.name;
         localStorage.setItem('user', JSON.stringify(stored));
       } else {
+        console.log(data)
         toast.error(data.message || 'Update failed');
       }
     } catch {
@@ -189,11 +181,11 @@ const Profile = () => {
                       <FiCamera className="text-gray-400 group-hover:text-[#4379EE] transition-colors" size={24} />
                     )}
                   </div>
+                  <p className="text-sm text-[#4379EE] font-medium mt-2">
+                    {isUploading ? 'Uploading...' : 'Upload Photo'}
+                  </p>
                   <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploading} />
                 </label>
-                <p className="text-sm text-[#4379EE] font-medium mt-2">
-                  {isUploading ? 'Uploading...' : 'Upload Photo'}
-                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

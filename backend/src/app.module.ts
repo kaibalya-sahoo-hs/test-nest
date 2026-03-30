@@ -18,10 +18,16 @@ import { ApiLog } from './api-logs/api-logs.entity';
 import { User } from './users/users.entity';
 import { redisStore } from 'cache-manager-redis-yet'
 import { CacheModule } from "@nestjs/cache-manager"
+import { BullModule } from '@nestjs/bull';
+import { ProductModule } from './product/product.module';
+import { Product } from './product/product.entity';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    BullModule.forRoot({redis: {host: 'localhost', port: 6379}}),
+    BullModule.registerQueue({name: 'user'}),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
@@ -36,7 +42,7 @@ import { CacheModule } from "@nestjs/cache-manager"
           })
       })
   }),
-    TypeOrmModule.forFeature([User ,ApiLog]),
+    TypeOrmModule.forFeature([User ,ApiLog, Product]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -55,6 +61,7 @@ import { CacheModule } from "@nestjs/cache-manager"
     CloudinaryModule,
     AdminModule,
     ApiLogsModule,
+    ProductModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService],

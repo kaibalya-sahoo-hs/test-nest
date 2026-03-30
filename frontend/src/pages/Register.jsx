@@ -104,7 +104,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 text-sm"
+              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 text-sm cursor-pointer"
             >
               {isLoading ? "Processing..." : "Create Account"}
             </button>
@@ -113,7 +113,7 @@ const Register = () => {
           <p className="mt-8 text-center text-sm text-gray-400">
             Already have an account?{' '}
             <button onClick={() => navigate('/login')}
-              className="text-[#4379EE] font-bold hover:underline">
+              className="text-[#4379EE] font-bold hover:underline cursor-pointer">
               Sign In
             </button>
           </p>

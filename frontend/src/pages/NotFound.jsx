@@ -22,15 +22,6 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)' }}>
 
-      {/* Background decorative shapes */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -left-20 w-80 h-80 bg-white/5 rounded-full"></div>
-        <div className="absolute top-1/4 -right-16 w-64 h-64 bg-white/5 rounded-3xl rotate-45"></div>
-        <div className="absolute -bottom-10 left-1/4 w-96 h-96 bg-white/5 rounded-full"></div>
-        <div className="absolute top-10 right-1/3 w-32 h-32 bg-white/5 rounded-2xl rotate-12"></div>
-        <div className="absolute bottom-1/4 -left-8 w-48 h-48 bg-white/5 rounded-3xl -rotate-12"></div>
-      </div>
-
       <div className="relative z-10 w-full max-w-md mx-4">
         <div className="bg-white rounded-3xl shadow-2xl p-10 text-center">
 

@@ -126,7 +126,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 text-sm"
+              className="w-full py-3.5 bg-[#4379EE] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50 text-sm cursor-pointer  "
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
@@ -135,7 +135,7 @@ const Login = () => {
           <p className="mt-8 text-center text-sm text-gray-400">
             Don't have an account?{' '}
             <button onClick={() => navigate('/register')}
-              className="text-[#4379EE] font-bold hover:underline">
+              className="text-[#4379EE] font-bold hover:underline cursor-pointer">
               Create Account
             </button>
           </p>

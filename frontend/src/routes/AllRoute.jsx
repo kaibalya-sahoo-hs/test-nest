@@ -16,6 +16,7 @@ import Users from "../pages/Users";
 import UserProfile from "../pages/UserProfile";
 import CompleteRegistration from "../pages/CompleteRegistartion";
 import NotFound from "../pages/NotFound";
+import ProductPage from "../pages/ProductPage";
 
 function AllRoute() {
   return (
@@ -39,6 +40,7 @@ function AllRoute() {
           <Route path="/admin/stock" element={<AdminRoute><ProductStock /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><UserProfile /></AdminRoute>} />
+          <Route path="/admin/products/:id" element={<AdminRoute><ProductPage /></AdminRoute>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

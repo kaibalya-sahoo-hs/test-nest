@@ -23,4 +23,26 @@ export class MailService {
             return {success: false}
         }
     }
+    async sendCSVReport(adminEmail: string, csvContent: string, jobId: string | number) {
+        try {
+            await this.mailerService.sendMail({
+                to: adminEmail,
+                subject: `User Import Report - Job #${jobId}`,
+                // We use 'text' or 'html' instead of 'template' for simple reports
+                html: `
+                    <h3>Import Process Completed</h3>
+                `,
+                attachments: [
+                    {
+                        filename: `import_report_${jobId}.csv`,
+                        content: csvContent,
+                    },
+                ],
+            });
+            return { success: true };
+        } catch (error) {
+            console.error('CSV Mail Error:', error);
+            return { success: false };
+        }
+    }
 }
