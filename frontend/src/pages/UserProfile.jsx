@@ -95,7 +95,7 @@ const UserProfile = () => {
     setIsSendingMail(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await axios.post('http://localhost:8000/admin/send-mail', { name: user.name, email: user.email, registartionToken: user.registartionToken });
+      const res = await api.post('http://localhost:8000/admin/send-mail', { name: user.name, email: user.email, registartionToken: user.registartionToken });
       if (res.ok) toast.success('Invite sent!');
       else toast.error('Failed to send mail');
     } catch {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Nav from "../components/Nav";
 import AdminRoute from "../components/AdminRoute";
 import Admin from "../pages/Admin";
@@ -17,6 +17,8 @@ import UserProfile from "../pages/UserProfile";
 import CompleteRegistration from "../pages/CompleteRegistartion";
 import NotFound from "../pages/NotFound";
 import ProductPage from "../pages/ProductPage";
+import Index from "../pages/Index";
+import CartPage from "../pages/CartPage";
 
 function AllRoute() {
   return (
@@ -24,6 +26,7 @@ function AllRoute() {
       <Toaster />
 
       <Routes>
+      <Route path="/" element={<Navigate to={'/products'}/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -31,6 +34,7 @@ function AllRoute() {
           element={<CompleteRegistration />}
         />
         <Route element={<Nav />}>
+          <Route path="/products" element={<Index />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/admin/apilogs" element={<AdminRoute><ApiLogs /></AdminRoute>} />
@@ -40,7 +44,8 @@ function AllRoute() {
           <Route path="/admin/stock" element={<AdminRoute><ProductStock /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><UserProfile /></AdminRoute>} />
-          <Route path="/admin/products/:id" element={<AdminRoute><ProductPage /></AdminRoute>} />
+          <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage/>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

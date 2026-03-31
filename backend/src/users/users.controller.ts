@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { AuthGuard } from "src/common/guards/auth.guard";
 import { UserService } from "./users.service";
 
 @Controller("users")
@@ -22,6 +23,7 @@ export class UserController{
 
   // Self-service: get own profile by ID
   @Get('profile/:id')
+  @UseGuards(AuthGuard)
   getProfile(@Param('id') id: number){
     return this.userService.findById(id)
   }

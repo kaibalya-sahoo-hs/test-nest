@@ -115,10 +115,10 @@ export class AuthService {
             return { message: "Wrong Password", success: false }
         }
 
-        const payload = { user: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role };
+        const payload = { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role };
 
-        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '5m' });
-        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '15m' });
+        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '5s' });
+        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '1h' });
 
         return {
             message: "Login successful",
@@ -144,7 +144,7 @@ export class AuthService {
                 return { message: "User not found", success: false };
             }
 
-            const newPayload = { user: user.id, email: user.email, name: user.name, role: user.role };
+            const newPayload = { id: user.id, email: user.email, name: user.name, role: user.role };
             const newAccessToken = await this.JwtService.signAsync(newPayload, { expiresIn: '5m' });
             const newRefreshToken = await this.JwtService.signAsync({ ...newPayload, type: 'refresh' }, { expiresIn: '15m' });
 

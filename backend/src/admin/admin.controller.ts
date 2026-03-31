@@ -11,6 +11,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bullmq';
 import { ProductService } from "src/product/product.service";
 import { Product } from "src/product/product.entity";
+import { CouponsService } from "src/coupon/coupon.service";
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -23,7 +24,8 @@ export class AdminController {
         private readonly productService: ProductService,
         private userSevice: UserService,
         private mailService: MailService,
-        private apiLogService: ApiLogsService
+        private apiLogService: ApiLogsService,
+        private couponsService: CouponsService
     ) { }
     @Get('users')
     getAllUsers() {
@@ -137,7 +139,7 @@ export class AdminController {
         return await this.productService.remove(id);
     }
 
-    @Patch(':id')
+    @Patch('products/:id')
     @UseInterceptors(FileInterceptor('file')) // 'file' must match your frontend formData key
     async updateProduct(
         @Param('id') id: string,
@@ -147,4 +149,9 @@ export class AdminController {
         return await this.productService.update(id, updateData, file);
     }
 
+
+    @Post('coupon')
+    async create(@Body() coupon) {
+        return await this.couponsService.create(coupon);
+    }
 }

@@ -18,6 +18,7 @@ import { BullModule } from '@nestjs/bull';
 import { ProcesUser } from './admin.processes';
 import { ProductModule } from 'src/product/product.module';
 import { Product } from 'src/product/product.entity';
+import { CouponModule } from 'src/coupon/coupon.module';
 
 
 @Module({
@@ -29,6 +30,7 @@ import { Product } from 'src/product/product.entity';
         MembersModule, 
         CloudinaryModule, 
         MailModule, 
+        CouponModule,
         ApiLogsModule],
     providers: [AdminService, ProcesUser],
     controllers: [AdminController],

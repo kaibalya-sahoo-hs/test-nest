@@ -21,6 +21,8 @@ import { CacheModule } from "@nestjs/cache-manager"
 import { BullModule } from '@nestjs/bull';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/product.entity';
+import { CartModule } from './cart/cart.module';
+import { CouponModule } from './coupon/coupon.module';
 
 
 @Module({
@@ -42,7 +44,7 @@ import { Product } from './product/product.entity';
           })
       })
   }),
-    TypeOrmModule.forFeature([User ,ApiLog, Product]),
+    TypeOrmModule.forFeature([User ,ApiLog, Product, CartModule]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -62,6 +64,8 @@ import { Product } from './product/product.entity';
     AdminModule,
     ApiLogsModule,
     ProductModule,
+    CartModule,
+    CouponModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService],

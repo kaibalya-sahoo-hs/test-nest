@@ -21,12 +21,10 @@ function Nav() {
   const isAdmin = user?.role === 'admin';
   const roleBadge = isAdmin ? 'Admin' : 'Member';
 
-  // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -86,19 +84,25 @@ function Nav() {
     { path: '/admin/products', label: 'Products' },
     { path: '/admin/users', label: 'Users' },
     { path: '/admin/favourites', label: 'Favourites' },
-    { path: '/profile', label: 'Profile',},
+    { path: '/profile', label: 'Profile', },
   ];
 
+  const publicLinks = [
+    { path: '/products', label: 'Products' }, // Change icon as needed
+  ];
   const userLinks = [
-    { path: '/profile', label: 'My Profile' },
+    { path: '/profile', label: 'My Profile' },...publicLinks, { path: '/cart', label: 'Cart' }
   ];
 
-  const navLinks = isAdmin ? adminLinks : userLinks;
 
+  let navLinks = [];
+  if (user) {
+    navLinks = isAdmin ? adminLinks: userLinks
+  }
   return (
     <div className="min-h-screen bg-[#F5F6FA]">
       {/* --- TOP NAVBAR --- */}
-      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-[100]">
+      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
         <div className="flex items-center gap-3">
           {/* Hamburger Button — visible on mobile/tablet only */}
           <button
@@ -140,7 +144,7 @@ function Nav() {
             </div>
 
             {/* Profile Info + Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            {user ? <div className="relative" ref={dropdownRef}>
               <div
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100 cursor-pointer group"
@@ -185,7 +189,13 @@ function Nav() {
                   </button>
                 </div>
               )}
-            </div>
+            </div> : <button
+              onClick={() => navigate('/login')}
+              className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+            >
+              Login
+            </button>}
+
           </div>
         </div>
       </nav>
@@ -200,7 +210,7 @@ function Nav() {
         )}
 
         {/* --- SIDEBAR --- */}
-        <aside
+        {user && <aside
           ref={sidebarRef}
           className={`
             w-64 flex flex-col fixed top-16 bottom-0 bg-white border-r border-gray-100 z-40
@@ -228,10 +238,9 @@ function Nav() {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${
-                      isActive
-                        ? 'bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100'
-                        : 'text-[#202224] hover:bg-gray-100 font-light'
+                    `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${isActive
+                      ? 'bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100'
+                      : 'text-[#202224] hover:bg-gray-100 font-light'
                     }`
                   }
                 >
@@ -250,7 +259,7 @@ function Nav() {
           </nav>
 
           {/* --- SIDEBAR FOOTER --- */}
-          <div className="mt-auto pb-6 border-t border-gray-50 pt-4 px-4">
+          {user && <div className="mt-auto pb-6 border-t border-gray-50 pt-4 px-4">
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-6 py-3 text-[#202224] hover:bg-red-50 hover:text-[#F93C65] transition-all rounded-lg group font-medium"
@@ -258,11 +267,11 @@ function Nav() {
               <LuLogOut className="text-lg group-hover:text-[#F93C65]" />
               <span className="text-[14px]">Logout</span>
             </button>
-          </div>
-        </aside>
+          </div>}
+        </aside>}
 
         {/* --- MAIN CONTENT AREA --- */}
-        <main className="flex-1 lg:ml-64 min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300">
+        <main className={`flex-1 ${user && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}>
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

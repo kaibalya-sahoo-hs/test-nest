@@ -49,7 +49,6 @@ function Products() {
   };
 
   useEffect(() => {
-    // 1. Define the async function inside useEffect
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -197,7 +196,7 @@ function Products() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
           {products.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group cursor-pointer" onClick={() => navigate(`/admin/products/${item.id}`)}>
+            <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group cursor-pointer" onClick={() => navigate(`/products/${item.id}`)}>
               {/* Product Image & Inner Arrows */}
               <div className="relative flex justify-center items-center mb-6">
                 <button className="absolute left-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">

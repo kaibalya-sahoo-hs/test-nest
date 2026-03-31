@@ -3,19 +3,26 @@ import { useParams, useNavigate } from 'react-router';
 import { FaAngleLeft, FaStar, FaShoppingCart, FaArrowLeft } from 'react-icons/fa';
 import { CiHeart } from "react-icons/ci";
 import api from "../utils/api";
+import { useCart } from '../context/CartContext';
+import toast from 'react-hot-toast';
 
 function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const {addToCart} = useCart()
+
+  const handleAddtoCart = async (id) => {
+    const data = await addToCart(id)
+    toast.success("Item added to the cart")
+  }
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`http://localhost:8000/admin/products/${id}`);
+        const response = await api.get(`http://localhost:8000/products/${id}`);
         console.log(response)
         if (response.data.success) {
           setProduct(response.data.product);
@@ -38,10 +45,10 @@ function ProductPage() {
       <div className="flex items-center mb-8">
         <button 
           onClick={() => navigate(-1)} 
-          className="flex items-center gap-2 text-[#202224] font-bold hover:text-[#4379EE] transition-colors "
+          className="flex items-center gap-2 text-[#202224] font-bold hover:text-[#4379EE] transition-colors cursor-pointer"
         >
           <FaArrowLeft className='font-light rounded-lg' />
-          <span>
+          <span className='flex items-center'>
           Back to Products
           </span>
         </button>
@@ -49,8 +56,6 @@ function ProductPage() {
 
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex flex-col md:flex-row">
-          
-          {/* Left: Image Section */}
           <div className="md:w-1/2 bg-[#F9FAFB] flex items-center justify-center p-8 border-r border-gray-50">
             <img 
               src={product.image || "https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"} 
@@ -94,6 +99,9 @@ function ProductPage() {
               <p className="text-gray-500 leading-relaxed">
                 {product.description || "No description provided for this product. High-quality build and sleek design guaranteed."}
               </p>
+            </div>
+            <div>
+              <button className='bg-blue-500 px-4 py-2 rounded-lg text-sm text-white cursor-pointer' onClick={() => handleAddtoCart(product.id)}>Add to cart</button>
             </div>
           </div>
         </div>
