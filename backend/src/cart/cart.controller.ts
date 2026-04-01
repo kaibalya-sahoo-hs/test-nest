@@ -9,14 +9,14 @@ import {
   ParseIntPipe,
   UseGuards,
   Query,
-  Patch
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { CartService } from './cart.service';
 
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) { }
+  constructor(private readonly cartService: CartService) {}
   @Get()
   @UseGuards(AuthGuard)
   async viewCart(@Req() req, @Query('coupon') couponCode?: string) {
@@ -28,33 +28,35 @@ export class CartController {
   async addToCart(
     @Req() req,
     @Body('productId') productId: string, // Match your Entity type (string/uuid)
-    @Body('quantity') quantity?: number
+    @Body('quantity') quantity?: number,
   ) {
     const userId = req.user.id;
-    console.log(userId)
+    console.log(userId);
     return await this.cartService.addToCart(userId, productId, quantity || 1);
   }
   @Delete(':id')
   @UseGuards(AuthGuard)
-  async removeItem(
-    @Req() req,
-    @Param('id') cartItemId: string
-  ) {
+  async removeItem(@Req() req, @Param('id') cartItemId: string) {
     const userId = req.user.id;
     await this.cartService.removeItemByProduct(userId, cartItemId);
-    return { message: 'Item removed from cart' };
+    return { message: 'Item removed from cart', success: true };
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @UseGuards(AuthGuard)
   async updateQuantity(
     @Req() req,
     @Param('id') cartItemId: string,
     @Body('quantity') quantity: number,
-    @Body('coupon') coupon?: string
+    @Body('coupon') coupon?: string,
   ) {
     const userId = req.user.id;
-    return await this.cartService.updateQuantityByProduct(userId, cartItemId, quantity, coupon || '');
+    return await this.cartService.updateQuantityByProduct(
+      userId,
+      cartItemId,
+      quantity,
+      coupon || '',
+    );
   }
 
   @Post('sync')

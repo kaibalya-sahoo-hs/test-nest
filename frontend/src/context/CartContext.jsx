@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../utils/api';
-import toast from 'react-hot-toast';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import api from "../utils/api";
+import toast from "react-hot-toast";
 
 const CartContext = createContext();
 
@@ -16,12 +16,12 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   // Helper: Get the latest user from storage (avoids stale closures)
-  const getUser = () => JSON.parse(localStorage.getItem('user'));
+  const getUser = () => JSON.parse(localStorage.getItem("user"));
 
   // Helper: Calculate totals for Guest Mode locally
   const calculateGuestTotals = (items) => {
     const subTotal = items.reduce((acc, item) => {
-      return acc + (Number(item.price || item.product?.price) * item.quantity);
+      return acc + Number(item.price || item.product?.price) * item.quantity;
     }, 0);
     return {
       items,
@@ -33,7 +33,7 @@ export const CartProvider = ({ children }) => {
   };
 
   // 1. FETCH CART
-  const fetchCart = async (coupon = '') => {
+  const fetchCart = async (coupon = "") => {
     const user = getUser();
     if (!user) return;
 
@@ -54,7 +54,7 @@ export const CartProvider = ({ children }) => {
     const user = getUser();
     if (user) {
       try {
-        const res = await api.post('/cart/add', { productId: product.id });
+        const res = await api.post("/cart/add", { productId: product.id });
         setCart(res.data);
       } catch (err) {
         toast.error("Failed to add to cart");
@@ -69,51 +69,57 @@ export const CartProvider = ({ children }) => {
       } else {
         newItems.push({
           product: { ...product }, // Wrap it!
-          quantity: 1
+          quantity: 1,
         });
       }
 
       const guestState = calculateGuestTotals(newItems);
-      console.log("Guest State", guestState)
+      console.log("Guest State", guestState);
       setCart(guestState);
-      localStorage.setItem('cart', JSON.stringify(guestState));
+      localStorage.setItem("cart", JSON.stringify(guestState));
       toast.success("Added to guest cart");
     }
   };
 
   // 3. UPDATE QUANTITY
   const updateQuantity = async (productId, newQuantity, coupon) => {
-    console.log("Product id", productId)
+    console.log("Product id", productId);
     if (newQuantity < 1) return;
     const user = getUser();
 
     if (user) {
       try {
-        const res = await api.patch(`/cart/${productId}`, { quantity: newQuantity, coupon });
+        const res = await api.patch(`/cart/${productId}`, {
+          quantity: newQuantity,
+          coupon,
+        });
         setCart(res.data);
       } catch (err) {
         toast.error("Update failed");
       }
     } else {
-      console.log("Called")
-      const newItems = cart.items.map((item) =>{
-        console.log(item)
-        return item.product.id === productId ? { ...item, quantity: newQuantity } : item
+      console.log("Called");
+      const newItems = cart.items.map((item) => {
+        console.log(item);
+        return item.product.id === productId
+          ? { ...item, quantity: newQuantity }
+          : item;
       });
       const guestState = calculateGuestTotals(newItems);
       setCart(guestState);
-      localStorage.setItem('cart', JSON.stringify(guestState));
+      localStorage.setItem("cart", JSON.stringify(guestState));
     }
   };
 
   // 4. REMOVE ITEM
-  const removeItem = async (productId) => {
+  const removeItem = async (productId, coupon) => {
     const user = getUser();
     if (user) {
       try {
         const res = await api.delete(`/cart/${productId}`);
         setCart(res.data);
         toast.success("Item removed");
+        fetchCart(coupon);
       } catch (err) {
         toast.error("Removal failed");
       }
@@ -121,24 +127,24 @@ export const CartProvider = ({ children }) => {
       const newItems = cart.items.filter((item) => item.id !== productId);
       const guestState = calculateGuestTotals(newItems);
       setCart(guestState);
-      localStorage.setItem('cart', JSON.stringify(guestState));
+      localStorage.setItem("cart", JSON.stringify(guestState));
     }
   };
 
   // 5. SYNC GUEST CART TO SERVER (Call this on Login)
   const syncCartWithServer = async () => {
-    const saved = localStorage.getItem('cart');
+    const saved = localStorage.getItem("cart");
     const localCart = saved ? JSON.parse(saved) : null;
-    const itemsToSync = localCart.items.map(item => ({
+    const itemsToSync = localCart.items.map((item) => ({
       id: item.product.id,
-      quantity: item.quantity
+      quantity: item.quantity,
     }));
     if (localCart && localCart.items.length > 0) {
       try {
-        const res = await api.post('/cart/sync', { items: itemsToSync });
-        console.log("synced data", res.data)
+        const res = await api.post("/cart/sync", { items: itemsToSync });
+        console.log("synced data", res.data);
         setCart(res.data);
-        localStorage.removeItem('cart');
+        localStorage.removeItem("cart");
         toast.success("Guest items synced!");
       } catch (err) {
         console.error("Sync Error:", err);
@@ -152,7 +158,7 @@ export const CartProvider = ({ children }) => {
     if (user) {
       fetchCart();
     } else {
-      const saved = localStorage.getItem('cart');
+      const saved = localStorage.getItem("cart");
       if (saved) {
         setCart(JSON.parse(saved));
       }
