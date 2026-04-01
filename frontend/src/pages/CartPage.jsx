@@ -1,5 +1,5 @@
 // src/pages/CartPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiTag } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
@@ -9,139 +9,174 @@ const CartPage = () => {
   const { cart, fetchCart, updateQuantity, removeItem } = useCart();
   const [couponInput, setCouponInput] = useState('');
   const [isApplying, setIsApplying] = useState(false);
-  const navigate = useNavigate()
-  // Re-fetch cart with coupon whenever user applies it
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'))
+
+
   const handleApplyCoupon = async () => {
     if (couponInput.trim() === "") {
-      toast.error("Empty fields are not allowed")
-      return
+      toast.error("Please enter a coupon code");
+      return;
     };
     setIsApplying(true);
-    const data = await fetchCart(couponInput);
-    setIsApplying(false);
-    console.log(data)
-    if(data.appliedCoupon){
-      toast.success("Coupon applied")
-    }else{
-      toast.error("Coupon not applied")
+    try {
+      const data = await fetchCart(couponInput);
+      console.log(data)
+      if (data && data.appliedCoupon) {
+        toast.success(`Coupon "${data.appliedCoupon}" applied!`);
+      } else {
+        toast.error("Invalid or expired coupon");
+      }
+    } catch (err) {
+      toast.error("Error applying coupon");
+    } finally {
+      setIsApplying(false);
     }
   };
 
-  if (cart.items.length === 0) {
+  if (!cart.items || cart.items.length === 0) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-4">
-        <div className="bg-blue-50 p-6 rounded-full mb-4">
-          <FiShoppingBag size={48} className="text-blue-500" />
+        <div className="bg-blue-50 p-6 rounded-full mb-4 shadow-inner">
+          <FiShoppingBag size={48} className="text-[#4379EE]" />
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Your cart is empty</h2>
-        <p className="text-gray-500 mt-2">Looks like you haven't added anything yet.</p>
-        <button className="mt-6 px-8 py-3 bg-[#4379EE] text-white rounded-xl font-bold hover:bg-blue-600 transition-all" onClick={() => navigate('/products')}>
-          Start Shopping
+        <p className="text-gray-500 mt-2">Explore our products and add something to your cart!</p>
+        <button
+          className="mt-6 px-8 py-3 bg-[#4379EE] text-white rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-100"
+          onClick={() => navigate('/products')}
+        >
+          Browse Products
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl sm:px-6 lg:px-8 min-h-screen">
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Shopping Cart ({cart.items.length})</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="text-3xl font-extrabold text-[#202224] mb-8 flex items-center gap-3">
+        Shopping Cart
+        <span className="text-sm bg-blue-100 text-[#4379EE] px-3 py-1 rounded-full">
+          {cart.items && cart.items.length} Items
+        </span>
+      </h1>
 
-      <div className="grid grid-cols-1 gap-8 items-start">
-        
-        {/* Left Side: Cart Items */}
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-10 items-start">
+        <div className=" space-y-4">
           {cart.items.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6">
-              {/* Product Image */}
-              <div className="w-24 h-24 bg-gray-100 rounded-2xl overflow-hidden flex-shrink-0">
-                <img 
-                  src={item.product.image || 'https://via.placeholder.com/150'} 
-                  alt={item.product.name} 
-                  className="w-full h-full object-cover"
+            // IMPORTANT: use item.product.id for the key if it's unique
+            <div key={item.product?.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:border-blue-200 transition-colors">
+
+              {/* Product Image - Mapping to item.product */}
+              <div className="w-24 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-50">
+                <img
+                  src={item.product?.image}
+                  alt={item.product?.name}
+                  className="w-full h-full object-cover mix-blend-multiply"
                 />
               </div>
 
               {/* Product Info */}
               <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-lg font-bold text-gray-800">{item.product.name}</h3>
-                <p className="text-sm text-gray-400 mb-2">Unit Price: ${item.product.price}</p>
-                <p className="text-[#4379EE] font-bold text-lg">${(item.product.price * item.quantity).toFixed(2)}</p>
+                <h3 className="text-lg font-bold text-[#202224]">{item.product?.name}</h3>
+                <p className="text-xs text-gray-400 mb-2 font-medium">Product ID: {item.product?.id?.slice(0, 8)}...</p>
+                <div className="flex items-center justify-center sm:justify-start gap-3">
+                  <span className="text-gray-400 line-through text-sm">${(Number(item.product?.price) * 1.2).toFixed(2)}</span>
+                  <span className="text-[#4379EE] font-extrabold text-xl">${Number(item.product?.price).toFixed(2)}</span>
+                </div>
               </div>
 
-              {/* Quantity Selector */}
-              <div className="flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-100">
-                <button 
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-gray-500"
+              {/* Quantity Selector - Uses item.product.id */}
+              <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
+                <button
+                  onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput)}
+                  className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 disabled:opacity-30"
+                  disabled={item.quantity <= 1}
                 >
-                  <FiMinus size={18} />
+                  <FiMinus size={16} />
                 </button>
-                <span className="px-4 font-bold text-gray-700 min-w-[40px] text-center">{item.quantity}</span>
-                <button 
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-gray-500"
+                <span className="px-4 font-bold text-[#202224] min-w-[40px] text-center">{item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput)}
+                  className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500"
                 >
-                  <FiPlus size={18} />
+                  <FiPlus size={16} />
                 </button>
               </div>
 
-              {/* Remove Button */}
-              <button 
-                onClick={() => removeItem(item.id)}
-                className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+              {/* Remove Button - Uses item.product.id */}
+              <button
+                onClick={() => removeItem(item.product.id)}
+                className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
               >
-                <FiTrash2 size={22} />
+                <FiTrash2 size={20} />
               </button>
             </div>
           ))}
         </div>
 
-        {/* Right Side: Order Summary */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-8 shadow-md border border-gray-50 sticky top-24">
-            <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
-            
+        {/* Right Side: Order Summary (Takes up 1 col) */}
+        <div className="">
+          <div className="bg-white rounded-2xl p-8 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
+            <h2 className="text-xl font-bold text-[#202224] mb-6 flex items-center justify-between">
+              Summary
+              <FiShoppingBag className="text-gray-300" />
+            </h2>
+
             {/* Coupon Section */}
-            <div className="mb-8">
-              <label className="block text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
-                <FiTag className="text-[#4379EE]" /> Have a coupon?
+            {user && <div className="mb-8">
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                Promo Code
               </label>
               <div className="flex gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={couponInput}
                   onChange={(e) => setCouponInput(e.target.value)}
-                  placeholder="Enter code"
-                  className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 outline-none uppercase font-bold"
+                  placeholder="e.g. SUMMER20"
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#4379EE] outline-none uppercase font-bold text-[#202224]"
                 />
-                <button 
+                <button
                   onClick={handleApplyCoupon}
                   disabled={isApplying}
-                  className="bg-blue-500 text-white px-5 py-3 rounded-lg font-bold text-sm hover:bg-gray-700 disabled:opacity-50 transition-all"
+                  className="bg-[#202224] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-black disabled:opacity-50 transition-all uppercase tracking-tight"
                 >
                   {isApplying ? '...' : 'Apply'}
                 </button>
               </div>
               {cart.appliedCoupon && (
-                <p className="text-xs text-green-600 font-bold mt-2 ml-1">✓ Coupon {cart.appliedCoupon} applied!</p>
+                <div className="bg-green-50 text-green-700 text-[11px] font-bold mt-3 p-2 rounded-lg flex items-center gap-2 border border-green-100">
+                  <FiTag /> {cart.appliedCoupon} APPLIED SUCCESSFULLY
+                </div>
               )}
-            </div>
+            </div>}
 
             {/* Calculations */}
-            <div className="space-y-4 mb-8">
-              <div className="flex justify-between text-gray-500 font-medium">
+            <div className="space-y-4 mb-8 border-b pb-8 border-dashed border-gray-100">
+              <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Subtotal</span>
-                <span>${cart.subTotal.toFixed(2)}</span>
+                <span className="text-[#202224] font-bold">${cart.subTotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-green-600 font-bold">
+              <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Discount</span>
                 <span>-${cart.discount.toFixed(2)}</span>
               </div>
-              <div className="border-t pt-4 flex justify-between items-end">
-                <span className="text-gray-800 font-bold">Total Amount</span>
-                <span className="text-3xl font-black text-[#4379EE]">${cart.total.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-500 font-medium text-sm">
+                <span>Estimated Shipping</span>
+                <span className="text-green-500 font-bold uppercase text-[10px] bg-green-50 px-2 py-0.5 rounded">Free</span>
               </div>
             </div>
+
+            <div className="mb-8 flex justify-between items-end">
+              <div>
+                <span className="text-xs font-bold text-gray-400 uppercase block mb-1">Total Amount</span>
+                <span className="text-4xl font-black text-[#202224] tracking-tighter">${cart.total.toFixed(2)}</span>
+              </div>
+            </div>
+{user && 
+            <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]">
+              Proceed to Checkout
+            </button>}
           </div>
         </div>
 

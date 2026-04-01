@@ -12,9 +12,11 @@ function ProductPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const {addToCart} = useCart()
+  const user = localStorage.getItem('user')
 
-  const handleAddtoCart = async (id) => {
-    const data = await addToCart(id)
+  const handleAddtoCart = async (product) => {
+    const data = await addToCart(product)
+    console.log("Added product ", product)
     toast.success("Item added to the cart")
   }
 
@@ -44,7 +46,7 @@ function ProductPage() {
       {/* Navigation Header */}
       <div className="flex items-center mb-8">
         <button 
-          onClick={() => navigate(-1)} 
+          onClick={() => navigate('/products')} 
           className="flex items-center gap-2 text-[#202224] font-bold hover:text-[#4379EE] transition-colors cursor-pointer"
         >
           <FaArrowLeft className='font-light rounded-lg' />
@@ -97,11 +99,11 @@ function ProductPage() {
             <div className="mb-10">
               <h3 className="text-sm font-bold text-[#202224] uppercase mb-2">Description</h3>
               <p className="text-gray-500 leading-relaxed">
-                {product.description || "No description provided for this product. High-quality build and sleek design guaranteed."}
+                {product.description || "No description provided for this product"}
               </p>
             </div>
             <div>
-              <button className='bg-blue-500 px-4 py-2 rounded-lg text-sm text-white cursor-pointer' onClick={() => handleAddtoCart(product.id)}>Add to cart</button>
+              <button className='bg-blue-500 px-4 py-2 rounded-lg text-sm text-white cursor-pointer' onClick={() => handleAddtoCart(product)}>Add to cart</button>
             </div>
           </div>
         </div>

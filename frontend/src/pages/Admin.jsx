@@ -68,6 +68,7 @@ const Admin = () => {
     localStorage.removeItem("admin");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    
     navigate("/login");
   };
 

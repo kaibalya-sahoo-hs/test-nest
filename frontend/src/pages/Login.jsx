@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from "react-hot-toast";
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { useCart } from '../context/CartContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
+  const { syncCartWithServer, fetchCart } = useCart();
 
   const navigate = useNavigate();
 
@@ -59,7 +61,9 @@ const Login = () => {
         if (data.user.role === 'admin') {
           navigate("/admin/dashboard");
         } else {
-          navigate('/profile');
+          navigate("/profile")
+          syncCartWithServer()
+          fetchCart();
         }
       } else {
         toast.error(data.message || 'Login failed. Please check your credentials.');

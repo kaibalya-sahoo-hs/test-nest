@@ -1,86 +1,156 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { CouponsService } from "src/coupon/coupon.service";
-import { Repository } from "typeorm";
-import { CartItem } from "./cart.entity";
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CouponsService } from 'src/coupon/coupon.service';
+import { Repository } from 'typeorm';// Adjust path
+import { CartItem } from './cart.entity';
 
 @Injectable()
 export class CartService {
     constructor(
-        @InjectRepository(CartItem)
-        private cartRepo: Repository<CartItem>,
-        private couponsService: CouponsService
-    ) { }
+        @InjectRepository(CartItem) 
+        private readonly cartRepo: Repository<CartItem>,
+        private readonly couponsService: CouponsService,
+    ) {}
+
+    /**
+     * Get User Cart with Totals and Discounts
+     */
 
     async getMyCart(userId: number, couponCode?: string) {
-        console.log("Coupon Code", couponCode)
         const items = await this.cartRepo.find({
             where: { user: { id: userId } },
-            relations: ['product'],
+            relations: ['user']
         });
-    
-        const subTotal = items.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+        // Use Number() because decimal columns often return as strings from DB
+        const subTotal = items.reduce((acc, item) => {
+            const price = Number(item.product.price) || 0;
+            return acc + (price * item.quantity);
+        }, 0);
+
         let discount = 0;
         let appliedCoupon: string | null = null;
-    
+
         if (couponCode) {
             try {
                 const validation = await this.couponsService.validateCoupon(couponCode, subTotal);
-                console.log(validation)
                 discount = validation.discountAmount;
                 appliedCoupon = validation.code;
             } catch (e) {
-                // If coupon fails, we just return the cart without discount
+                // If coupon is invalid, we proceed with 0 discount
+                console.warn(`Coupon validation failed: ${e.message}`);
             }
         }
-    
+
         return {
             items,
-            subTotal,
-            discount,
-            total: subTotal - discount,
+            subTotal: Number(subTotal.toFixed(2)),
+            discount: Number(discount.toFixed(2)),
+            total: Number((subTotal - discount).toFixed(2)),
             appliedCoupon
         };
     }
 
+    /**
+     * Add or Increment Item in Cart
+     */
     async addToCart(userId: number, productId: string, quantity: number = 1) {
-        // 1. Check if the product is already in this user's cart
         let item = await this.cartRepo.findOne({
-            where: { user: { id: userId }, product: { id: productId } }
+            where: { 
+                user: { id: userId }, 
+                product: { id: productId } 
+            }
         });
-
-        if (item) {
-            // 2. Update quantity if it exists
+        if (item) {      
             item.quantity += quantity;
         } else {
-            // 3. Create new record if it doesn't
-            item = this.cartRepo.create({ user: { id: userId }, product: { id: productId }, quantity })
+            item = this.cartRepo.create({ 
+                user: { id: userId }, 
+                product: { id: productId }, 
+                quantity 
+            });
         }
 
-        return this.cartRepo.save(item);
+        await this.cartRepo.save(item);
+        return this.getMyCart(userId);
     }
 
-    async updateItemQuantity(userId: number, cartItemId: number, quantity: number) {
+    /**
+     * Update Quantity using Product ID (Frontend Friendly)
+     */
+    async updateQuantityByProduct(userId: number, productId: string, quantity: number, coupon:string) {
         if (quantity < 1) {
             throw new BadRequestException('Quantity must be at least 1');
         }
-    
-        // 1. Update the item ONLY if it belongs to this user
-        const updateResult = await this.cartRepo.update(
-            { id: cartItemId, user: { id: userId } }, 
-            { quantity: quantity }
-        );
-    
-        // 2. If no rows were affected, the item doesn't exist or doesn't belong to the user
-        if (updateResult.affected === 0) {
-            throw new NotFoundException('Cart item not found or unauthorized');
+
+        const item = await this.cartRepo.findOne({
+            where: { 
+                user: { id: userId }, 
+                product: { id: productId } 
+            }
+        });
+
+        if (!item) {
+            throw new NotFoundException('Product not found in your cart');
         }
+
+        item.quantity = quantity;
+        await this.cartRepo.save(item);
+        
+        return this.getMyCart(userId, coupon);
+    }
     
-        // 3. Return the updated cart (or a success message)
-        return { message: 'Quantity updated successfully', quantity };
+    async removeItemByProduct(userId: number, productId: string) {
+        const result = await this.cartRepo.delete({ 
+            user: { id: Number(userId) }, 
+            product: { id: productId } 
+        });
+
+        if (result.affected === 0) {
+            throw new NotFoundException('Item not found in cart');
+        }
+        
+        return this.getMyCart(userId);
     }
 
-    async removeItem(userId: number, cartItemId: number) {
-        return this.cartRepo.delete({ id: cartItemId, user: { id: userId } });
+    
+    async mergeCarts(userId: number, guestItems: any[]) {
+        if (!guestItems || guestItems.length === 0) {
+            return this.getMyCart(userId);
+        }
+
+        for (const guestItem of guestItems) {
+            // guestItem.id should be the Product UUID/ID from frontend
+            const existingItem = await this.cartRepo.findOne({
+                where: { 
+                    user: { id: userId }, 
+                    product: { id: guestItem.id } 
+                },
+            });
+            if (existingItem) {
+                // Merge quantities
+                existingItem.quantity += guestItem.quantity;
+                const exstingcart = await this.cartRepo.save(existingItem);
+                console.log("Increased the count of item")
+            } else {
+                // Create new entry
+                const newItem = this.cartRepo.create({
+                    user: { id: userId },
+                    product: { id: guestItem.id },
+                    quantity: guestItem.quantity,
+                });
+                const newCart = await this.cartRepo.save(newItem);
+            }
+        }
+        
+        const cratItems = await this.getMyCart(userId);
+        console.log("Cart items after sync", cratItems.items[0].user)
+        return cratItems
+    }
+    /**
+     * Clear Entire Cart (Used after successful Checkout)
+     */
+    async clearCart(userId: number) {
+        await this.cartRepo.delete({ user: { id: userId } });
+        return { message: 'Cart cleared successfully' };
     }
 }

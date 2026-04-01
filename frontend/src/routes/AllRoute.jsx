@@ -34,6 +34,7 @@ function AllRoute() {
           element={<CompleteRegistration />}
         />
         <Route element={<Nav />}>
+          <Route path="/cart" element={<CartPage/>} />
           <Route path="/products" element={<Index />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
@@ -45,7 +46,6 @@ function AllRoute() {
           <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><UserProfile /></AdminRoute>} />
           <Route path="/products/:id" element={<ProductPage />} />
-          <Route path="/cart" element={<CartPage/>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

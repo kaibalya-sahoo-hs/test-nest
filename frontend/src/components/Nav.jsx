@@ -5,6 +5,8 @@ import { IoMdNotifications } from "react-icons/io";
 import { CiSearch, CiCircleChevDown } from "react-icons/ci";
 import { LuLogOut } from "react-icons/lu";
 import { FiUser, FiMenu, FiX } from "react-icons/fi";
+import { FaShoppingCart } from 'react-icons/fa';
+import { useCart } from '../context/CartContext';
 
 function Nav() {
   const navigate = useNavigate();
@@ -13,10 +15,13 @@ function Nav() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
-
+  const {cart} = useCart()
   // Determine role from localStorage
   const userData = localStorage.getItem("user");
   const user = userData ? JSON.parse(userData) : null;
+
+  const cartPath = location.pathname !== "/cart"
+  const productPaths = location.pathname.startsWith('/products')
 
   const isAdmin = user?.role === 'admin';
   const roleBadge = isAdmin ? 'Admin' : 'Member';
@@ -78,6 +83,13 @@ function Nav() {
     navigate('/login');
   };
 
+  const handleLoginPress = () => {
+    if (!user) {
+      console.log("Called")
+      navigate('/login');
+    }
+  }
+
   // Define nav links based on role
   const adminLinks = [
     { path: '/admin/dashboard', label: 'Dashboard' },
@@ -91,7 +103,7 @@ function Nav() {
     { path: '/products', label: 'Products' }, // Change icon as needed
   ];
   const userLinks = [
-    { path: '/profile', label: 'My Profile' },...publicLinks, { path: '/cart', label: 'Cart' }
+    { path: '/profile', label: 'My Profile' }
   ];
 
 
@@ -136,11 +148,13 @@ function Nav() {
 
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Notifications */}
-            <div className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50">
-              <IoMdNotifications className="w-5 h-5 sm:w-6 sm:h-6 text-[#4379EE]" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-[#F93C65] text-white text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-white">
-                {isAdmin ? 6 : 3}
-              </span>
+            <div className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50" onClick={() => navigate('/cart')}>
+              <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-[#4379EE]" />
+              {cart.items && cart.items.length > 0 && 
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-[#F93C65] text-white text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-white">
+                 {cart.items.length}
+                </span>
+              }
             </div>
 
             {/* Profile Info + Dropdown */}
@@ -190,7 +204,7 @@ function Nav() {
                 </div>
               )}
             </div> : <button
-              onClick={() => navigate('/login')}
+              onClick={() => handleLoginPress()}
               className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
             >
               Login
@@ -210,7 +224,7 @@ function Nav() {
         )}
 
         {/* --- SIDEBAR --- */}
-        {user && <aside
+        {user && !productPaths && cartPath && <aside
           ref={sidebarRef}
           className={`
             w-64 flex flex-col fixed top-16 bottom-0 bg-white border-r border-gray-100 z-40
@@ -271,7 +285,7 @@ function Nav() {
         </aside>}
 
         {/* --- MAIN CONTENT AREA --- */}
-        <main className={`flex-1 ${user && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}>
+        <main className={`flex-1 ${user && !productPaths && cartPath  && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}>
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

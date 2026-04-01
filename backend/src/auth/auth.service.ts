@@ -117,8 +117,8 @@ export class AuthService {
 
         const payload = { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role };
 
-        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '5s' });
-        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '1h' });
+        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '5m' });
+        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '15m' });
 
         return {
             message: "Login successful",
