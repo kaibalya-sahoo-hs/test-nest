@@ -60,6 +60,7 @@ export const CartProvider = ({ children }) => {
         toast.error("Failed to add to cart");
       }
     } else {
+      console.log(cart)
       let newItems = [...cart.items];
       // Look for product.id inside the nested structure
       const existing = newItems.find((item) => item.product.id === product.id);
@@ -77,7 +78,6 @@ export const CartProvider = ({ children }) => {
       console.log("Guest State", guestState);
       setCart(guestState);
       localStorage.setItem("cart", JSON.stringify(guestState));
-      toast.success("Added to guest cart");
     }
   };
 
@@ -124,7 +124,8 @@ export const CartProvider = ({ children }) => {
         toast.error("Removal failed");
       }
     } else {
-      const newItems = cart.items.filter((item) => item.id !== productId);
+      console.log("Trigreed")
+      const newItems = cart.items.filter((item) => item.product.id !== productId);
       const guestState = calculateGuestTotals(newItems);
       setCart(guestState);
       localStorage.setItem("cart", JSON.stringify(guestState));
@@ -135,11 +136,11 @@ export const CartProvider = ({ children }) => {
   const syncCartWithServer = async () => {
     const saved = localStorage.getItem("cart");
     const localCart = saved ? JSON.parse(saved) : null;
-    const itemsToSync = localCart.items.map((item) => ({
-      id: item.product.id,
-      quantity: item.quantity,
-    }));
     if (localCart && localCart.items.length > 0) {
+      const itemsToSync = localCart.items.map((item) => ({
+        id: item.product.id,
+        quantity: item.quantity,
+      }));
       try {
         const res = await api.post("/cart/sync", { items: itemsToSync });
         console.log("synced data", res.data);
@@ -169,6 +170,7 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cart,
+        setCart,
         loading,
         addToCart,
         updateQuantity,

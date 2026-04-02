@@ -10,7 +10,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [rememberMe, setRememberMe] = useState(false);
   const { syncCartWithServer, fetchCart } = useCart();
 
   const navigate = useNavigate();
@@ -61,9 +60,10 @@ const Login = () => {
         if (data.user.role === 'admin') {
           navigate("/admin/dashboard");
         } else {
-          navigate("/profile")
+          navigate(sessionStorage.getItem('redirectTo'))
           syncCartWithServer()
           fetchCart();
+          // sessionStorage.removeItem('redirectTo')
         }
       } else {
         toast.error(data.message || 'Login failed. Please check your credentials.');

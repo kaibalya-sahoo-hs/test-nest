@@ -1,7 +1,6 @@
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
-import Nav from "../components/Nav";
 import AdminRoute from "../components/AdminRoute";
 import Admin from "../pages/Admin";
 import ApiLogs from "../pages/ApiLogs";
@@ -19,6 +18,7 @@ import NotFound from "../pages/NotFound";
 import ProductPage from "../pages/ProductPage";
 import Index from "../pages/Index";
 import CartPage from "../pages/CartPage";
+import Nav from "../components/Nav";
 
 function AllRoute() {
   return (

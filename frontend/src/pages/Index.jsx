@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { CiHeart } from 'react-icons/ci'
+import { FaRupeeSign } from 'react-icons/fa';
 import { FaAngleLeft, FaAngleRight, FaStar } from 'react-icons/fa6'
 import { useNavigate } from 'react-router';
 import { useCart } from '../context/CartContext';
@@ -118,8 +119,8 @@ function Index() {
                   <h3 className="text-lg font-bold text-[#202224] truncate max-w-[150px]">
                     {item.name}
                   </h3>
-                  <p className="text-[#4379EE] font-bold">
-                    ${Number(item.price).toFixed(2)}
+                  <p className="text-[#4379EE] font-bold flex items-center">
+                    <FaRupeeSign/>{Number(item.price).toLocaleString('en-IN')}
                   </p>
                 </div>
                 <button className="p-2 bg-gray-50 rounded-full text-gray-400 hover:text-red-500 transition-colors">

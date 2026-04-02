@@ -15,7 +15,7 @@ function Nav() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
-  const { cart } = useCart();
+  const { cart, setCart } = useCart();
   // Determine role from localStorage
   const userData = localStorage.getItem("user");
   const user = userData ? JSON.parse(userData) : null;
@@ -56,6 +56,14 @@ function Nav() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen]);
 
+  useEffect(() => {
+    const publicAuthPaths = ["/login", "/register", "/auth/register/complete"]
+    if(!user && !publicAuthPaths.includes(location.pathname)){
+      sessionStorage.setItem('redirectTo', location.pathname)
+      console.log("Path saved to session storage", location.pathname)
+    }
+  }, [location.pathname, user])
+
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
     if (sidebarOpen) {
@@ -80,9 +88,17 @@ function Nav() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.clear()
     toast.success("Logout Successful");
-    navigate("/login");
+    navigate("/products");
+    const emptyCart = {
+      items: [],
+      subTotal: 0,
+      discount: 0,
+      total: 0,
+      appliedCoupon: null,
+    };
+    setCart(emptyCart)
   };
 
   const handleLoginPress = () => {
@@ -133,7 +149,7 @@ function Nav() {
             className="text-2xl font-bold tracking-tight cursor-pointer"
             onClick={() => {
               navigate(
-                user.role === "admin" ? "/admin/dashboard" : "/products",
+                user?.role === "admin" ? "/admin/dashboard" : "/products",
               );
             }}
           >
@@ -150,11 +166,12 @@ function Nav() {
               placeholder="Search"
               className="pl-10 pr-4 py-2 bg-[#F5F6FA] border border-gray-100 rounded-full text-sm w-72 focus:outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all"
             />
+            <span className="relative right-15 text-sm text-slate-300">Enter</span>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Notifications */}
-            <div
+            {user?.role !== "admin" && <div
               className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
               onClick={() => navigate("/cart")}
             >
@@ -164,7 +181,7 @@ function Nav() {
                   {cart.items.length}
                 </span>
               )}
-            </div>
+            </div>}
 
             {/* Profile Info + Dropdown */}
             {user ? (

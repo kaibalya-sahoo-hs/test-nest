@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { FaRupeeSign } from 'react-icons/fa';
 import { FiPackage, FiDollarSign, FiFileText, FiUploadCloud, FiCheck } from 'react-icons/fi';
 
 const ProductEdit = ({ initialData, onSubmit, isSubmitting, title }) => {
@@ -96,7 +97,7 @@ const ProductEdit = ({ initialData, onSubmit, isSubmitting, title }) => {
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Price</label>
                   <div className="relative">
-                    <FiDollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <FaRupeeSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="number" step="0.01" required
                       value={formData.price}

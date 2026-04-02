@@ -61,8 +61,6 @@ export class AdminController {
     @Post('uploadProfile')
     @UseInterceptors(FileInterceptor('file'))
     async uploadProfile(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
-        console.log("File:", file)
-        console.log("Body: ", body)
         return this.adminService.saveImage(body.id, file)
     }
 
@@ -85,7 +83,7 @@ export class AdminController {
     async createUsers(@Body() body, @Req() req) {
         const admin = req.user
         const job = await this.importQueue.add('process-job', { users: body.users, adminEmail: admin.email })
-        console.log(job.id)
+        console.log("Queued JobID: ",job.id)
         return {
             message: 'Import started in the background. You will be notified when the report is ready.',
             status: 'processing',
@@ -97,6 +95,9 @@ export class AdminController {
     @UseInterceptors(FileInterceptor('file'))
     async adminCreateProduct(@Body() data: Partial<Product>, @UploadedFile() file: Express.Multer.File) {
         console.log(file)
+        if(!file){
+            return {message: "Product photo is required", success: false}
+        }
         return await this.productService.create(data, file);
     }
 

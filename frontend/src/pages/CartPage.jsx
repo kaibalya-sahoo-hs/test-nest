@@ -10,6 +10,8 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
+import { FaRupeeSign } from "react-icons/fa";
 
 const CartPage = () => {
   const { cart, fetchCart, updateQuantity, removeItem } = useCart();
@@ -39,6 +41,16 @@ const CartPage = () => {
     }
   };
 
+
+  useEffect(() => {
+    if(user && user?.role == "admin"){
+      toast.error("This page doesnot belong to you")
+      navigate("/admin/dashboard")
+      return 
+    }
+  }, [user])
+
+
   if (!cart.items || cart.items.length === 0) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-4">
@@ -60,7 +72,7 @@ const CartPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto ">
       <h1 className="text-3xl font-extrabold text-[#202224] mb-8 flex items-center gap-3">
         Shopping Cart
         <span className="text-sm bg-blue-100 text-[#4379EE] px-3 py-1 rounded-full">
@@ -68,8 +80,8 @@ const CartPage = () => {
         </span>
       </h1>
 
-      <div className="grid grid-cols-1 gap-10 items-start">
-        <div className=" space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+        <div className=" space-y-4 md:col-span-1">
           {cart.items.map((item) => (
             // IMPORTANT: use item.product.id for the key if it's unique
             <div
@@ -94,11 +106,11 @@ const CartPage = () => {
                   Product ID: {item.product?.id?.slice(0, 8)}...
                 </p>
                 <div className="flex items-center justify-center sm:justify-start gap-3">
-                  <span className="text-gray-400 line-through text-sm">
-                    ${(Number(item.product?.price) * 1.2).toFixed(2)}
+                  <span className="text-gray-400 line-through text-sm flex items-center">
+                    <FaRupeeSign className="text-sm"/>{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}
                   </span>
-                  <span className="text-[#4379EE] font-extrabold text-xl">
-                    ${Number(item.product?.price).toFixed(2)}
+                  <span className="text-[#4379EE] text-xl flex items-center">
+                    <FaRupeeSign className="text-sm"/><span className="font-extrabold ">{Number(item.product?.price).toLocaleString('en-IN')}</span>
                   </span>
                 </div>
               </div>
@@ -144,10 +156,15 @@ const CartPage = () => {
               </button>
             </div>
           ))}
+          <div>
+            <button className="px-4 py-2 rounded-lg bg-blue-500 text-white cursor-pointer" onClick={() => navigate('/products')}>
+              Explore More
+            </button>
+          </div>
         </div>
 
         {/* Right Side: Order Summary (Takes up 1 col) */}
-        <div className="">
+        <div className="md:col-span-1 md:sticky top-24 h-fit">
           <div className="bg-white rounded-2xl p-8 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
             <h2 className="text-xl font-bold text-[#202224] mb-6 flex items-center justify-between">
               Summary
@@ -188,13 +205,13 @@ const CartPage = () => {
             <div className="space-y-4 mb-8 border-b pb-8 border-dashed border-gray-100">
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Subtotal</span>
-                <span className="text-[#202224] font-bold">
-                  ${cart.subTotal.toFixed(2)}
+                <span className="text-[#202224] font-bold flex items-center">
+                  <FaRupeeSign className="text-sm"/>{cart.subTotal.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Discount</span>
-                <span>-${cart.discount.toFixed(2)}</span>
+                <span className="flex items-center"> - <FaRupeeSign className="text-sm"/>{cart.discount.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Estimated Shipping</span>
@@ -209,8 +226,8 @@ const CartPage = () => {
                 <span className="text-xs font-bold text-gray-400 uppercase block mb-1">
                   Total Amount
                 </span>
-                <span className="text-4xl font-black text-[#202224] tracking-tighter">
-                  ${cart.total.toFixed(2)}
+                <span className="text-4xl font-black text-[#202224] tracking-tighter flex items-center">
+                  <FaRupeeSign/>{(cart.total).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>

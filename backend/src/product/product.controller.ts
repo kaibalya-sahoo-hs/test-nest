@@ -36,4 +36,9 @@ export class ProductController {
             product,
         };
     }
+
+    @Get('search/:name')
+    async getPoductByName(@Param('name') name: string){
+        return this.productService.getProductsByName(name)
+    }
 }

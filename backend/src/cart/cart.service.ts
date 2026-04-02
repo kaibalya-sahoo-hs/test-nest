@@ -155,7 +155,6 @@ export class CartService {
     }
 
     const cratItems = await this.getMyCart(userId);
-    console.log('Cart items after sync', cratItems.items[0].user);
     return cratItems;
   }
   /**

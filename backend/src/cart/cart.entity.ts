@@ -13,7 +13,7 @@ export class CartItem {
     @ManyToOne(() => User, (user) => user.cartItems, { onDelete: 'CASCADE' })
     user: User;
 
-    @ManyToOne(() => Product, { eager: true }) // eager: true loads product details automatically
+    @ManyToOne(() => Product, { eager: true, onDelete: "CASCADE" },) // eager: true loads product details automatically
     product: Product;
 
     @CreateDateColumn()

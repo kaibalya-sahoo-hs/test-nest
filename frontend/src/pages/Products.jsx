@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaRupeeSign } from 'react-icons/fa';
 import api from "../utils/api";
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import ProductEdit from './ProductEdit';
@@ -56,12 +56,17 @@ function Products() {
 
     try {
       const res = await api.post('/admin/products', data);
-      const newProduct = res.data.data || res.data;
-      setProducts((prev) => [...prev, newProduct]);
-      toast.success("Product created!");
-      setIsModalOpen(false);
-      setFormData({ name: '', price: '', description: '' });
-      setSelectedFile(null);
+      console.log(res)
+      if(res.data){
+        const newProduct =res.data;
+        setProducts((prev) => [newProduct, ...prev]);
+        toast.success("Product created!");
+        setIsModalOpen(false);
+        setFormData({ name: '', price: '', description: '' });
+        setSelectedFile(null);
+      }else{
+        toast.error(res.data)
+      }
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -112,7 +117,7 @@ function Products() {
   if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
 
   return (
-    <div className="bg-[#F5F6FA] min-h-screen font-sans p-4 sm:p-8">
+    <div className="bg-[#F5F6FA] min-h-screen font-sans">
       <div className='flex justify-between items-center mb-8'>
         <h1 className="text-xl sm:text-2xl font-bold text-[#202224]">Products</h1>
         <button
@@ -201,7 +206,7 @@ function Products() {
         <table className="w-full text-left">
           <thead className="border-b border-gray-100 bg-white">
             <tr>
-              {["SL NO.", "Image", "Product Name", "Description", "Price", "Action"].map(header => (
+              {["SL NO.", "Image", "Product Name", "Price", "Action"].map(header => (
                 <th key={header} className="text-[13px] font-semibold text-gray-500 px-6 py-4">{header}</th>
               ))}
             </tr>
@@ -217,8 +222,7 @@ function Products() {
                 </td>
                 
                 <td className="text-[14px] text-gray-700 px-6 py-4 font-medium">{item.name}</td>
-                <td className="text-[14px] text-gray-500 px-6 py-4 truncate">{item.description || "No description"}</td>
-                <td className="text-[14px] text-gray-700 px-6 py-4 font-medium">${Number(item.price).toFixed(2)}</td>
+                <td className="text-[14px] text-gray-700 px-6 py-4 font-medium flex items-center"><FaRupeeSign/>{Number(item.price).toLocaleString('en-IN')}</td>
                 <td className="px-6 py-4">
                   <div className="inline-flex rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
                     <button
