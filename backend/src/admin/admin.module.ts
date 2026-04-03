@@ -19,6 +19,7 @@ import { ProcesUser } from './admin.processes';
 import { ProductModule } from 'src/product/product.module';
 import { Product } from 'src/product/product.entity';
 import { CouponModule } from 'src/coupon/coupon.module';
+import { PaymentModule } from 'src/payment/payment.module';
 
 
 @Module({
@@ -31,6 +32,7 @@ import { CouponModule } from 'src/coupon/coupon.module';
         CloudinaryModule, 
         MailModule, 
         CouponModule,
+        PaymentModule,
         ApiLogsModule],
     providers: [AdminService, ProcesUser],
     controllers: [AdminController],

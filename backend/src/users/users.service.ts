@@ -1,5 +1,6 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Order } from 'src/payment/order.entity';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
@@ -10,7 +11,9 @@ export class UserService{
     constructor(
         @InjectRepository(User)
         private userRepo: Repository<User>,
-        private cloudinarySevice: CloudinaryService
+        private cloudinarySevice: CloudinaryService,
+        @InjectRepository(Order)
+        private orderRepo:Repository<Order>
     ){}
 
     findAllUsers(){
@@ -60,6 +63,35 @@ export class UserService{
         } catch (error) {
             console.log("Error while uploading profile photo", error)
             return { success: false, message: "Error while uploading the image" }
+        }
+    }
+
+    async getUserOrders(userId: number) {
+        try {
+            const orders = await this.orderRepo.find({
+                where: { user: { id: userId } }, // Filter by log
+                order: { createdAt: 'DESC' } // Newest orders first
+            });
+    
+            // Map the data to a clean format (Removes User object to prevent password leaks)
+            const simplifiedOrders = orders.map(order => ({
+                id: order.id,
+                status: order.status,
+                totalAmount: order.totalAmount,
+                createdAt: order.createdAt,
+                items: order.items.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    productName: item.product.name,
+                    productImage: item.product.image,
+                    priceAtPurchase: item.product.price
+                }))
+            }));
+    
+            return { success: true, orders: simplifiedOrders };
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            throw new InternalServerErrorException("Failed to fetch your orders");
         }
     }
 }

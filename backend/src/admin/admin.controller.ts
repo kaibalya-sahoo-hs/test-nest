@@ -12,6 +12,7 @@ import { Queue } from 'bullmq';
 import { ProductService } from "src/product/product.service";
 import { Product } from "src/product/product.entity";
 import { CouponsService } from "src/coupon/coupon.service";
+import { PaymentService } from "src/payment/payment.service";
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -25,7 +26,8 @@ export class AdminController {
         private userSevice: UserService,
         private mailService: MailService,
         private apiLogService: ApiLogsService,
-        private couponsService: CouponsService
+        private couponsService: CouponsService,
+        private paymentService: PaymentService
     ) { }
     @Get('users')
     getAllUsers() {
@@ -154,5 +156,15 @@ export class AdminController {
     @Post('coupon')
     async create(@Body() coupon) {
         return await this.couponsService.create(coupon);
+    }
+
+    @Get('payments')
+    async getAllPayments(){
+        return this.paymentService.getAllPayments()
+    }
+
+    @Get('orders')
+    async getAllOrders(){
+        return this.paymentService.getAllOrders()
     }
 }

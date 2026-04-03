@@ -23,6 +23,8 @@ import { ProductModule } from './product/product.module';
 import { Product } from './product/product.entity';
 import { CartModule } from './cart/cart.module';
 import { CouponModule } from './coupon/coupon.module';
+import { PaymentModule } from './payment/payment.module';
+import { Order } from './payment/order.entity';
 
 
 @Module({
@@ -44,7 +46,7 @@ import { CouponModule } from './coupon/coupon.module';
           })
       })
   }),
-    TypeOrmModule.forFeature([User ,ApiLog, Product, CartModule]),
+    TypeOrmModule.forFeature([User ,ApiLog, Product, CartModule, Order]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -66,6 +68,7 @@ import { CouponModule } from './coupon/coupon.module';
     ProductModule,
     CartModule,
     CouponModule,
+    PaymentModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService],
