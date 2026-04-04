@@ -19,6 +19,8 @@ import ProductPage from "../pages/ProductPage";
 import Index from "../pages/Index";
 import CartPage from "../pages/CartPage";
 import Nav from "../components/Nav";
+import MyOrders from "../pages/OrdersPage";
+import OrdersPage from "../pages/OrdersPage";
 
 function AllRoute() {
   return (
@@ -37,6 +39,7 @@ function AllRoute() {
           <Route path="/cart" element={<CartPage/>} />
           <Route path="/products" element={<Index />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/orders" element={<OrdersPage/>}/>
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/admin/apilogs" element={<AdminRoute><ApiLogs /></AdminRoute>} />
           <Route path="/admin/charts" element={<AdminRoute><Stats /></AdminRoute>} />

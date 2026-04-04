@@ -120,7 +120,7 @@ function Nav() {
   const publicLinks = [
     { path: "/products", label: "Products" }, // Change icon as needed
   ];
-  const userLinks = [{ path: "/profile", label: "My Profile" }];
+  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }];
 
   let navLinks = [];
   if (user) {

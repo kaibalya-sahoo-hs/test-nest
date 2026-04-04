@@ -12,6 +12,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import { FaRupeeSign } from "react-icons/fa";
+import api from "../utils/api";
 
 const CartPage = () => {
   const { cart, fetchCart, updateQuantity, removeItem } = useCart();
@@ -19,6 +20,51 @@ const CartPage = () => {
   const [isApplying, setIsApplying] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+
+  const handlePayment = async () => {
+    try {
+      console.log(cart.items)
+      const response = await api.post('/payment/create-order', {
+        amount: cart.total,
+        cartItems: cart.items
+      });
+
+      const order = response.data;
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_TEST_KEY, // Your Public Key ID
+        amount: order.amount,
+        currency: order.currency,
+        name: "DashStack Store",
+        description: "Random Description",
+        order_id: order.id,
+        handler: async function (response) {
+          console.log("Response by Razor pay", response)
+          const {data} = await api.post('/payment/verify', response)
+          fetchCart()
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: "#4379EE", // Matches your brand color
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+
+      rzp.on('payment.failed', function (response) {
+        toast.error("Payment Failed: " + response.error.description);
+      });
+
+      rzp.open();
+
+    } catch (error) {
+      console.error("Payment Initiation Error:", error);
+      toast.error("Could not initiate payment");
+    }
+  };
 
   const handleApplyCoupon = async () => {
     if (couponInput.trim() === "") {
@@ -43,10 +89,10 @@ const CartPage = () => {
 
 
   useEffect(() => {
-    if(user && user?.role == "admin"){
+    if (user && user?.role == "admin") {
       toast.error("This page doesnot belong to you")
       navigate("/admin/dashboard")
-      return 
+      return
     }
   }, [user])
 
@@ -107,10 +153,10 @@ const CartPage = () => {
                 </p>
                 <div className="flex items-center justify-center sm:justify-start gap-3">
                   <span className="text-gray-400 line-through text-sm flex items-center">
-                    <FaRupeeSign className="text-sm"/>{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}
+                    <FaRupeeSign className="text-sm" />{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}
                   </span>
                   <span className="text-[#4379EE] text-xl flex items-center">
-                    <FaRupeeSign className="text-sm"/><span className="font-extrabold ">{Number(item.product?.price).toLocaleString('en-IN')}</span>
+                    <FaRupeeSign className="text-sm" /><span className="font-extrabold ">{Number(item.product?.price).toLocaleString('en-IN')}</span>
                   </span>
                 </div>
               </div>
@@ -206,12 +252,12 @@ const CartPage = () => {
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Subtotal</span>
                 <span className="text-[#202224] font-bold flex items-center">
-                  <FaRupeeSign className="text-sm"/>{cart.subTotal.toLocaleString('en-IN')}
+                  <FaRupeeSign className="text-sm" />{cart.subTotal.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Discount</span>
-                <span className="flex items-center"> - <FaRupeeSign className="text-sm"/>{cart.discount.toLocaleString('en-IN')}</span>
+                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Estimated Shipping</span>
@@ -227,12 +273,12 @@ const CartPage = () => {
                   Total Amount
                 </span>
                 <span className="text-4xl font-black text-[#202224] tracking-tighter flex items-center">
-                  <FaRupeeSign/>{(cart.total).toLocaleString('en-IN')}
+                  <FaRupeeSign />{(cart.total).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
             {user && (
-              <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]">
+              <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handlePayment}>
                 Proceed to Checkout
               </button>
             )}

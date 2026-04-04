@@ -11,9 +11,9 @@ function ProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart()
+  const { cart, addToCart } = useCart()
   const user = localStorage.getItem('user')
-
+  console.log(cart)
   const handleAddtoCart = async (product) => {
     const data = await addToCart(product)
     console.log("Added product ", product)
@@ -105,14 +105,24 @@ function ProductPage() {
                 {product.description || "No description provided for this product. Here is some filler text to ensure the content is long enough to demonstrate the scrolling effect on the right side while the image stays fixed."}
               </p>
             </div>
-
-            <div className="sticky bottom-8 md:static">
+            {cart.items.some(itm => itm.product?.id === product.id) ? (
+              /* IF IT IS IN THE CART: Show "Go to Cart" or "Already in Cart" */
+              <button
+                className='w-full md:w-auto bg-green-500 px-8 py-4 rounded-lg text-base font-bold text-white cursor-pointer hover:bg-green-600 transition-colors shadow-lg'
+                onClick={() => navigate('/cart')}
+              >
+                View in Cart
+              </button>
+            ) : (
+              /* IF NOT IN THE CART: Show "Add to Cart" */
               <button
                 className='w-full md:w-auto bg-blue-500 px-8 py-4 rounded-lg text-base font-bold text-white cursor-pointer hover:bg-blue-600 transition-colors shadow-lg'
                 onClick={() => handleAddtoCart(product)}
               >
                 Add to cart
               </button>
+            )}
+            <div className="sticky bottom-8 md:static">
             </div>
           </div>
         </div>
