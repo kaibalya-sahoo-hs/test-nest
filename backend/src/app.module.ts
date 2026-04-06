@@ -25,6 +25,8 @@ import { CartModule } from './cart/cart.module';
 import { CouponModule } from './coupon/coupon.module';
 import { PaymentModule } from './payment/payment.module';
 import { Order } from './payment/order.entity';
+import { AddressModule } from './address/address.module';
+import { VendorModule } from './vendor/vendor.module';
 
 
 @Module({
@@ -69,6 +71,8 @@ import { Order } from './payment/order.entity';
     CartModule,
     CouponModule,
     PaymentModule,
+    AddressModule,
+    VendorModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService],

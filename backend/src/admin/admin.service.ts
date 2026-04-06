@@ -46,7 +46,7 @@ export class AdminService {
 
     async editUserInfo(body) {
         try {
-            await this.userRepo.update(body.id, body.updatedCredentials)
+            const updatedUser = await this.userRepo.update(body.id, body.updatedCredentials)
             return { success: true, message: "Updated successfully" }
         } catch (error) {
             console.log("error while updateing user", error)

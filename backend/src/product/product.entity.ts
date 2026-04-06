@@ -1,34 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { User } from 'src/users/users.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm';
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid') // Using UUID is better for security/scaling than simple IDs
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ type: 'text' })
-  description: string;
+  description!: string;
 
   // Use 'decimal' for currency to avoid floating-point math errors
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+  price!: number;
 
   @Column({ type: 'float', default: 0 })
-  rating: number;
+  rating!: number;
 
   // Storing the URL or Cloudinary ID of the image
   @Column({ nullable: true })
-  image: string;
+  image!: string;
 
   @Column({ default: 0 })
-  stock: number;
+  stock!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
+
+  @ManyToOne(() => User, (user) => user.products, {eager: true})
+  vendor!: User
 
 }

@@ -1,4 +1,5 @@
 // order.entity.ts
+import { Address } from 'src/address/address.entity';
 import { User } from 'src/users/users.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Payment } from './payment.entity';
@@ -7,6 +8,12 @@ import { Payment } from './payment.entity';
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @ManyToOne(() => Order, {nullable: true})
+  parentOrder: Order
+
+  @OneToMany(() => Order, (order) => order.parentOrder)
+  subOrders: Order[]
 
   @ManyToOne(() => User)
   user: User; // Link to your User entity
@@ -20,9 +27,12 @@ export class Order {
   @Column({ default: 'awaiting_payment' })
   status: string;
 
-  @OneToOne(() => Payment, (payment) => payment.order, { cascade: true })
-  payment: Payment[];
+  @OneToMany(() => Payment, (payment) => payment.order, { cascade: true })
+  payments: Payment[];
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @ManyToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
+  deliveryAddress: Address
 }

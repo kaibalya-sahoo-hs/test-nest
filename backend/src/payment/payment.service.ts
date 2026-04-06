@@ -6,6 +6,9 @@ import { Order } from './order.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CartService } from "../cart/cart.service"
 import * as crypto from 'crypto';
+import { Address } from 'src/address/address.entity';
+import items from 'razorpay/dist/types/items';
+import { Product } from 'src/product/product.entity';
 
 @Injectable()
 export class PaymentService {
@@ -16,6 +19,10 @@ export class PaymentService {
         private paymentRepo: Repository<Payment>,
         @InjectRepository(Order)
         private orderRepo: Repository<Order>,
+        @InjectRepository(Address)
+        private addressRepo: Repository<Address>,
+        @InjectRepository(Product)
+        private productRepo: Repository<Product>,
         private cartService: CartService
     ) {
         this.razorpay = new Razorpay({
@@ -24,49 +31,97 @@ export class PaymentService {
         });
     }
 
-    async createOrder(userID, amount: number, cartItems: any) {
+    async createOrder(userID: number, amount: number, cartItems: any) {
+        // 1. Create a new Order in Razorpay (always unique)
         const options = {
-            amount: amount * 100, // Razorpay expects amount in subunits (e.g., paise)
+            amount: Math.round(amount * 100), // Ensure it's an integer
             currency: "INR",
             receipt: `receipt_${Date.now()}`,
         };
-
         const rzpOrder = await this.razorpay.orders.create(options);
 
-        const order = this.orderRepo.create({
-            user: { id: userID },
-            items: cartItems,
-            status: "pending",
-            totalAmount: amount
-        })
-
-        const savedOrder = await this.orderRepo.save(order)
-
-        const payment = await this.paymentRepo.create({
-            razorpayOrderId: rzpOrder.id,
-            order: savedOrder,
-            status: PaymentStatus.PENDING,
-            amount
+        // 2. Check if the user already has a 'pending' order
+        let order = await this.orderRepo.findOne({
+            where: { user: { id: userID }, status: 'pending' },
+            relations: ['payments']
         });
-        
-        
-        await this.paymentRepo.save(payment)
+
+        if (order) {
+
+        } else {
+
+            const vendorGroups = new Map()
+
+            for (const item of cartItems) {
+                let vendorId;
+                if (!item.product.vendor) {
+                    const dbProduct = await this.productRepo.findOne({
+                        where: { id: item.product.id },
+                        relations: ['vendor']
+                    });
+                    vendorId = dbProduct?.vendor.id
+                }else{
+                    vendorId = item.product.vendor.id
+                }
+                if (!vendorGroups.has(vendorId)) {
+                    vendorGroups.set(vendorId, [])
+                }
+                vendorGroups.get(vendorId).push(item)
+            }
+
+            const masterOrder = await this.orderRepo.save({ user: { id: userID }, items: cartItems,totalAmount: amount, status: 'pending' })
 
 
-        return rzpOrder
+            for (const [vendorId, items] of vendorGroups) {
+                const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
+                await this.orderRepo.save({
+                    parentOrder: masterOrder,
+                    vendor: { id: vendorId },
+                    user: { id: userID },
+                    items,
+                    totalAmount: subTotal,
+                    status: 'pending',
+                });
+
+            }
+            const newPayment = this.paymentRepo.create({
+                razorpayOrderId: rzpOrder.id,
+                status: PaymentStatus.PENDING,
+                order: masterOrder,
+                amount
+            });
+
+            await this.paymentRepo.save(newPayment);
+
+            const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } })
+
+            console.log("Default address", address)
+
+            // const newOrder = this.orderRepo.create({
+            //     user: { id: userID },
+            //     items: cartItems,
+            //     status: "pending",
+            //     totalAmount: amount,
+            //     deliveryAddress: address || undefined
+            // });
+            // const savedOrder = await this.orderRepo.save(newOrder);
+            // console.log(savedOrder)
+        }
+
+        return rzpOrder;
     }
 
     async verifyPayment(payload) {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = payload
         const isVerified = this.verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)
-        if(!isVerified){
-            return {success: false, message: "Payment not verified"}
+        if (!isVerified) {
+            return { success: false, message: "Payment not verified" }
         }
 
         return { message: "Payment verified successfully", success: true }
     }
 
-    async updatePaymentToDB(payload:any, signature: string){
+    async updatePaymentToDB(payload: any, signature: string) {
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
         const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -82,8 +137,8 @@ export class PaymentService {
             const rzpOrderId = rzpOrder.order_id;
             const rzpPaymentId = rzpOrder.id;
 
-            const payment = await this.paymentRepo.findOne({where: {razorpayOrderId: rzpOrderId}, relations: ['order', 'order.user']})
-            if(payment && payment.status !== PaymentStatus.COMPLETED){
+            const payment = await this.paymentRepo.findOne({ where: { razorpayOrderId: rzpOrderId }, relations: ['order', 'order.user'] })
+            if (payment && payment.status !== PaymentStatus.COMPLETED) {
                 payment.status = PaymentStatus.COMPLETED
                 payment.razorpayPaymentId = rzpPaymentId
                 await this.paymentRepo.save(payment)
@@ -95,7 +150,7 @@ export class PaymentService {
     }
 
 
-    
+
 
     verifySignature(orderId: string, paymentId: string, signature: string): boolean {
         const generatedSignature = crypto
@@ -109,23 +164,23 @@ export class PaymentService {
         return true
     }
 
-    async getAllPayments(){
+    async getAllPayments() {
         try {
             const payments = await this.paymentRepo.find()
-            return {payments, success:true}
+            return { payments, success: true }
         } catch (error) {
             console.log("Error while fetching payments data from DB", error)
-            return {message: "Internal server error", success: false}
+            return { message: "Internal server error", success: false }
         }
     }
 
-    async getAllOrders(){
+    async getAllOrders() {
         try {
             const orders = await this.orderRepo.find()
-            return {orders, success:true}
+            return { orders, success: true }
         } catch (error) {
             console.log("Error while fetching orders data from DB", error)
-            return {message: "Internal server error", success: false}
+            return { message: "Internal server error", success: false }
         }
     }
 }

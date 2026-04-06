@@ -70,15 +70,18 @@ export class UserService{
         try {
             const orders = await this.orderRepo.find({
                 where: { user: { id: userId } }, // Filter by log
-                order: { createdAt: 'DESC' } // Newest orders first
+                order: { createdAt: 'DESC' },
+                relations: ['parentOrder'] // Newest orders first
             });
-    
-            // Map the data to a clean format (Removes User object to prevent password leaks)
+            
+            const filteredOrders = orders.filter(order => !order.parentOrder)
+
             const simplifiedOrders = orders.map(order => ({
                 id: order.id,
                 status: order.status,
                 totalAmount: order.totalAmount,
                 createdAt: order.createdAt,
+                
                 items: order.items.map(item => ({
                     id: item.id,
                     quantity: item.quantity,

@@ -51,6 +51,7 @@ export class AdminController {
 
     @Patch('edit')
     async editUserInfo(@Body() body: any) {
+        console.log(body)
         const res = await this.adminService.editUserInfo(body)
         return res
     }
@@ -96,7 +97,6 @@ export class AdminController {
     @Post('products')
     @UseInterceptors(FileInterceptor('file'))
     async adminCreateProduct(@Body() data: Partial<Product>, @UploadedFile() file: Express.Multer.File) {
-        console.log(file)
         if(!file){
             return {message: "Product photo is required", success: false}
         }

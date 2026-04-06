@@ -1,29 +1,51 @@
+import { Address } from 'src/address/address.entity';
 import { CartItem } from 'src/cart/cart.entity';
+import { Product } from 'src/product/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column()
-  email: string;
+  email!: string;
 
   @Column({ nullable: true })
-  password: string;
+  password!: string;
 
   @Column({ nullable: true })
-  registartionToken: string;
+  registartionToken!: string;
 
   @Column({ nullable: true })
-  profile: string
+  profile!: string
 
-  @Column({ default: 'guest' })
-  role: string
+  @Column({ default: 'guest', enum: ['guest', 'admin', 'member', 'vendor'] })
+  role!: string
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.user)
-  cartItems: CartItem[];
+  cartItems!: CartItem[];
+
+  @OneToMany(() => Address, (address) => address.user)
+  addresses!: Address[]
+
+
+  @Column({nullable: true})
+  storeName!: string
+
+  @Column({nullable: true})
+  storeDescription!: string
+
+  @Column({nullable: true})
+  vendorStatus!: 'pending' | 'approved' | 'rejected' | 'suspended'
+
+  @Column({nullable: true})
+  commisionRate!: number
+
+  @OneToMany(() => Product, (product) =>product.vendor)
+  products!: Product[]
+
 }

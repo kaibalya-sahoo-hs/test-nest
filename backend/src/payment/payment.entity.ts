@@ -35,7 +35,7 @@ export class Payment {
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToOne(() => Order, (order) => order.payment)
+  @ManyToOne(() => Order, (order) => order.payments)
   @JoinColumn()
   order: Order;
 }
