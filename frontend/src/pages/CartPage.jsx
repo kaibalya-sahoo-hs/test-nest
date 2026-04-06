@@ -42,6 +42,7 @@ const CartPage = () => {
           console.log("Response by Razor pay", response)
           const {data} = await api.post('/payment/verify', response)
           fetchCart()
+          navigate('/orders')
         },
         prefill: {
           name: user.name,

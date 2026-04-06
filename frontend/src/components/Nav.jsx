@@ -22,9 +22,13 @@ function Nav() {
 
   const cartPath = location.pathname !== "/cart";
   const productPaths = location.pathname.startsWith("/products");
+  const otherPaths = location.pathname === "/"
+
 
   const isAdmin = user?.role === "admin";
-  const roleBadge = isAdmin ? "Admin" : "Member";
+  const isVendor = user?.role === "vendor"
+
+  const roleBadge = isAdmin ? "Admin" : (isVendor ? "Vendor": "User" );
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -120,11 +124,13 @@ function Nav() {
   const publicLinks = [
     { path: "/products", label: "Products" }, // Change icon as needed
   ];
-  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }];
+  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, {path: "/address", label: "Addresss" }];
+
+  const vendorLinks = [{path: "/vendor/dashboard", label: "Dashboard"},  {path: "/vendor/products", label: "Products"},{path: "/vendor/profile", label: "Profile"},]
 
   let navLinks = [];
   if (user) {
-    navLinks = isAdmin ? adminLinks : userLinks;
+    navLinks = isAdmin ? adminLinks : (isVendor ? vendorLinks : userLinks);
   }
   return (
     <div className="min-h-screen bg-[#F5F6FA]">
@@ -149,7 +155,7 @@ function Nav() {
             className="text-2xl font-bold tracking-tight cursor-pointer"
             onClick={() => {
               navigate(
-                user?.role === "admin" ? "/admin/dashboard" : "/products",
+                user?.role === "admin" ? "/admin/dashboard" : "/",
               );
             }}
           >
@@ -171,7 +177,7 @@ function Nav() {
 
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Notifications */}
-            {user?.role !== "admin" && <div
+            {user?.role !== "admin" && user?.role !== "vendor"  && <div
               className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
               onClick={() => navigate("/cart")}
             >
@@ -220,7 +226,7 @@ function Nav() {
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
-                        navigate("/profile");
+                        navigate(isVendor ? "/vendor/profile" :"/profile");
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-[#202224] hover:bg-[#F5F6FA] transition-colors"
                     >
@@ -263,7 +269,7 @@ function Nav() {
         )}
 
         {/* --- SIDEBAR --- */}
-        {user && !productPaths && cartPath && (
+        {user && !productPaths && cartPath && !otherPaths && (
           <aside
             ref={sidebarRef}
             className={`
@@ -330,7 +336,7 @@ function Nav() {
 
         {/* --- MAIN CONTENT AREA --- */}
         <main
-          className={`flex-1 ${user && !productPaths && cartPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
+          className={`flex-1 ${user && !productPaths && cartPath && !otherPaths&& "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
           <div className="max-w-7xl mx-auto">
             <Outlet />

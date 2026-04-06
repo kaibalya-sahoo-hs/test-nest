@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { CiHeart } from 'react-icons/ci'
 import { FaRupeeSign } from 'react-icons/fa';
 import { FaAngleLeft, FaAngleRight, FaStar } from 'react-icons/fa6'
+import { LuCreditCard, LuHeadphones, LuRotateCcw, LuTruck } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 import { useCart } from '../context/CartContext';
 import api from '../utils/api';
@@ -11,40 +12,35 @@ import api from '../utils/api';
 function Index() {
 
   const [loading, setLoading] = useState(false)
-  const [products, setProducts] = useState([])
-  const [error, setError] = useState('')
+  
   const navigate = useNavigate()
-  const {addToCart} = useCart()
 
-  const userData = localStorage.getItem('user')
-  const user = JSON.parse(userData)
+  const features = [
+    {
+      icon: <LuTruck size={32} className="text-gray-800" />,
+      title: "FASTEST DELIVERY",
+      desc: "Delivery in 24/H"
+    },
+    {
+      icon: <LuRotateCcw size={32} className="text-gray-800" />,
+      title: "24 HOURS RETURN",
+      desc: "Money-back guarantee"
+    },
+    {
+      icon: <LuCreditCard size={32} className="text-gray-800" />,
+      title: "SECURE PAYMENT",
+      desc: "Your money is safe"
+    },
+    {
+      icon: <LuHeadphones size={32} className="text-gray-800" />,
+      title: "SUPPORT 24/7",
+      desc: "Live contact/message"
+    }
+  ];
 
-  const handleAddToCart = (id) => {
-    const data = addToCart(id)
-    console.log(data)
-    toast.success("Item added to the cart")
-  }
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('http://localhost:8000/products');
-
-        // 2. Access the 'data' array from your NestJS response structure
-        if (response.data.success) {
-          setProducts(response.data.data);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Failed to load products. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+  const handleShopNow = () => {
+    navigate('/products');
+  };
   return (
     <div className="bg-[#F5F6FA] min-h-screen font-sans">
       {/* Hero Banner Section */}
@@ -77,74 +73,99 @@ function Index() {
           <FaAngleRight size={20} />
         </button>
       </div>
-      {products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border-2 border-dashed border-gray-200">
-          <div className="bg-gray-100 p-4 rounded-full mb-4">
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 min-h-[500px]">
+        
+        {/* Left Side: Large Hero Section (Spans 2 columns on desktop) */}
+        <div className="md:col-span-2 relative rounded-2xl bg-[#4b4b4b] overflow-hidden group min-h-[350px]">
+          {/* Main content would go here */}
+          <div className="absolute">
+          <button 
+                onClick={handleShopNow}
+                className="bg-blue-600 absolute bottom-15 left-10 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
+              >
+                Shop Now <span>→</span>
+              </button>
+            <img src="https://webandcrafts.com/_next/image?url=https%3A%2F%2Fadmin.wac.co%2Fuploads%2FWhat_is_E_commerce_and_What_are_its_Applications_2_d2eb0d4402.jpg&w=4500&q=90" className='h-full' />
           </div>
-          <h3 className="text-lg font-bold text-[#202224]">No Products Found</h3>
-          <p className="text-gray-500 mb-6 text-sm text-center px-4">
-            Wait for upadte of the porduct listings
-          </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-          {products.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group " >
-              {/* Product Image & Inner Arrows */}
-              <div className="relative flex justify-center items-center mb-6">
-                <button className="absolute left-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <FaAngleLeft size={16} />
-                </button>
 
-                {/* Dynamic Image from response */}
-                <img
-                  src={item.image || "https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"}
-                  alt={item.name}
-                  className="w-48 h-48 object-contain cursor-pointer"
-                  onClick={() => navigate(`/products/${item.id}`)}
-                />
-
-                <button className="absolute right-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <FaAngleRight size={16} />
-                </button>
-              </div>
-
-              {/* Product Details */}
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  {/* Dynamic Name and Price */}
-                  <h3 className="text-lg font-bold text-[#202224] truncate max-w-[150px]">
-                    {item.name}
-                  </h3>
-                  <p className="text-[#4379EE] font-bold flex items-center">
-                    <FaRupeeSign/>{Number(item.price).toLocaleString('en-IN')}
-                  </p>
-                </div>
-                <button className="p-2 bg-gray-50 rounded-full text-gray-400 hover:text-red-500 transition-colors">
-                  <CiHeart size={18} />
-                </button>
-              </div>
-
-              {/* Rating - Dynamic based on item.rating */}
-              <div className="flex items-center gap-1 mb-6">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
-                    key={star}
-                    size={14}
-                    className={star <= Math.round(item.rating) ? "fill-[#FFAD33] text-[#FFAD33]" : "text-gray-300"}
-                  />
-                ))}
-                <span className="text-xs text-gray-400 ml-1">
-                  ({item.rating})
-                </span>
-              </div>
+        {/* Right Side: Two Stacked Banners */}
+        <div className="grid grid-rows-2 gap-4 lg:gap-6">
+          
+          {/* Top Right Card: Pixel 6 Pro */}
+          <div className="relative bg-black rounded-2xl p-6 overflow-hidden flex flex-col justify-center border border-gray-800">
+            <div className="relative z-10">
+              <span className="text-yellow-500 text-xs font-bold uppercase tracking-widest">Summer Sales</span>
+              <h2 className="text-white text-2xl font-bold mt-2 mb-4 leading-tight">
+                New Google <br /> Pixel 6 Pro
+              </h2>
+              <button 
+                onClick={handleShopNow}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
+              >
+                Shop Now <span>→</span>
+              </button>
             </div>
-          ))}
+            {/* Discount Badge */}
+            <div className="absolute top-4 right-4 bg-yellow-400 text-black font-bold px-3 py-1 text-sm rounded">
+              29% OFF
+            </div>
+            {/* Background Image Placeholder */}
+            <img 
+              src="https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=500" 
+              alt="Pixel 6" 
+              className="absolute right-[-20px] top-4 w-40 opacity-80"
+            />
+          </div>
+
+          {/* Bottom Right Card: FlipBuds Pro */}
+          <div className="relative bg-black rounded-2xl p-6 overflow-hidden flex items-center border border-gray-800">
+            <div className="flex-1 z-10">
+              <h2 className="text-white text-2xl font-bold mb-1">Xiaomi <br /> FlipBuds Pro</h2>
+              <p className="text-blue-500 font-bold mb-4">$299 USD</p>
+              <button 
+                onClick={handleShopNow}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
+              >
+                Shop Now <span>→</span>
+              </button>
+            </div>
+            {/* Background Image Placeholder */}
+            <img 
+              src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=500" 
+              alt="Earbuds" 
+              className="absolute right-0 w-32 object-contain"
+            />
+          </div>  
+
         </div>
-      )}
+      </div>
+
+      <div className="mt-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {features.map((feature, index) => (
+          <div 
+            key={index} 
+            className="bg-white p-6 flex items-center space-x-4 border border-gray-100 shadow-sm rounded-sm"
+          >
+            {/* Icon Container */}
+            <div className="flex-shrink-0">
+              {feature.icon}
+            </div>
+            
+            {/* Text Content */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 tracking-tight leading-none mb-1">
+                {feature.title}
+              </h3>
+              <p className="text-xs text-gray-500 font-medium">
+                {feature.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
     </div>
   )
 }

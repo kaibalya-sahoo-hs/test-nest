@@ -5,7 +5,7 @@ import api from "../utils/api";
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import ProductEdit from './ProductEdit';
 
-function Products() {
+function ManageProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -248,4 +248,4 @@ function Products() {
   );
 }
 
-export default Products;
+export default ManageProducts;

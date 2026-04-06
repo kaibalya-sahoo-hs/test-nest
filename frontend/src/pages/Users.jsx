@@ -141,7 +141,7 @@ const Users = () => {
 
   const formatId = (id) => String(id).padStart(5, '0');
 
-  const roleOptions = ['All', 'guest', 'member', 'admin'];
+  const roleOptions = ['All', 'guest', 'member', 'admin', 'vendor'];
   const sortOptions = ['Default', 'A-Z', 'Z-A', 'Newest', 'Oldest'];
 
   return (

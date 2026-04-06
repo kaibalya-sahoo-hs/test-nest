@@ -5,27 +5,38 @@ import { CiHeart } from "react-icons/ci";
 import api from "../utils/api";
 import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
+import { FaMinus, FaPlus } from 'react-icons/fa6';
 
 function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { cart, addToCart } = useCart()
+  const { cart, addToCart, updateQuantity, removeItem } = useCart()
   const user = localStorage.getItem('user')
-  console.log(cart)
+  const cartItem = (cart?.items && product) && cart.items.find(itm => itm?.product.id === product.id);
+  
+
   const handleAddtoCart = async (product) => {
     const data = await addToCart(product)
-    console.log("Added product ", product)
     toast.success("Item added to the cart")
   }
+
+  const handleQuantityChange = async (newQty) => {
+    if (newQty < 1) {
+      await removeItem(cartItem.product.id);
+      toast.success("Removed from cart");
+    } else {
+      console.log(cartItem)
+      await updateQuantity(cartItem.product.id, newQty);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
         const response = await api.get(`http://localhost:8000/products/${id}`);
-        console.log(response)
         if (response.data.success) {
           setProduct(response.data.product);
         }
@@ -105,20 +116,44 @@ function ProductPage() {
                 {product.description || "No description provided for this product. Here is some filler text to ensure the content is long enough to demonstrate the scrolling effect on the right side while the image stays fixed."}
               </p>
             </div>
-            {cart.items.some(itm => itm.product?.id === product.id) ? (
-              /* IF IT IS IN THE CART: Show "Go to Cart" or "Already in Cart" */
-              <button
-                className='w-full md:w-auto bg-green-500 px-8 py-4 rounded-lg text-base font-bold text-white cursor-pointer hover:bg-green-600 transition-colors shadow-lg'
-                onClick={() => navigate('/cart')}
-              >
-                View in Cart
-              </button>
+            {cartItem ? (
+              /* IF IT IS IN THE CART: Show Quantity Controls */
+              <div className="flex items-center gap-4">
+                <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                  <button
+                    onClick={() => handleQuantityChange(cartItem.quantity - 1)}
+                    className="p-3 text-[#202224] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <FaMinus size={14} />
+                  </button>
+
+                  <span className="px-6 font-bold text-xl text-[#202224] min-w-[60px] text-center">
+                    {cartItem.quantity}
+                  </span>
+
+                  <button
+                    onClick={() => handleQuantityChange(cartItem.quantity + 1)}
+                    className="p-3 text-[#202224] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <FaPlus size={14} />
+                  </button>
+                </div>
+
+                <button
+                  className='bg-[#4379EE] px-8 py-4 rounded-xl text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center gap-2'
+                  onClick={() => navigate('/cart')}
+                >
+                  <FaShoppingCart />
+                  Checkout
+                </button>
+              </div>
             ) : (
               /* IF NOT IN THE CART: Show "Add to Cart" */
               <button
-                className='w-full md:w-auto bg-blue-500 px-8 py-4 rounded-lg text-base font-bold text-white cursor-pointer hover:bg-blue-600 transition-colors shadow-lg'
+                className='w-full md:w-auto bg-[#4379EE] px-10 py-4 rounded-xl text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2'
                 onClick={() => handleAddtoCart(product)}
               >
+                <FaShoppingCart />
                 Add to cart
               </button>
             )}

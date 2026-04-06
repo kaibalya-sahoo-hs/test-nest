@@ -1,33 +1,33 @@
+
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { FiCamera, FiArrowLeft, FiCheck, FiEdit2, FiMail, FiUser, FiShield } from 'react-icons/fi';
-import api from '../utils/api';
+import { FiCamera, FiCheck, FiEdit2, FiMail, FiUser, FiShield } from 'react-icons/fi';
+import api from '../../utils/api'; 
 
-const UserProfile = () => {
-  const { id } = useParams();
+function VendorProfile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSendingMail, setIsSendingMail] = useState(false);
-  const [formData, setFormData] = useState({ name: '', role: '', vendorStatus: '' });
-
-  const getAuthHeaders = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-  });
-
+  const [formData, setFormData] = useState({ name: '' });
   const fetchUser = async () => {
     try {
-      const res = await api.get(`http://localhost:8000/admin/users/${id}`, getAuthHeaders());
+      const stored = localStorage.getItem('user');
+      if (!stored) {
+        toast.error('Please login to view profile');
+        navigate('/login');
+        return;
+      }
+      const parsed = JSON.parse(stored);
+      const res = await api.get(`http://localhost:8000/users/profile/${parsed.id}`);
       setUser(res.data);
-      setFormData({ name: res.data?.name || '', role: res.data?.role || '' });
+      setFormData({ name: res.data?.name || '' });
     } catch (err) {
-      toast.error('Failed to load user');
-      navigate('/admin/users');
+      toast.error('Failed to load profile');
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     fetchUser();
-  }, [id]);
+  }, []);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -46,17 +46,21 @@ const UserProfile = () => {
     }
 
     const uploadData = new FormData();
-    uploadData.append('id', id);
+    uploadData.append('id', user.id);
     uploadData.append('file', file);
 
     setIsUploading(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await api.post('http://localhost:8000/admin/uploadProfile', uploadData);
+      const res = await api.post('http://localhost:8000/users/profile/upload', uploadData);
       console.log(res)
       if (res.data.success) {
         toast.success('Photo updated!');
         fetchUser();
+        // Update localStorage so navbar reflects new photo
+        const updated = await res.json();
+        const stored = JSON.parse(localStorage.getItem('user'));
+        stored.profile = updated.url;
+        localStorage.setItem('user', JSON.stringify(stored));
       } else {
         toast.error('Upload failed');
       }
@@ -74,33 +78,24 @@ const UserProfile = () => {
     }
     setIsSaving(true);
     try {
-      const res = await api.patch('http://localhost:8000/admin/edit', {id: user.id,
-      updatedCredentials: { name: formData.name, vendorStatus: formData.vendorStatus }})
+      const res = await api.patch('http://localhost:8000/users/profile/update', {id: user.id,
+      updatedCredentials: { name: formData.name }})
       if (res.data.success) {
-        toast.success('User updated successfully');
+        toast.success('Profile updated!');
         setIsEditing(false);
         fetchUser();
+        // Update localStorage
+        const stored = JSON.parse(localStorage.getItem('user'));
+        stored.name = formData.name;
+        localStorage.setItem('user', JSON.stringify(stored));
       } else {
+        console.log(data)
         toast.error(data.message || 'Update failed');
       }
     } catch {
       toast.error('Server error');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleSendMail = async () => {
-    setIsSendingMail(true);
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await api.post('http://localhost:8000/admin/send-mail', { name: user.name, email: user.email, registartionToken: user.registartionToken });
-      if (res.ok) toast.success('Invite sent!');
-      else toast.error('Failed to send mail');
-    } catch {
-      toast.error('Server error');
-    } finally {
-      setIsSendingMail(false);
     }
   };
 
@@ -123,16 +118,7 @@ const UserProfile = () => {
 
   return (
     <div className="font-sans">
-      {/* Back button + Title */}
-      <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <button
-          onClick={() => navigate('/admin/users')}
-          className="p-2 rounded-lg bg-white border border-gray-100 hover:bg-gray-50 transition-colors flex-shrink-0 cursor-pointer"
-        >
-          <FiArrowLeft className="text-[#202224]" size={18} />
-        </button>
-        <h1 className="text-xl sm:text-2xl font-bold text-[#202224]">User Profile</h1>
-      </div>
+      <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-6 sm:mb-8">My Profile</h1>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
         {/* Cover + Avatar */}
@@ -148,9 +134,9 @@ const UserProfile = () => {
                   </span>
                 )}
               </div>
-              {/* Upload overlay */}
               <label className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 bg-[#4379EE] text-white p-2 sm:p-2.5 rounded-full cursor-pointer shadow-lg hover:scale-110 hover:bg-[#3768D1] transition-all">
-                <FiCamera size={16} />
+                <FiCamera size={14} className="sm:hidden" />
+                <FiCamera size={16} className="hidden sm:block" />
                 <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploading} />
               </label>
             </div>
@@ -169,32 +155,24 @@ const UserProfile = () => {
               <span className={`inline-block mt-3 px-4 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wide ${getRoleBadge(user.role)}`}>
                 {user.role}
               </span>
+              <div>
+                Vendor Status : <span className='bg-yellow-300 rounded-lg p-1 text-sm'>{user.vendorStatus}</span>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[#4379EE] text-white font-bold text-sm rounded-md hover:bg-[#3768D1] shadow-lg shadow-blue-100 transition-all"
-                >
-                  <FiEdit2 size={14} /> Edit Details
-                </button>
-              )}
-              {!user.password && (
-                <button
-                  onClick={handleSendMail}
-                  disabled={isSendingMail}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[#FFF3D6] text-[#FEC53D] font-bold text-sm rounded-xl hover:bg-[#FFE8B3] transition-all disabled:opacity-50"
-                >
-                  <FiMail size={14} /> {isSendingMail ? 'Sending...' : 'Send Invite'}
-                </button>
-              )}
-            </div>
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[#4379EE] text-white font-bold text-sm rounded-xl hover:bg-[#3768D1] shadow-lg shadow-blue-100 transition-all w-full sm:w-auto justify-center sm:justify-start"
+              >
+                <FiEdit2 size={14} /> Edit Profile
+              </button>
+            )}
           </div>
 
           {/* Edit Form / Info Display */}
           {isEditing ? (
             <div className="bg-[#F8F9FC] rounded-2xl p-8 border border-gray-100">
-              <h3 className="text-lg font-bold text-[#202224] mb-6">Edit User Details</h3>
+              <h3 className="text-lg font-bold text-[#202224] mb-6">Edit Profile</h3>
 
               {/* Photo upload area */}
               <div className="flex flex-col items-center mb-8">
@@ -206,11 +184,11 @@ const UserProfile = () => {
                       <FiCamera className="text-gray-400 group-hover:text-[#4379EE] transition-colors" size={24} />
                     )}
                   </div>
+                  <p className="text-sm text-[#4379EE] font-medium mt-2">
+                    {isUploading ? 'Uploading...' : 'Upload Photo'}
+                  </p>
                   <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploading} />
                 </label>
-                <p className="text-sm text-[#4379EE] font-medium mt-2">
-                  {isUploading ? 'Uploading...' : 'Upload Cover Photo'}
-                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -220,7 +198,7 @@ const UserProfile = () => {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter full name"
+                    placeholder="Enter your name"
                     className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm font-medium text-[#202224] outline-none focus:ring-2 focus:ring-[#4379EE]/20 focus:border-[#4379EE]/30 transition-all"
                   />
                 </div>
@@ -233,31 +211,14 @@ const UserProfile = () => {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm font-medium text-gray-400 cursor-not-allowed"
                   />
                 </div>
-                <div>Vendor Status: {user.vendorStatus}</div>
-                {user.role === "vendor" && <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Vendor Status</label>
-                  <select
-                    value={formData.vendorStatus}
-                    onChange={(e) => setFormData({ ...formData, vendorStatus: e.target.value })}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm font-medium text-[#202224] outline-none focus:ring-2 focus:ring-[#4379EE]/20 focus:border-[#4379EE]/30 transition-all cursor-pointer"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approve</option>
-                    <option value="rejected">Reject</option>
-                    <option value="suspended">Suspend</option>
-                  </select>
-                </div>}
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Role</label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm font-medium text-[#202224] outline-none focus:ring-2 focus:ring-[#4379EE]/20 focus:border-[#4379EE]/30 transition-all cursor-pointer"
-                  >
-                    <option value="guest">Guest</option>
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                  <input
+                    type="text"
+                    value={user.role}
+                    disabled
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm font-medium text-gray-400 cursor-not-allowed capitalize"
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Account ID</label>
@@ -276,12 +237,12 @@ const UserProfile = () => {
                   disabled={isSaving}
                   className="flex items-center justify-center gap-2 px-8 sm:px-10 py-3 sm:py-3.5 bg-[#4379EE] text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-200 hover:bg-[#3768D1] transition-all disabled:opacity-50"
                 >
-                  <FiCheck size={16} /> {isSaving ? 'Saving...' : 'Add Now'}
+                  <FiCheck size={16} /> {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   onClick={() => {
                     setIsEditing(false);
-                    setFormData({ name: user.name, role: user.role });
+                    setFormData({ name: user.name });
                   }}
                   className="px-8 sm:px-10 py-3 sm:py-3.5 bg-white border border-gray-200 text-gray-500 font-bold text-sm rounded-xl hover:bg-gray-50 transition-all"
                 >
@@ -324,6 +285,6 @@ const UserProfile = () => {
       </div>
     </div>
   );
-};
+}
 
-export default UserProfile;
+export default VendorProfile

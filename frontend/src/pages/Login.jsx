@@ -59,7 +59,9 @@ const Login = () => {
 
         if (data.user.role === 'admin') {
           navigate("/admin/dashboard");
-        } else {
+        } else if(data.user.role === 'vendor') {
+          navigate('/vendor/dashboard')
+        }else {
           navigate(sessionStorage.getItem('redirectTo'))
           syncCartWithServer()
           fetchCart();
