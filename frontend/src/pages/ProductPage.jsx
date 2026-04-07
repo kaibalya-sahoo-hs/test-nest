@@ -144,7 +144,7 @@ function ProductPage() {
                   onClick={() => navigate('/cart')}
                 >
                   <FaShoppingCart />
-                  Checkout
+                  View Cart
                 </button>
               </div>
             ) : (

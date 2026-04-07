@@ -19,8 +19,8 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
   @Get()
   @UseGuards(AuthGuard)
-  async viewCart(@Req() req, @Query('coupon') couponCode?: string) {
-    return await this.cartService.getMyCart(req.user.id, couponCode);
+  async viewCart(@Req() req) {
+    return await this.cartService.getMyCart(req.user.id);
   }
 
   @Post('add')
@@ -55,7 +55,6 @@ export class CartController {
       userId,
       cartItemId,
       quantity,
-      coupon || '',
     );
   }
 

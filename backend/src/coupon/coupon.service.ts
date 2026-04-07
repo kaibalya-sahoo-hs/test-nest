@@ -3,13 +3,37 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { Coupon } from './coupon.entity';
+import { Cart } from 'src/cart/cart.entity';
 
 @Injectable()
 export class CouponsService {
     constructor(
         @InjectRepository(Coupon)
         private couponRepo: Repository<Coupon>,
+        @InjectRepository(Cart)
+        private cartRepo: Repository<Cart>
     ) {}
+
+    async applyCoupon(couponCode, cartId){
+        try {
+            const cart = await this.cartRepo.findOne({where: {id:cartId}})
+            if(!cart){
+                return {message: 'inavlid cart id', success: false}
+            }
+            const result = await this.validateCoupon(couponCode, cart?.totalAmount || 0)
+            
+            cart.coupon = result.code
+            cart.discount = result.discountAmount
+            cart.totalAmount = cart.totalAmount - result.discountAmount
+            
+            const savedCart = await this.cartRepo.save(cart)
+            
+            return {succes: true, message: 'Coupon applied successfully', savedCart}
+        } catch (error) {
+            console.log("Error hwile applying coupon", error)
+            return {message: "Error while applying coupon", success: false}
+        }
+    }
 
     async validateCoupon(code: string, currentCartTotal: number) {
         const coupon = await this.couponRepo.findOne({ where: { code: code.toUpperCase(), isActive: true } });
@@ -38,7 +62,7 @@ export class CouponsService {
 
         // Ensure discount doesn't exceed total
         return {
-            code: coupon.code,
+            code: coupon,
             discountAmount: Math.min(discountAmount, currentCartTotal),
             type: coupon.type,
             value: coupon.discountValue

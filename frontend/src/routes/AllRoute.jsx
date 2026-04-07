@@ -27,6 +27,7 @@ import VendorRegistration from "../pages/Vendor/VendorRegistration";
 import VendorDashboard from "../pages/Vendor/VendorDashboard";
 import VendorProfile from "../pages/Vendor/VendorProfile";
 import VendorProducts from "../pages/Vendor/VendorProducts";
+import CheckoutPage from "../pages/User/CheckoutPage";
 
 function AllRoute() {
   return (
@@ -49,6 +50,7 @@ function AllRoute() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/orders" element={<OrdersPage/>}/>
           <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/checkout" element={<CheckoutPage/>} />
           {/* Admin routes */}
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/admin/apilogs" element={<AdminRoute><ApiLogs /></AdminRoute>} />

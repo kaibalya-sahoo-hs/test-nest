@@ -32,7 +32,7 @@ export class Product {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.products, {eager: true})
+  @ManyToOne(() => User, (user) => user.products)
   vendor!: User
 
 }

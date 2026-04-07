@@ -1,24 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from '../users/users.entity'
-import { Product } from '../product/product.entity'
+import { User } from "src/users/users.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { CartItem } from "./cart_items.entity";
+import { Coupon } from "src/coupon/coupon.entity";
 
-@Entity('cart_items')
-export class CartItem {
-    @PrimaryGeneratedColumn()
-    id: number;
+@Entity('cart')
+export class Cart {
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-    @Column({ default: 1 })
-    quantity: number;
+    @OneToOne(() => User, (user) => user.cart)
+    @JoinColumn()
+    user: User
 
-    @ManyToOne(() => User, (user) => user.cartItems, { onDelete: 'CASCADE' })
-    user: User;
+    @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
+    cartItems: CartItem[]
 
-    @ManyToOne(() => Product, { eager: true, onDelete: "CASCADE" },) // eager: true loads product details automatically
-    product: Product;
+    @ManyToOne(() => Coupon)
+    coupon: Coupon
 
-    @CreateDateColumn()
-    createdAt: Date;
+    @Column({default: 0})
+    totalAmount: number
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+    @Column({default: 0})
+    discount: number
+    
+    @Column({default: 'active'})
+    status: string
 }

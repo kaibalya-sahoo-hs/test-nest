@@ -1,7 +1,8 @@
 import { Address } from 'src/address/address.entity';
-import { CartItem } from 'src/cart/cart.entity';
+import { Cart } from 'src/cart/cart.entity';
+import { CartItem } from 'src/cart/cart_items.entity';
 import { Product } from 'src/product/product.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()
 export class User {
@@ -26,12 +27,13 @@ export class User {
   @Column({ default: 'guest', enum: ['guest', 'admin', 'member', 'vendor'] })
   role!: string
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.user)
-  cartItems!: CartItem[];
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart!: Cart
 
   @OneToMany(() => Address, (address) => address.user)
   addresses!: Address[]
 
+  //Vendor Fields
 
   @Column({nullable: true})
   storeName!: string

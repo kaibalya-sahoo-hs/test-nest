@@ -23,6 +23,7 @@ function Nav() {
   const cartPath = location.pathname !== "/cart";
   const productPaths = location.pathname.startsWith("/products");
   const otherPaths = location.pathname === "/"
+  const checkoutPath = location.pathname === "/checkout"
 
 
   const isAdmin = user?.role === "admin";
@@ -269,7 +270,7 @@ function Nav() {
         )}
 
         {/* --- SIDEBAR --- */}
-        {user && !productPaths && cartPath && !otherPaths && (
+        {user && !productPaths && cartPath && !otherPaths && !checkoutPath && (
           <aside
             ref={sidebarRef}
             className={`
@@ -336,7 +337,7 @@ function Nav() {
 
         {/* --- MAIN CONTENT AREA --- */}
         <main
-          className={`flex-1 ${user && !productPaths && cartPath && !otherPaths&& "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
+          className={`flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
           <div className="max-w-7xl mx-auto">
             <Outlet />

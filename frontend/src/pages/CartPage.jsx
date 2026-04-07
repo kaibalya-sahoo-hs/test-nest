@@ -20,52 +20,16 @@ const CartPage = () => {
   const [isApplying, setIsApplying] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+ 
 
-  const handlePayment = async () => {
-    try {
-      console.log(cart.items)
-      const response = await api.post('/payment/create-order', {
-        amount: cart.total,
-        cartItems: cart.items
-      });
-
-      const order = response.data;
-
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_TEST_KEY, // Your Public Key ID
-        amount: order.amount,
-        currency: order.currency,
-        name: "DashStack Store",
-        description: "Random Description",
-        order_id: order.id,
-        handler: async function (response) {
-          console.log("Response by Razor pay", response)
-          const {data} = await api.post('/payment/verify', response)
-          fetchCart()
-          navigate('/orders')
-        },
-        prefill: {
-          name: user.name,
-          email: user.email,
-        },
-        theme: {
-          color: "#4379EE", // Matches your brand color
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-
-      rzp.on('payment.failed', function (response) {
-        toast.error("Payment Failed: " + response.error.description);
-      });
-
-      rzp.open();
-
-    } catch (error) {
-      console.error("Payment Initiation Error:", error);
-      toast.error("Could not initiate payment");
+  const handleCheckout = () => {
+    if(!user){
+      toast.error("Please login before checkout")
+      navigate("/login")
+    }else{
+      navigate('/checkout')
     }
-  };
+  }
 
   const handleApplyCoupon = async () => {
     if (couponInput.trim() === "") {
@@ -74,10 +38,10 @@ const CartPage = () => {
     }
     setIsApplying(true);
     try {
-      const data = await fetchCart(couponInput);
-      console.log(data);
-      if (data && data.appliedCoupon) {
-        toast.success(`Coupon "${data.appliedCoupon}" applied!`);
+      const {data} = await api.post(`/users/applycoupon?coupon=${couponInput}`, {cartId: cart.id})
+    
+      if (data) {
+        toast.success(`Coupon "${data.savedCart.coupon.code}" applied!`);
       } else {
         toast.error("Invalid or expired coupon");
       }
@@ -96,6 +60,12 @@ const CartPage = () => {
       return
     }
   }, [user])
+
+  useEffect(() => {
+    if(cart.coupon){
+      setCouponInput(cart.coupon.code)
+    }
+  }, [cart])
 
 
   if (!cart.items || cart.items.length === 0) {
@@ -240,9 +210,9 @@ const CartPage = () => {
                     {isApplying ? "..." : "Apply"}
                   </button>
                 </div>
-                {cart.appliedCoupon && (
+                {cart.coupon && (
                   <div className="bg-green-50 text-green-700 text-[11px] font-bold mt-3 p-2 rounded-lg flex items-center gap-2 border border-green-100">
-                    <FiTag /> {cart.appliedCoupon} APPLIED SUCCESSFULLY
+                    <FiTag /> {cart.coupon.code} APPLIED SUCCESSFULLY
                   </div>
                 )}
               </div>
@@ -258,7 +228,7 @@ const CartPage = () => {
               </div>
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Discount</span>
-                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount.toLocaleString('en-IN')}</span>
+                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount && cart.discount.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Estimated Shipping</span>
@@ -274,15 +244,13 @@ const CartPage = () => {
                   Total Amount
                 </span>
                 <span className="text-4xl font-black text-[#202224] tracking-tighter flex items-center">
-                  <FaRupeeSign />{(cart.total).toLocaleString('en-IN')}
+                  <FaRupeeSign />{cart.total && (cart.total).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
-            {user && (
-              <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handlePayment}>
+              <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handleCheckout}>
                 Proceed to Checkout
               </button>
-            )}
           </div>
         </div>
       </div>

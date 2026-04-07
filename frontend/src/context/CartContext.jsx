@@ -39,9 +39,10 @@ export const CartProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const { data } = await api.get(`/cart?coupon=${coupon}`);
-      setCart(data);
-      return data;
+      const { data } = await api.get(`/cart`);
+      console.log(data)
+      setCart(data.cart);
+      return data.cart;
     } catch (err) {
       console.error("Fetch Cart Error:", err);
     } finally {
@@ -55,7 +56,7 @@ export const CartProvider = ({ children }) => {
     if (user) {
       try {
         const res = await api.post("/cart/add", { productId: product.id });
-        setCart(res.data);
+        setCart(res.data.cart);
       } catch (err) {
         toast.error("Failed to add to cart");
       }
@@ -83,7 +84,7 @@ export const CartProvider = ({ children }) => {
 
   // 3. UPDATE QUANTITY
   const updateQuantity = async (productId, newQuantity, coupon) => {
-    console.log("Product id", productId);
+    console.log("Called")
     if (newQuantity < 1) return;
     const user = getUser();
 
@@ -91,9 +92,8 @@ export const CartProvider = ({ children }) => {
       try {
         const res = await api.patch(`/cart/${productId}`, {
           quantity: newQuantity,
-          coupon,
         });
-        setCart(res.data);
+        setCart(res.data.cart);
       } catch (err) {
         toast.error("Update failed");
       }
@@ -143,8 +143,7 @@ export const CartProvider = ({ children }) => {
       }));
       try {
         const res = await api.post("/cart/sync", { items: itemsToSync });
-        console.log("synced data", res.data);
-        setCart(res.data);
+        setCart(res.data.cart);
         localStorage.removeItem("cart");
         toast.success("Guest items synced!");
       } catch (err) {

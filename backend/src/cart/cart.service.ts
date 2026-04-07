@@ -6,54 +6,42 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { CouponsService } from 'src/coupon/coupon.service';
 import { Repository } from 'typeorm'; // Adjust path
-import { CartItem } from './cart.entity';
+import { CartItem } from './cart_items.entity';
+import { Cart } from './cart.entity';
+import items from 'razorpay/dist/types/items';
 
 @Injectable()
 export class CartService {
   constructor(
+    @InjectRepository(Cart)
+    private readonly cartRepo: Repository<Cart>,
     @InjectRepository(CartItem)
-    private readonly cartRepo: Repository<CartItem>,
+    private cartItemsRepo: Repository<CartItem>,
     private readonly couponsService: CouponsService,
-  ) {}
+  ) { }
 
-  /**
-   * Get User Cart with Totals and Discounts
-   */
-
-  async getMyCart(userId: number, couponCode?: string) {
-    const items = await this.cartRepo.find({
+  async getMyCart(userId: number) {
+    const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
-      relations: ['user'],
+      relations: ['cartItems', 'cartItems.product', 'coupon']
     });
-    // Use Number() because decimal columns often return as strings from DB
-    const subTotal = items.reduce((acc, item) => {
-      const price = Number(item.product.price) || 0;
-      return acc + price * item.quantity;
-    }, 0);
 
-    let discount = 0;
-    let appliedCoupon: string | null = null;
+    const subTotal = cart?.cartItems.reduce((sum, item) => {
+      return sum + (item.product.price * item.quantity);
+    }, 0) || 0;
 
-    if (couponCode) {
-      try {
-        const validation = await this.couponsService.validateCoupon(
-          couponCode,
-          subTotal,
-        );
-        discount = validation.discountAmount;
-        appliedCoupon = validation.code;
-      } catch (e) {
-        // If coupon is invalid, we proceed with 0 discount
-        console.warn(`Coupon validation failed: ${e.message}`);
-      }
+    let discount = cart?.discount || 0
+    let totalAmount = subTotal - discount
+    if (totalAmount < 0) totalAmount = 0;
+
+    if(cart){
+      cart.totalAmount = totalAmount
+      await this.cartRepo.save(cart)
     }
 
     return {
-      items,
-      subTotal: Number(subTotal.toFixed(2)),
-      discount: Number(discount.toFixed(2)),
-      total: Number((subTotal - discount).toFixed(2)),
-      appliedCoupon,
+      success: true,
+      cart: { ...cart, items: cart?.cartItems, subTotal, total: totalAmount },
     };
   }
 
@@ -61,24 +49,26 @@ export class CartService {
    * Add or Increment Item in Cart
    */
   async addToCart(userId: number, productId: string, quantity: number = 1) {
-    let item = await this.cartRepo.findOne({
+    let cart = await this.cartRepo.findOne({
       where: {
         user: { id: userId },
-        product: { id: productId },
-      },
+      }
     });
-    if (item) {
-      item.quantity += quantity;
-    } else {
-      item = this.cartRepo.create({
-        user: { id: userId },
-        product: { id: productId },
-        quantity,
-      });
+    if (!cart) {
+      cart = this.cartRepo.create({ user: { id: userId } })
+      await this.cartRepo.save(cart)
     }
 
-    await this.cartRepo.save(item);
-    return this.getMyCart(userId);
+    let cartItem = await this.cartItemsRepo.findOne({ where: { cart: { id: cart.id }, product: { id: productId } } })
+    if (cartItem) {
+      cartItem.quantity += 1
+    } else {
+      cartItem = this.cartItemsRepo.create({ product: { id: productId }, cart: { id: cart.id }, quantity })
+    }
+
+
+    await this.cartItemsRepo.save(cartItem)
+    return this.getMyCart(userId)
   }
 
   /**
@@ -88,36 +78,26 @@ export class CartService {
     userId: number,
     productId: string,
     quantity: number,
-    coupon: string,
   ) {
+    const cart = await this.cartRepo.findOne({ where: { user: { id: userId } }, relations: ['cartItems', 'cartItems.product'] })
+    let cartItem = await this.cartItemsRepo.findOne({ where: { cart: { id: cart?.id }, product: { id: productId } } })
+    if (!cartItem) {
+      return { message: "Cart not found", success: false }
+    }
     if (quantity < 1) {
-      throw new BadRequestException('Quantity must be at least 1');
+      cartItem.quantity = 1
     }
+    cartItem.quantity = quantity
 
-    const item = await this.cartRepo.findOne({
-      where: {
-        user: { id: userId },
-        product: { id: productId },
-      },
-    });
+    await this.cartItemsRepo.save(cartItem)
 
-    if (!item) {
-      throw new NotFoundException('Product not found in your cart');
-    }
-
-    item.quantity = quantity;
-    await this.cartRepo.save(item);
-
-    return this.getMyCart(userId, coupon);
+    // return {...cart, items: cart?.cartItems, subTotal: cart?.totalAmount}
+    return this.getMyCart(userId)
   }
 
   async removeItemByProduct(userId: number, productId: string) {
-    console.log(userId, productId);
-    const result = await this.cartRepo.delete({
-      user: { id: userId },
-      product: { id: productId },
-    });
-
+    const cart = await this.cartRepo.findOne({ where: { user: { id: userId } } });
+    const result = await this.cartItemsRepo.delete({ product: { id: productId }, cart: { id: cart?.id } })
     if (result.affected === 0) {
       throw new NotFoundException('Item not found in cart');
     }
@@ -130,32 +110,35 @@ export class CartService {
       return this.getMyCart(userId);
     }
 
+    let cart = await this.cartRepo.findOne({ where: { user: { id: userId } } })
+
+    console.log("Exsiting cart", cart)
+
     for (const guestItem of guestItems) {
       // guestItem.id should be the Product UUID/ID from frontend
-      const existingItem = await this.cartRepo.findOne({
+      const existingItem = await this.cartItemsRepo.findOne({
         where: {
-          user: { id: userId },
+          cart: { id: cart?.id },
           product: { id: guestItem.id },
         },
       });
       if (existingItem) {
-        // Merge quantities
         existingItem.quantity += guestItem.quantity;
-        const exstingcart = await this.cartRepo.save(existingItem);
+        await this.cartItemsRepo.save(existingItem);
         console.log('Increased the count of item');
       } else {
         // Create new entry
-        const newItem = this.cartRepo.create({
-          user: { id: userId },
+        const newItem = this.cartItemsRepo.create({
+          cart: { id: cart?.id },
           product: { id: guestItem.id },
           quantity: guestItem.quantity,
         });
-        const newCart = await this.cartRepo.save(newItem);
+        await this.cartItemsRepo.save(newItem);
       }
     }
 
     const cratItems = await this.getMyCart(userId);
-    return cratItems;
+    return this.getMyCart(userId);
   }
   /**
    * Clear Entire Cart (Used after successful Checkout)
