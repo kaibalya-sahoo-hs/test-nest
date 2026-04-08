@@ -22,6 +22,9 @@ export class Cart {
     totalAmount: number
 
     @Column({default: 0})
+    discountedAmount: number
+
+    @Column({default: 0})
     discount: number
     
     @Column({default: 'active'})

@@ -122,7 +122,7 @@ export class AuthService {
 
         return {
             message: "Login successful",
-            user: { id: existingUser.id, name: existingUser.name, email: existingUser.email, profile: existingUser.profile, role: existingUser.role, vendorStatus: existingUser.vendorStatus },
+            user: { id: existingUser.id, name: existingUser.name, email: existingUser.email, profile: existingUser.profile, role: existingUser.role },
             accessToken,
             refreshToken,
             success: true

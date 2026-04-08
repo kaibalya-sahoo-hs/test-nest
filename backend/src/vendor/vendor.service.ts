@@ -7,17 +7,20 @@ import { User } from 'src/users/users.entity';
 import { Like, Repository } from 'typeorm';
 import bcrypt from 'bcrypt'
 import { Order } from 'src/payment/order.entity';
+import { Vendor } from './vendor.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class VendorService {
     constructor(
-        @InjectRepository(User) 
-        private userRepo: Repository<User>,
+        @InjectRepository(Vendor) 
+        private vendorRepo: Repository<Vendor>,
          @InjectRepository(Product) 
         private productRepo: Repository<Product>, 
          @InjectRepository(Order) 
         private orderRepo: Repository<Order>,
         private cloudinaryService: CloudinaryService,
+        private jwtService: JwtService
     ){}
     async registerVendor(body){
         try {
@@ -26,28 +29,66 @@ export class VendorService {
             if(fullname.trim() == "" || email.trim() == "" || storeName.trim() == "" || storeDescription.trim() == ""){
                 return {message: "Empty values are not allowed"}
             }
-             const existingVendor = await this.userRepo.findOne({where: {email}}) 
+             const existingVendor = await this.vendorRepo.findOne({where: {email}}) 
              if(existingVendor){
                 return {message: "Vendor already exist", success :false}
              }
             const hashedPass = await bcrypt.hash(password, 10)
             
-            const neweVendor = this.userRepo.create({
+            const neweVendor = this.vendorRepo.create({
                 name: fullname,
                 email,
                 password: hashedPass,
                 storeName,
                 storeDescription,
                 vendorStatus: "pending",
-                role: 'vendor'
             })
 
-            return await this.userRepo.save(neweVendor)
+            return await this.vendorRepo.save(neweVendor)
         } catch (error) {
             console.log("Error while registering vendor", error)
             return {messsage: "Error while registering vendor", success: false}
         }
     }
+
+    async loginVendor({ email, password }) {
+            // Validation
+            if (!email || !email.trim()) {
+                return { message: "Email is required", success: false }
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return { message: "Invalid email format", success: false }
+            }
+            if (!password) {
+                return { message: "Password is required", success: false }
+            }
+    
+            const existingUser: Vendor | null = await this.vendorRepo.findOneBy({ email: email.trim().toLowerCase() })
+            console.log(existingUser)
+            if (!existingUser) {
+                return { message: "Vendor does not exist", success: false }
+            }
+    
+            const isMatch = await bcrypt.compare(password, existingUser.password)
+            if (!isMatch) {
+                return { message: "Wrong Password", success: false }
+            }
+    
+            const payload = { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: "vendor" };
+    
+            const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '1h' });
+            const refreshToken = await this.jwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '1d' });
+            
+            return {
+                message: "Login successful",
+                user: { id: existingUser.id, name: existingUser.name, email: existingUser.email, profile: existingUser.profile, role: "vendor", vendorStatus: existingUser.vendorStatus, balance: existingUser.balance },
+                accessToken,
+                refreshToken,
+                success: true
+            }
+        }
+    
 
 
       // Create a new product
@@ -59,11 +100,22 @@ export class VendorService {
         }
         return await this.productRepo.save(newProduct);
       }
+
+
+      async getVendorDetails(id){
+        const vendor = await this.vendorRepo.findOneBy({id})
+        return {...vendor, role: "vendor"}
+      }
+
+      async getOrders(vendorId){
+        const orders = await this.orderRepo.find({where: {vendor: {id: vendorId}}})
+        console.log(orders)
+        return orders
+      }
     
       // Get all products (with optional pagination)
       async findAllProducts(userId): Promise<Product[]> {
         const products =  await this.productRepo.find({where: {vendor: {id: userId}}, order: { createdAt: 'DESC' }});
-        console.log(products[0])
         return products
       }
     
@@ -105,8 +157,4 @@ export class VendorService {
         return { deleted: true };
       }
 
-      async getAllOrders(vendorId){
-        const orders =  await this.orderRepo.find({where: {items: {product: {vendor: {id: vendorId}}}}})
-        return orders
-      }
 }

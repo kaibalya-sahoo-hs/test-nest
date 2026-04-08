@@ -7,9 +7,10 @@ import { PaymentController } from './payment.controller';
 import { Payment } from './payment.entity';
 import { PaymentService } from './payment.service';
 import { Product } from 'src/product/product.entity';
+import { Vendor } from 'src/vendor/vendor.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment, Order, Address, Product]), CartModule],
+  imports: [TypeOrmModule.forFeature([Payment, Order, Address, Product, Vendor]), CartModule],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService]

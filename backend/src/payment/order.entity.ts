@@ -3,6 +3,7 @@ import { Address } from 'src/address/address.entity';
 import { User } from 'src/users/users.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Payment } from './payment.entity';
+import { Vendor } from 'src/vendor/vendor.entity';
 
 @Entity('orders')
 export class Order {
@@ -35,4 +36,7 @@ export class Order {
 
   @ManyToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
   deliveryAddress: Address
+
+  @ManyToOne(() => Vendor)
+  vendor: Vendor
 }

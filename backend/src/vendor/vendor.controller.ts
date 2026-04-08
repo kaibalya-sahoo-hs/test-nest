@@ -12,13 +12,6 @@ export class VendorController {
         return this.vendorService.registerVendor(body)
     }
 
-    @Post('product')
-    @UseGuards(VendorGuard)
-    @UseInterceptors(FileInterceptor('file'))
-    createProduct(@Body() body: any, @Req() req, @UploadedFile() file) {
-        const userID = req.user.id
-        return this.vendorService.createProduct(body, file, userID)
-    }
 
     @Get('products')
     @UseGuards(VendorGuard)
@@ -43,6 +36,35 @@ export class VendorController {
         }
     }
 
+
+
+    @Get('orders')
+    @UseGuards(VendorGuard)
+    getOrders(@Req() req){
+        console.log(req.user)
+        return this.vendorService.getOrders(req.user.id)
+    }
+
+
+    @Get(':id')
+    getVendorProfile(@Param('id') id){
+        return this.vendorService.getVendorDetails(id)
+    }
+    @Post('login')
+    loginVendor(@Body() body: any) {
+        return this.vendorService.loginVendor(body)
+    }
+
+
+    @Post('product')
+    @UseGuards(VendorGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    createProduct(@Body() body: any, @Req() req, @UploadedFile() file) {
+        const userID = req.user.id
+        return this.vendorService.createProduct(body, file, userID)
+    }
+
+
     @Get('products/:id')
     @UseGuards(VendorGuard)
     async getProductById(@Param('id') id: string, @Req() req) {
@@ -56,12 +78,5 @@ export class VendorController {
             success: true,
             product,
         };
-    }
-
-    @Get('orders')
-    @UseGuards(VendorGuard)
-    async findAllOrders(@Req() req){
-        const userId = req.user.id
-        return this.vendorService.getAllOrders(userId)
     }
 }

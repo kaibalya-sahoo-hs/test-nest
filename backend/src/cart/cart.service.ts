@@ -25,23 +25,25 @@ export class CartService {
       where: { user: { id: userId } },
       relations: ['cartItems', 'cartItems.product', 'coupon']
     });
-
+    console.log(cart)
     const subTotal = cart?.cartItems.reduce((sum, item) => {
       return sum + (item.product.price * item.quantity);
     }, 0) || 0;
 
     let discount = cart?.discount || 0
-    let totalAmount = subTotal - discount
+    let totalAmount = subTotal
+    let discountedAmount = subTotal- discount
     if (totalAmount < 0) totalAmount = 0;
 
     if(cart){
       cart.totalAmount = totalAmount
+      cart.discountedAmount = discountedAmount
       await this.cartRepo.save(cart)
     }
 
     return {
       success: true,
-      cart: { ...cart, items: cart?.cartItems, subTotal, total: totalAmount },
+      cart: { ...cart, items: cart?.cartItems, subTotal, total: cart?.discountedAmount },
     };
   }
 
@@ -112,20 +114,22 @@ export class CartService {
 
     let cart = await this.cartRepo.findOne({ where: { user: { id: userId } } })
 
-    console.log("Exsiting cart", cart)
+    if(!cart){
+      const newcart = await this.cartRepo.create({user: {id: userId}})
+      cart = await this.cartRepo.save(newcart)
+    }
 
     for (const guestItem of guestItems) {
-      // guestItem.id should be the Product UUID/ID from frontend
       const existingItem = await this.cartItemsRepo.findOne({
         where: {
           cart: { id: cart?.id },
           product: { id: guestItem.id },
         },
       });
+      console.log(existingItem)
       if (existingItem) {
         existingItem.quantity += guestItem.quantity;
         await this.cartItemsRepo.save(existingItem);
-        console.log('Increased the count of item');
       } else {
         // Create new entry
         const newItem = this.cartItemsRepo.create({
@@ -134,10 +138,10 @@ export class CartService {
           quantity: guestItem.quantity,
         });
         await this.cartItemsRepo.save(newItem);
+        console.log("Saved cart")
       }
     }
 
-    const cratItems = await this.getMyCart(userId);
     return this.getMyCart(userId);
   }
   /**

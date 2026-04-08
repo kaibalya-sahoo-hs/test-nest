@@ -1,4 +1,5 @@
 import { User } from 'src/users/users.entity';
+import { Vendor } from 'src/vendor/vendor.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm';
 
 @Entity('products')
@@ -32,7 +33,7 @@ export class Product {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.products)
-  vendor!: User
+  @ManyToOne(() => Vendor, (vendor) => vendor.products)
+  vendor!: Vendor
 
 }

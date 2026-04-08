@@ -76,7 +76,7 @@ export class UserService{
             
             const filteredOrders = orders.filter(order => !order.parentOrder)
 
-            const simplifiedOrders = orders.map(order => ({
+            const simplifiedOrders = filteredOrders.map(order => ({
                 id: order.id,
                 status: order.status,
                 totalAmount: order.totalAmount,

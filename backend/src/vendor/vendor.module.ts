@@ -9,9 +9,10 @@ import { ProductService } from 'src/product/product.service';
 import { CloudinaryModule } from 'src/upload/upload.module';
 import { MailModule } from 'src/mail/mail.module';
 import { Order } from 'src/payment/order.entity';
+import { Vendor } from './vendor.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Product, Order]), ProductModule ,CloudinaryModule, MailModule], 
+  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor]), ProductModule ,CloudinaryModule, MailModule], 
   controllers: [VendorController],
   providers: [VendorService]
 })

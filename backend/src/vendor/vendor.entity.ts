@@ -1,11 +1,8 @@
-import { Address } from 'src/address/address.entity';
-import { Cart } from 'src/cart/cart.entity';
-import { CartItem } from 'src/cart/cart_items.entity';
 import { Product } from 'src/product/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
 
 @Entity()
-export class User {
+export class Vendor {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -24,16 +21,21 @@ export class User {
   @Column({ nullable: true })
   profile!: string
 
-  @Column({ default: 'guest', enum: ['guest', 'admin', 'member'] })
-  role!: string
+  @Column({nullable: true})
+  storeName!: string
 
-  @OneToOne(() => Cart, (cart) => cart.user)
-  cart!: Cart
+  @Column({nullable: true})
+  storeDescription!: string
 
-  @OneToMany(() => Address, (address) => address.user)
-  addresses!: Address[]
+  @Column({nullable: true})
+  vendorStatus!: 'pending' | 'approved' | 'rejected' | 'suspended'
+
+  @Column({nullable: true})
+  commisionRate!: number
+
+  @OneToMany(() => Product, (product) =>product.vendor)
+  products!: Product[]
   
-  // for admin
   @Column({default: 0})
   balance: number
 }

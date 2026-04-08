@@ -53,7 +53,7 @@ import { VendorModule } from './vendor/vendor.module';
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'postgres',
+      username: process.env.DB_USERNAME,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       autoLoadEntities: true,

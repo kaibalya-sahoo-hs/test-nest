@@ -9,6 +9,7 @@ import * as crypto from 'crypto';
 import { Address } from 'src/address/address.entity';
 import items from 'razorpay/dist/types/items';
 import { Product } from 'src/product/product.entity';
+import { Vendor } from 'src/vendor/vendor.entity';
 
 @Injectable()
 export class PaymentService {
@@ -23,6 +24,8 @@ export class PaymentService {
         private addressRepo: Repository<Address>,
         @InjectRepository(Product)
         private productRepo: Repository<Product>,
+        @InjectRepository(Vendor)
+        private vendorRepo: Repository<Vendor>,
         private cartService: CartService
     ) {
         this.razorpay = new Razorpay({
@@ -40,73 +43,52 @@ export class PaymentService {
         };
         const rzpOrder = await this.razorpay.orders.create(options);
 
-        // 2. Check if the user already has a 'pending' order
-        let order = await this.orderRepo.findOne({
-            where: { user: { id: userID }, status: 'pending' },
-            relations: ['payments']
-        });
+        const vendorGroups = new Map()
 
-        if (order) {
-
-        } else {
-
-            const vendorGroups = new Map()
-
-            for (const item of cartItems) {
-                let vendorId;
-                if (!item.product.vendor) {
-                    const dbProduct = await this.productRepo.findOne({
-                        where: { id: item.product.id },
-                        relations: ['vendor']
-                    });
-                    vendorId = dbProduct?.vendor.id
-                }else{
-                    vendorId = item.product.vendor.id
-                }
-                if (!vendorGroups.has(vendorId)) {
-                    vendorGroups.set(vendorId, [])
-                }
-                vendorGroups.get(vendorId).push(item)
-            }
-
-            const masterOrder = await this.orderRepo.save({ user: { id: userID }, items: cartItems,totalAmount: amount, status: 'pending' })
-
-
-            for (const [vendorId, items] of vendorGroups) {
-                const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
-                await this.orderRepo.save({
-                    parentOrder: masterOrder,
-                    vendor: { id: vendorId },
-                    user: { id: userID },
-                    items,
-                    totalAmount: subTotal,
-                    status: 'pending',
+        for (const item of cartItems) {
+            let vendorId;
+            if (!item.product.vendor) {
+                const dbProduct = await this.productRepo.findOne({
+                    where: { id: item.product.id },
+                    relations: ['vendor']
                 });
-
+                vendorId = dbProduct?.vendor.id
+            } else {
+                vendorId = item.product.vendor.id
             }
-            const newPayment = this.paymentRepo.create({
-                razorpayOrderId: rzpOrder.id,
-                status: PaymentStatus.PENDING,
-                order: masterOrder,
-                amount
+            if (!vendorGroups.has(vendorId)) {
+                vendorGroups.set(vendorId, [])
+            }
+            vendorGroups.get(vendorId).push(item)
+        }
+
+        const masterOrder = await this.orderRepo.save({ user: { id: userID }, items: cartItems, totalAmount: amount, status: 'pending' })
+
+
+        for (const [vendorId, items] of vendorGroups) {
+            const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
+            await this.orderRepo.save({
+                parentOrder: masterOrder,
+                vendor: { id: vendorId },
+                user: { id: userID },
+                items,
+                totalAmount: subTotal,
+                status: 'pending',
             });
 
-            await this.paymentRepo.save(newPayment);
-
-            const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } })
-
-            console.log("Default address", address)
-
-            // const newOrder = this.orderRepo.create({
-            //     user: { id: userID },
-            //     items: cartItems,
-            //     status: "pending",
-            //     totalAmount: amount,
-            //     deliveryAddress: address || undefined
-            // });
-            // const savedOrder = await this.orderRepo.save(newOrder);
-            // console.log(savedOrder)
         }
+        const newPayment = this.paymentRepo.create({
+            razorpayOrderId: rzpOrder.id,
+            status: PaymentStatus.PENDING,
+            order: masterOrder,
+            amount
+        });
+
+        await this.paymentRepo.save(newPayment);
+
+        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } })
+
+        console.log("Default address", address)
 
         return rzpOrder;
     }
@@ -122,6 +104,7 @@ export class PaymentService {
     }
 
     async updatePaymentToDB(payload: any, signature: string) {
+        console.log("web hook trigreed")
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
         const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -133,6 +116,7 @@ export class PaymentService {
         }
 
         if (payload.event === 'payment.captured') {
+
             const rzpOrder = payload.payload.payment.entity;
             const rzpOrderId = rzpOrder.order_id;
             const rzpPaymentId = rzpOrder.id;
@@ -143,7 +127,20 @@ export class PaymentService {
                 payment.razorpayPaymentId = rzpPaymentId
                 await this.paymentRepo.save(payment)
                 await this.orderRepo.update(payment.order.id, { status: "paid" })
+
+                const subOrders = await this.orderRepo.find({ where: { parentOrder: { id: payment.order.id } }, relations: ['vendor'] })
+
+                for (const subOrder of subOrders) {
+                    const vendor = subOrder.vendor
+                    const commissionRate = subOrder.vendor.commisionRate || 0.10
+                    const plartformFee = subOrder.totalAmount * commissionRate
+                    const vendorEarning = subOrder.totalAmount - plartformFee
+
+                    await this.vendorRepo.update(vendor.id, { balance: () => `balance + ${vendorEarning}` })
+                    await this.orderRepo.update(subOrder.id, { status: PaymentStatus.COMPLETED, totalAmount: payment.amount })
+                }
                 await this.cartService.clearCart(payment.order.user.id);
+
             }
         }
 
