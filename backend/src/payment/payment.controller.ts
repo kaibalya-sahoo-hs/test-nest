@@ -7,9 +7,9 @@ export class PaymentController {
     constructor(private paymentService: PaymentService) { }
     @Post('create-order')
     @UseGuards(AuthGuard)
-    async createOrder(@Req() req, @Body() body: { amount: number, cartItems: any }) {
+    async createOrder(@Req() req, @Body() body: any) {
         const userID = req.user.id
-        return this.paymentService.createOrder(userID, body.amount, body.cartItems);
+        return this.paymentService.createOrder(userID, body.amount, body.cartItems, body.coupon);
     }
 
     @Post('verify')

@@ -39,4 +39,13 @@ export class Order {
 
   @ManyToOne(() => Vendor)
   vendor: Vendor
+
+  @Column({nullable: true})
+  couponCode: string
+
+  @Column({ default: 0})
+  discount: number
+
+  @Column({nullable: true})
+  couponType: 'platform' | 'vendor'
 }

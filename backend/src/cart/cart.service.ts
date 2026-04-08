@@ -25,7 +25,7 @@ export class CartService {
       where: { user: { id: userId } },
       relations: ['cartItems', 'cartItems.product', 'coupon']
     });
-    console.log(cart)
+
     const subTotal = cart?.cartItems.reduce((sum, item) => {
       return sum + (item.product.price * item.quantity);
     }, 0) || 0;
@@ -38,6 +38,7 @@ export class CartService {
     if(cart){
       cart.totalAmount = totalAmount
       cart.discountedAmount = discountedAmount
+      
       await this.cartRepo.save(cart)
     }
 

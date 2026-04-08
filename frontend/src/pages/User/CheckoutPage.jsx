@@ -13,7 +13,7 @@ function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'))
-
+console.log(cart)
   const fetchAddress = async () => {
     try {
       const { data } = await api.get('/addresses');
@@ -36,6 +36,7 @@ function CheckoutPage() {
     try {
       if (user) {
         const response = await api.post('/payment/create-order', {
+          coupon: cart.coupon.code,
           amount: cart.discountedAmount,
           cartItems: cart.items
         });

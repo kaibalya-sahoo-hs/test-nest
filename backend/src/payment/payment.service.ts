@@ -10,6 +10,7 @@ import { Address } from 'src/address/address.entity';
 import items from 'razorpay/dist/types/items';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
+import { Coupon } from 'src/coupon/coupon.entity';
 
 @Injectable()
 export class PaymentService {
@@ -26,6 +27,8 @@ export class PaymentService {
         private productRepo: Repository<Product>,
         @InjectRepository(Vendor)
         private vendorRepo: Repository<Vendor>,
+        @InjectRepository(Coupon)
+        private couponService: Repository<Coupon>,
         private cartService: CartService
     ) {
         this.razorpay = new Razorpay({
@@ -34,7 +37,7 @@ export class PaymentService {
         });
     }
 
-    async createOrder(userID: number, amount: number, cartItems: any) {
+    async createOrder(userID: number, amount: number, cartItems: any, couponCode) {
         // 1. Create a new Order in Razorpay (always unique)
         const options = {
             amount: Math.round(amount * 100), // Ensure it's an integer
@@ -63,7 +66,7 @@ export class PaymentService {
         }
 
         const masterOrder = await this.orderRepo.save({ user: { id: userID }, items: cartItems, totalAmount: amount, status: 'pending' })
-
+        const coupon = await this.couponService.findOne({where: {code: couponCode}})  
 
         for (const [vendorId, items] of vendorGroups) {
             const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
