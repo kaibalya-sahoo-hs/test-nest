@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors, HttpCode, HttpStatus } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors, HttpCode, HttpStatus } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiLogsService } from "src/api-logs/api-logs.service";
 import { AdminGuard } from "src/common/guards/admin.guard";
@@ -137,16 +137,16 @@ export class AdminController {
     }
 
     @Delete('products/:id')
-    @HttpCode(HttpStatus.NO_CONTENT) // Returns 204 No Content on success
+    @HttpCode(HttpStatus.NO_CONTENT)
     async deleteProduct(@Param('id') id: string) {
         return await this.productService.remove(id);
     }
 
     @Patch('products/:id')
-    @UseInterceptors(FileInterceptor('file')) // 'file' must match your frontend formData key
+    @UseInterceptors(FileInterceptor('file'))
     async updateProduct(
         @Param('id') id: string,
-        @Body() updateData: any, // Use a DTO here for better validation
+        @Body() updateData: any,
         @UploadedFile() file,
     ) {
         return await this.productService.update(id, updateData, file);
@@ -158,6 +158,11 @@ export class AdminController {
         return await this.couponsService.create(coupon);
     }
 
+    @Get('coupons')
+    async getAllCoupons() {
+        return await this.couponsService.findAllCoupons();
+    }
+
     @Get('payments')
     async getAllPayments(){
         return this.paymentService.getAllPayments()
@@ -166,5 +171,33 @@ export class AdminController {
     @Get('orders')
     async getAllOrders(){
         return this.paymentService.getAllOrders()
+    }
+
+    // =================== VENDOR MANAGEMENT ===================
+
+    @Get('vendors')
+    async getAllVendors(@Query('status') status?: string) {
+        return this.adminService.findAllVendors(status);
+    }
+
+    @Get('vendors/:id')
+    async getVendorById(@Param('id', ParseIntPipe) id: number) {
+        return this.adminService.getVendorById(id);
+    }
+
+    @Patch('vendors/:id/status')
+    async updateVendorStatus(
+        @Param('id', ParseIntPipe) id: number,
+        @Body('status') status: 'approved' | 'rejected' | 'suspended'
+    ) {
+        return this.adminService.updateVendorStatus(id, status);
+    }
+
+    @Patch('vendors/:id/commission')
+    async updateCommissionRate(
+        @Param('id', ParseIntPipe) id: number,
+        @Body('rate') rate: number
+    ) {
+        return this.adminService.updateCommissionRate(id, rate);
     }
 }

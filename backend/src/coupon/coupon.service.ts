@@ -36,7 +36,7 @@ export class CouponsService {
     }
 
     async validateCoupon(code: string, currentCartTotal: number) {
-        const coupon = await this.couponRepo.findOne({ where: { code: code.toUpperCase(), isActive: true } });
+        const coupon = await this.couponRepo.findOne({ where: { code: code.toUpperCase(), isActive: true }, relations: ['vendor'] });
 
         if (!coupon) {
             throw new NotFoundException('Invalid or inactive coupon code');
@@ -65,12 +65,14 @@ export class CouponsService {
             code: coupon,
             discountAmount: Math.min(discountAmount, currentCartTotal),
             type: coupon.type,
-            value: coupon.discountValue
+            value: coupon.discountValue,
+            creatorType: coupon.creatorType,
+            vendorId: coupon.vendor?.id || null
         };
     }
 
+    // Platform coupon (created by admin)
     async create(coupon) {
-        // Check if code already exists
         const existing = await this.couponRepo.findOne({ 
           where: { code: coupon.code.toUpperCase() } 
         });
@@ -83,8 +85,49 @@ export class CouponsService {
           ...coupon,
           code: coupon.code.toUpperCase(),
           expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate) : null,
+          creatorType: 'platform',
         });
       
         return await this.couponRepo.save(newCoupon);
-      }
-}
+    }
+
+    // Vendor coupon (created by vendor)
+    async createVendorCoupon(coupon, vendorId: number) {
+        const existing = await this.couponRepo.findOne({ 
+          where: { code: coupon.code.toUpperCase() } 
+        });
+        
+        if (existing) {
+          throw new BadRequestException('A coupon with this code already exists');
+        }
+      
+        const newCoupon = this.couponRepo.create({
+          ...coupon,
+          code: coupon.code.toUpperCase(),
+          expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate) : null,
+          creatorType: 'vendor',
+          vendor: { id: vendorId },
+        });
+      
+        return await this.couponRepo.save(newCoupon);
+    }
+
+    // Get all coupons (for admin)
+    async findAllCoupons() {
+        return await this.couponRepo.find({ relations: ['vendor'], order: { id: 'DESC' } });
+    }
+
+    // Get vendor coupons
+    async findVendorCoupons(vendorId: number) {
+        return await this.couponRepo.find({ where: { vendor: { id: vendorId } }, order: { id: 'DESC' } });
+    }
+
+    // Increment usage count after successful payment
+    async incrementUsage(couponCode: string) {
+        const coupon = await this.couponRepo.findOne({ where: { code: couponCode.toUpperCase() } });
+        if (coupon) {
+            coupon.usageCount += 1;
+            await this.couponRepo.save(coupon);
+        }
+    }
+}

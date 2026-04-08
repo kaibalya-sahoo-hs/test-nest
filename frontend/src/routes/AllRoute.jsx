@@ -30,6 +30,7 @@ import VendorProducts from "../pages/Vendor/VendorProducts";
 import CheckoutPage from "../pages/User/CheckoutPage";
 import VendorLogin from "../pages/Vendor/VendorLogin";
 import VendorOrders from "../pages/Vendor/VendorOrders";
+import VendorManagement from "../pages/VendorManagement";
 
 function AllRoute() {
   return (
@@ -64,6 +65,7 @@ function AllRoute() {
           <Route path="/admin/stock" element={<AdminRoute><ProductStock /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><UserProfile /></AdminRoute>} />
+          <Route path="/admin/vendors" element={<AdminRoute><VendorManagement /></AdminRoute>} />
 
           {/* Vendor Routes */}
           <Route path="/vendor/dashboard" element={<VendorDashboard/>}/>

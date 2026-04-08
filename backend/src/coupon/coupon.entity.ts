@@ -1,5 +1,6 @@
 // src/coupons/entities/coupon.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Vendor } from 'src/vendor/vendor.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
 
 @Entity('coupons')
 export class Coupon {
@@ -21,9 +22,15 @@ export class Coupon {
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ default: 1 })
+    @Column({ default: 0 })
     usageCount: number;
 
     @Column({ nullable: true })
     usageLimit: number;
+
+    @Column({ type: 'enum', enum: ['platform', 'vendor'], default: 'platform' })
+    creatorType: 'platform' | 'vendor';
+
+    @ManyToOne(() => Vendor, { nullable: true, onDelete: 'SET NULL' })
+    vendor: Vendor;
 }

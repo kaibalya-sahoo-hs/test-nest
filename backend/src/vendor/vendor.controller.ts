@@ -1,17 +1,20 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { VendorService } from './vendor.service';
 import { VendorGuard } from 'src/common/guards/auth.vendor';
-import { ProductService } from 'src/product/product.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CouponsService } from 'src/coupon/coupon.service';
 
 @Controller('vendor')
 export class VendorController {
-    constructor(private vendorService: VendorService, private vendorSevice: VendorService) { }
+    constructor(
+        private vendorService: VendorService,
+        private couponsService: CouponsService,
+    ) { }
+
     @Post('register')
     registerVendor(@Body() body: any) {
         return this.vendorService.registerVendor(body)
     }
-
 
     @Get('products')
     @UseGuards(VendorGuard)
@@ -36,20 +39,35 @@ export class VendorController {
         }
     }
 
-
-
     @Get('orders')
     @UseGuards(VendorGuard)
     getOrders(@Req() req){
-        console.log(req.user)
         return this.vendorService.getOrders(req.user.id)
     }
 
+    @Get('orders/stats')
+    @UseGuards(VendorGuard)
+    getOrderStats(@Req() req){
+        return this.vendorService.getOrderStats(req.user.id)
+    }
+
+    @Get('orders/:id')
+    @UseGuards(VendorGuard)
+    getOrderDetails(@Req() req, @Param('id') id: string){
+        return this.vendorService.getOrderDetails(req.user.id, id)
+    }
+
+    @Patch('orders/:id/status')
+    @UseGuards(VendorGuard)
+    updateOrderStatus(@Req() req, @Param('id') id: string, @Body('status') status: string){
+        return this.vendorService.updateOrderStatus(req.user.id, id, status)
+    }
 
     @Get(':id')
     getVendorProfile(@Param('id') id){
         return this.vendorService.getVendorDetails(id)
     }
+    
     @Post('login')
     loginVendor(@Body() body: any) {
         return this.vendorService.loginVendor(body)
@@ -78,5 +96,18 @@ export class VendorController {
             success: true,
             product,
         };
+    }
+
+    // Vendor coupon management
+    @Post('coupons')
+    @UseGuards(VendorGuard)
+    async createVendorCoupon(@Req() req, @Body() body: any) {
+        return this.couponsService.createVendorCoupon(body, req.user.id);
+    }
+
+    @Get('coupons')
+    @UseGuards(VendorGuard)
+    async getVendorCoupons(@Req() req) {
+        return this.couponsService.findVendorCoupons(req.user.id);
     }
 }

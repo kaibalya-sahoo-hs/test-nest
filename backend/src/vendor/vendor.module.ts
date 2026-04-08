@@ -10,10 +10,12 @@ import { CloudinaryModule } from 'src/upload/upload.module';
 import { MailModule } from 'src/mail/mail.module';
 import { Order } from 'src/payment/order.entity';
 import { Vendor } from './vendor.entity';
+import { CouponModule } from 'src/coupon/coupon.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor]), ProductModule ,CloudinaryModule, MailModule], 
+  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor]), ProductModule, CloudinaryModule, MailModule, CouponModule], 
   controllers: [VendorController],
   providers: [VendorService]
 })
 export class VendorModule {}
+

@@ -20,11 +20,13 @@ import { ProductModule } from 'src/product/product.module';
 import { Product } from 'src/product/product.entity';
 import { CouponModule } from 'src/coupon/coupon.module';
 import { PaymentModule } from 'src/payment/payment.module';
+import { Vendor } from 'src/vendor/vendor.entity';
+import { Order } from 'src/payment/order.entity';
 
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Member, ApiLog, Product]),
+        TypeOrmModule.forFeature([User, Member, ApiLog, Product, Vendor, Order]),
         BullModule.registerQueue({name: 'user'}),
         ProductModule,
         UsersModule ,
@@ -45,3 +47,4 @@ export class AdminModule implements NestModule {
             .forRoutes('*'); // Log everything, or specify routes
     }
 }
+

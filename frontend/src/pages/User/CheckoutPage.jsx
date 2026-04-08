@@ -36,7 +36,7 @@ console.log(cart)
     try {
       if (user) {
         const response = await api.post('/payment/create-order', {
-          coupon: cart.coupon.code,
+          coupon: cart.coupon ? cart.coupon.code: null,
           amount: cart.discountedAmount,
           cartItems: cart.items
         });

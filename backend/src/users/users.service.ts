@@ -69,11 +69,12 @@ export class UserService{
     async getUserOrders(userId: number) {
         try {
             const orders = await this.orderRepo.find({
-                where: { user: { id: userId } }, // Filter by log
+                where: { user: { id: userId } },
                 order: { createdAt: 'DESC' },
-                relations: ['parentOrder'] // Newest orders first
+                relations: ['parentOrder', 'deliveryAddress', 'payments']
             });
             
+            // Only return master (parent) orders
             const filteredOrders = orders.filter(order => !order.parentOrder)
 
             const simplifiedOrders = filteredOrders.map(order => ({
@@ -81,13 +82,18 @@ export class UserService{
                 status: order.status,
                 totalAmount: order.totalAmount,
                 createdAt: order.createdAt,
+                couponCode: order.couponCode,
+                discount: order.discount,
+                couponType: order.couponType,
+                paymentStatus: order.payments?.[0]?.status || 'unknown',
                 
                 items: order.items.map(item => ({
                     id: item.id,
                     quantity: item.quantity,
                     productName: item.product.name,
                     productImage: item.product.image,
-                    priceAtPurchase: item.product.price
+                    priceAtPurchase: item.product.price,
+                    vendorName: item.product.vendor?.storeName || 'Marketplace',
                 }))
             }));
     
@@ -95,6 +101,65 @@ export class UserService{
         } catch (error) {
             console.error("Error fetching orders:", error);
             throw new InternalServerErrorException("Failed to fetch your orders");
+        }
+    }
+
+    async getOrderDetail(userId: number, orderId: string) {
+        try {
+            // Get the master order
+            const masterOrder = await this.orderRepo.findOne({
+                where: { id: orderId, user: { id: userId } },
+                relations: ['deliveryAddress', 'payments'],
+            });
+
+            if (!masterOrder) {
+                return { success: false, message: 'Order not found' };
+            }
+
+            // Get sub-orders (vendor-specific)
+            const subOrders = await this.orderRepo.find({
+                where: { parentOrder: { id: orderId } },
+                relations: ['vendor'],
+            });
+
+            const orderDetail = {
+                id: masterOrder.id,
+                status: masterOrder.status,
+                totalAmount: masterOrder.totalAmount,
+                createdAt: masterOrder.createdAt,
+                couponCode: masterOrder.couponCode,
+                discount: masterOrder.discount,
+                couponType: masterOrder.couponType,
+                deliveryAddress: masterOrder.deliveryAddress,
+                paymentStatus: masterOrder.payments?.[0]?.status || 'unknown',
+                paymentId: masterOrder.payments?.[0]?.razorpayPaymentId || null,
+                items: masterOrder.items.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    productName: item.product.name,
+                    productImage: item.product.image,
+                    priceAtPurchase: item.product.price,
+                    vendorName: item.product.vendor?.storeName || 'Marketplace',
+                })),
+                subOrders: subOrders.map(sub => ({
+                    id: sub.id,
+                    vendorName: sub.vendor?.storeName || 'Unknown',
+                    status: sub.status,
+                    totalAmount: sub.totalAmount,
+                    discount: sub.discount,
+                    items: sub.items.map(item => ({
+                        productName: item.product.name,
+                        productImage: item.product.image,
+                        quantity: item.quantity,
+                        price: item.product.price,
+                    })),
+                })),
+            };
+
+            return { success: true, order: orderDetail };
+        } catch (error) {
+            console.error("Error fetching order detail:", error);
+            throw new InternalServerErrorException("Failed to fetch order details");
         }
     }
 }

@@ -1,14 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { User } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt'
 import { Product } from 'src/product/product.entity';
+import { Vendor } from 'src/vendor/vendor.entity';
+import { Order } from 'src/payment/order.entity';
 
 @Injectable()
 export class AdminService {
-    constructor(@InjectRepository(User) private userRepo: Repository<User>, @InjectRepository(Product)private productRepo: Repository<Product> , private cloudinaryService: CloudinaryService) { }
+    constructor(
+        @InjectRepository(User) private userRepo: Repository<User>,
+        @InjectRepository(Product) private productRepo: Repository<Product>,
+        @InjectRepository(Vendor) private vendorRepo: Repository<Vendor>,
+        @InjectRepository(Order) private orderRepo: Repository<Order>,
+        private cloudinaryService: CloudinaryService,
+    ) { }
 
     deletUser(id: number) {
         const user = this.userRepo.delete(id)
@@ -90,27 +98,131 @@ export class AdminService {
     }
 
     async uploadProductImage(id: string, image: any) {
-        // 1. Find the specific product
         try {
             const product = await this.productRepo.findOneBy({ id });
     
-        // 2. Handle if product doesn't exist
-        if (!product) {
-            throw new NotFoundException(`Product with ID ${id} not found`);
-        }
+            if (!product) {
+                throw new NotFoundException(`Product with ID ${id} not found`);
+            }
     
-        const result = await this.cloudinaryService.uploadImage(image)
+            const result = await this.cloudinaryService.uploadImage(image)
 
-
-        // 3. Update the image field
-        if(result?.url){
-            product.image = result?.url;
-        }
+            if(result?.url){
+                product.image = result?.url;
+            }
     
-        return {success: true}
+            return {success: true}
         } catch (error) {
             console.log(error)
             return {message: "Error while uplaoding the image", success: false}
+        }
+    }
+
+    // =================== VENDOR MANAGEMENT ===================
+
+    async findAllVendors(status?: string) {
+        try {
+            const where: any = {};
+            if (status) {
+                where.vendorStatus = status;
+            }
+            const vendors = await this.vendorRepo.find({
+                where,
+                order: { id: 'DESC' },
+            });
+
+            // Enrich with product count and order count
+            const enrichedVendors = await Promise.all(vendors.map(async (vendor) => {
+                const productCount = await this.productRepo.count({ where: { vendor: { id: vendor.id } } });
+                const orderCount = await this.orderRepo.count({ where: { vendor: { id: vendor.id } } });
+                return {
+                    ...vendor,
+                    password: undefined,
+                    productCount,
+                    orderCount,
+                };
+            }));
+
+            return { success: true, vendors: enrichedVendors };
+        } catch (error) {
+            console.log("Error fetching vendors", error);
+            return { success: false, message: "Error fetching vendors" };
+        }
+    }
+
+    async getVendorById(id: number) {
+        try {
+            const vendor = await this.vendorRepo.findOne({ where: { id }, relations: ['products'] });
+            if (!vendor) {
+                throw new NotFoundException(`Vendor with ID ${id} not found`);
+            }
+            const orderCount = await this.orderRepo.count({ where: { vendor: { id } } });
+            const totalEarnings = vendor.balance || 0;
+
+            return {
+                success: true,
+                vendor: {
+                    ...vendor,
+                    password: undefined,
+                    orderCount,
+                    totalEarnings,
+                },
+            };
+        } catch (error) {
+            console.log("Error fetching vendor", error);
+            return { success: false, message: "Error fetching vendor details" };
+        }
+    }
+
+    async updateVendorStatus(id: number, status: 'approved' | 'rejected' | 'suspended') {
+        try {
+            const vendor = await this.vendorRepo.findOneBy({ id });
+            if (!vendor) {
+                throw new NotFoundException(`Vendor with ID ${id} not found`);
+            }
+
+            // Validate status transitions
+            const validTransitions = {
+                'pending': ['approved', 'rejected'],
+                'approved': ['suspended'],
+                'rejected': ['approved'], // Allow re-approval of rejected vendors
+                'suspended': ['approved'],
+            };
+
+            const allowed = validTransitions[vendor.vendorStatus] || [];
+            if (!allowed.includes(status)) {
+                throw new BadRequestException(`Cannot transition from '${vendor.vendorStatus}' to '${status}'`);
+            }
+
+            vendor.vendorStatus = status;
+            await this.vendorRepo.save(vendor);
+
+            return { success: true, message: `Vendor status updated to '${status}'`, vendor: { ...vendor, password: undefined } };
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
+            console.log("Error updating vendor status", error);
+            return { success: false, message: "Error updating vendor status" };
+        }
+    }
+
+    async updateCommissionRate(id: number, rate: number) {
+        try {
+            if (rate < 0 || rate > 1) {
+                throw new BadRequestException('Commission rate must be between 0 and 1');
+            }
+            const vendor = await this.vendorRepo.findOneBy({ id });
+            if (!vendor) {
+                throw new NotFoundException(`Vendor with ID ${id} not found`);
+            }
+
+            vendor.commisionRate = rate;
+            await this.vendorRepo.save(vendor);
+
+            return { success: true, message: `Commission rate updated to ${(rate * 100).toFixed(1)}%` };
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
+            console.log("Error updating commission rate", error);
+            return { success: false, message: "Error updating commission rate" };
         }
     }
 }

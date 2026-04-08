@@ -7,7 +7,6 @@ import { Payment, PaymentStatus } from './payment.entity';
 import { CartService } from "../cart/cart.service"
 import * as crypto from 'crypto';
 import { Address } from 'src/address/address.entity';
-import items from 'razorpay/dist/types/items';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
@@ -28,7 +27,7 @@ export class PaymentService {
         @InjectRepository(Vendor)
         private vendorRepo: Repository<Vendor>,
         @InjectRepository(Coupon)
-        private couponService: Repository<Coupon>,
+        private couponRepo: Repository<Coupon>,
         private cartService: CartService
     ) {
         this.razorpay = new Razorpay({
@@ -37,17 +36,35 @@ export class PaymentService {
         });
     }
 
-    async createOrder(userID: number, amount: number, cartItems: any, couponCode) {
-        // 1. Create a new Order in Razorpay (always unique)
+    async createOrder(userID: number, amount: number, cartItems: any, couponCode: string) {
+        // Check for existing pending master order for this user (payment retry)
+        const existingPendingOrder = await this.orderRepo.findOne({
+            where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
+            relations: ['payments'],
+        });
+
+        if (existingPendingOrder) {
+            // Delete old sub-orders and payments, recreate fresh
+            const oldSubOrders = await this.orderRepo.find({ where: { parentOrder: { id: existingPendingOrder.id } } });
+            for (const sub of oldSubOrders) {
+                await this.orderRepo.remove(sub);
+            }
+            for (const payment of existingPendingOrder.payments) {
+                await this.paymentRepo.remove(payment);
+            }
+            await this.orderRepo.remove(existingPendingOrder);
+        }
+
+        // Create a new Razorpay order
         const options = {
-            amount: Math.round(amount * 100), // Ensure it's an integer
+            amount: Math.round(amount * 100),
             currency: "INR",
             receipt: `receipt_${Date.now()}`,
         };
         const rzpOrder = await this.razorpay.orders.create(options);
 
-        const vendorGroups = new Map()
-
+        // Group cart items by vendor
+        const vendorGroups = new Map();
         for (const item of cartItems) {
             let vendorId;
             if (!item.product.vendor) {
@@ -55,43 +72,82 @@ export class PaymentService {
                     where: { id: item.product.id },
                     relations: ['vendor']
                 });
-                vendorId = dbProduct?.vendor.id
+                vendorId = dbProduct?.vendor?.id;
             } else {
-                vendorId = item.product.vendor.id
+                vendorId = item.product.vendor.id;
             }
             if (!vendorGroups.has(vendorId)) {
-                vendorGroups.set(vendorId, [])
+                vendorGroups.set(vendorId, []);
             }
-            vendorGroups.get(vendorId).push(item)
+            vendorGroups.get(vendorId).push(item);
         }
 
-        const masterOrder = await this.orderRepo.save({ user: { id: userID }, items: cartItems, totalAmount: amount, status: 'pending' })
-        const coupon = await this.couponService.findOne({where: {code: couponCode}})  
+        // Fetch coupon info
+        let coupon: Coupon | null = null;
+        let totalDiscount = 0;
+        if (couponCode) {
+            coupon = await this.couponRepo.findOne({ where: { code: couponCode.toUpperCase() }, relations: ['vendor'] });
+        }
 
+        // Calculate total before discount (sum of all items)
+        const totalBeforeDiscount = cartItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+        totalDiscount = totalBeforeDiscount - amount; // difference is the discount applied
+
+        // Create master order
+        const masterOrderData: Partial<Order> = {
+            user: { id: userID } as any,
+            items: cartItems,
+            totalAmount: amount,
+            status: 'pending',
+            couponCode: coupon?.code || undefined,
+            discount: totalDiscount,
+            couponType: coupon?.creatorType || undefined,
+        };
+        const masterOrder = await this.orderRepo.save(this.orderRepo.create(masterOrderData));
+
+        // Get delivery address
+        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } });
+
+        // Create sub-orders per vendor with proportional coupon splitting
         for (const [vendorId, items] of vendorGroups) {
-            const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
-            await this.orderRepo.save({
-                parentOrder: masterOrder,
-                vendor: { id: vendorId },
-                user: { id: userID },
-                items,
-                totalAmount: subTotal,
-                status: 'pending',
-            });
+            const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+            
+            // Calculate proportional discount for this vendor's sub-order
+            let subDiscount = 0;
+            let subCouponCode: string | null = null;
+            let subCouponType: 'platform' | 'vendor' | null = null;
 
+            if (coupon && totalDiscount > 0) {
+                const proportion = subTotal / totalBeforeDiscount;
+                subDiscount = Math.round(totalDiscount * proportion * 100) / 100;
+                subCouponCode = coupon.code;
+                subCouponType = coupon.creatorType;
+            }
+
+            const subOrderEntity = this.orderRepo.create({
+                parentOrder: masterOrder,
+                vendor: { id: vendorId } as any,
+                user: { id: userID } as any,
+                items,
+                totalAmount: subTotal - subDiscount,
+                status: 'pending',
+                deliveryAddress: address || null,
+                couponCode: subCouponCode,
+                discount: subDiscount,
+                couponType: subCouponType,
+            } as any);
+            await this.orderRepo.save(subOrderEntity);
         }
-        const newPayment = this.paymentRepo.create({
+
+        // Create payment record
+        const paymentData: Partial<Payment> = {
             razorpayOrderId: rzpOrder.id,
             status: PaymentStatus.PENDING,
-            order: masterOrder,
+            order: masterOrder as Order,
             amount
-        });
-
+        };
+        const newPayment = this.paymentRepo.create(paymentData);
         await this.paymentRepo.save(newPayment);
-
-        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } })
-
-        console.log("Default address", address)
 
         return rzpOrder;
     }
@@ -107,7 +163,7 @@ export class PaymentService {
     }
 
     async updatePaymentToDB(payload: any, signature: string) {
-        console.log("web hook trigreed")
+        console.log("web hook triggered")
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
         const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -119,7 +175,6 @@ export class PaymentService {
         }
 
         if (payload.event === 'payment.captured') {
-
             const rzpOrder = payload.payload.payment.entity;
             const rzpOrderId = rzpOrder.order_id;
             const rzpPaymentId = rzpOrder.id;
@@ -136,21 +191,46 @@ export class PaymentService {
                 for (const subOrder of subOrders) {
                     const vendor = subOrder.vendor
                     const commissionRate = subOrder.vendor.commisionRate || 0.10
-                    const plartformFee = subOrder.totalAmount * commissionRate
-                    const vendorEarning = subOrder.totalAmount - plartformFee
+                    const subTotal = Number(subOrder.totalAmount) + Number(subOrder.discount || 0) // original subtotal before discount
+                    
+                    // Calculate vendor earning based on coupon ownership
+                    let vendorEarning = 0;
+                    const platformFee = subTotal * commissionRate;
+                    
+                    if (subOrder.couponType === 'vendor') {
+                        // Vendor-created coupon: vendor bears the discount
+                        vendorEarning = subTotal - platformFee - Number(subOrder.discount || 0);
+                    } else if (subOrder.couponType === 'platform') {
+                        // Platform coupon: platform (admin) bears the discount, vendor gets full share minus commission
+                        vendorEarning = subTotal - platformFee;
+                    } else {
+                        // No coupon
+                        vendorEarning = subTotal - platformFee;
+                    }
+
+                    // Ensure vendor earning is not negative
+                    vendorEarning = Math.max(0, vendorEarning);
 
                     await this.vendorRepo.update(vendor.id, { balance: () => `balance + ${vendorEarning}` })
-                    await this.orderRepo.update(subOrder.id, { status: PaymentStatus.COMPLETED, totalAmount: payment.amount })
+                    await this.orderRepo.update(subOrder.id, { status: 'completed' })
                 }
-                await this.cartService.clearCart(payment.order.user.id);
 
+                // Increment coupon usage count
+                if (payment.order.couponCode) {
+                    const coupon = await this.couponRepo.findOne({ where: { code: payment.order.couponCode } });
+                    if (coupon) {
+                        coupon.usageCount += 1;
+                        await this.couponRepo.save(coupon);
+                    }
+                }
+
+                // Reload master order to access couponCode
+                const masterOrder = await this.orderRepo.findOne({ where: { id: payment.order.id } });
+
+                await this.cartService.clearCart(payment.order.user.id);
             }
         }
-
     }
-
-
-
 
     verifySignature(orderId: string, paymentId: string, signature: string): boolean {
         const generatedSignature = crypto
@@ -166,7 +246,7 @@ export class PaymentService {
 
     async getAllPayments() {
         try {
-            const payments = await this.paymentRepo.find()
+            const payments = await this.paymentRepo.find({ relations: ['order'], order: { createdAt: 'DESC' } })
             return { payments, success: true }
         } catch (error) {
             console.log("Error while fetching payments data from DB", error)
@@ -176,7 +256,7 @@ export class PaymentService {
 
     async getAllOrders() {
         try {
-            const orders = await this.orderRepo.find()
+            const orders = await this.orderRepo.find({ order: { createdAt: 'DESC' }, relations: ['vendor', 'user'] })
             return { orders, success: true }
         } catch (error) {
             console.log("Error while fetching orders data from DB", error)

@@ -36,6 +36,13 @@ export class UserController {
     return this.userService.getUserOrders(userId);
   }
 
+  @Get('my-orders/:id')
+  @UseGuards(AuthGuard)
+  async getOrderDetail(@Req() req, @Param('id') id: string) {
+    const userId = req.user.id;
+    return this.userService.getOrderDetail(userId, id);
+  }
+
   // Self-service: update own profile
   @Patch('profile/update')
   updateProfile(@Body() body: any) {
@@ -54,4 +61,4 @@ export class UserController {
     return this.couponService.applyCoupon(coupon, body.cartId)
   }
 
-}
+}
