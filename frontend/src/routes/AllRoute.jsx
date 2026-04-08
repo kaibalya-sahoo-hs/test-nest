@@ -28,6 +28,8 @@ import VendorDashboard from "../pages/Vendor/VendorDashboard";
 import VendorProfile from "../pages/Vendor/VendorProfile";
 import VendorProducts from "../pages/Vendor/VendorProducts";
 import CheckoutPage from "../pages/User/CheckoutPage";
+import VendorLogin from "../pages/Vendor/VendorLogin";
+import VendorOrders from "../pages/Vendor/VendorOrders";
 
 function AllRoute() {
   return (
@@ -42,6 +44,8 @@ function AllRoute() {
           element={<CompleteRegistration />}
         />
         <Route path="/vendor/register" element={<VendorRegistration/>}/>
+          <Route path="/vendor/login" element={<VendorLogin/>}/>
+
         <Route element={<Nav />}>
           <Route path="/" element={<Index/>}/>
           <Route path="/address" element={<AddressManager/>}/>
@@ -65,6 +69,7 @@ function AllRoute() {
           <Route path="/vendor/dashboard" element={<VendorDashboard/>}/>
           <Route path="/vendor/profile" element={<VendorProfile/>}/>
           <Route path="/vendor/products" element={<VendorProducts/>}/>
+          <Route path="/vendor/orders" element={<VendorOrders/>}/>
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

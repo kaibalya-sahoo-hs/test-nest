@@ -63,9 +63,9 @@ const Login = () => {
           navigate('/vendor/dashboard')
         }else {
           navigate(sessionStorage.getItem('redirectTo'))
+          console.log("Called")
           syncCartWithServer()
           fetchCart();
-          // sessionStorage.removeItem('redirectTo')
         }
       } else {
         toast.error(data.message || 'Login failed. Please check your credentials.');

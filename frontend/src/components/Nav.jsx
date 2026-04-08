@@ -5,7 +5,7 @@ import { IoMdNotifications } from "react-icons/io";
 import { CiSearch, CiCircleChevDown } from "react-icons/ci";
 import { LuLogOut } from "react-icons/lu";
 import { FiUser, FiMenu, FiX } from "react-icons/fi";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaRupeeSign, FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 
 function Nav() {
@@ -127,7 +127,7 @@ function Nav() {
   ];
   const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, {path: "/address", label: "Addresss" }];
 
-  const vendorLinks = [{path: "/vendor/dashboard", label: "Dashboard"},  {path: "/vendor/products", label: "Products"},{path: "/vendor/profile", label: "Profile"},]
+  const vendorLinks = [{path: "/vendor/dashboard", label: "Dashboard"},  {path: "/vendor/products", label: "Products"},{path: "/vendor/profile", label: "Profile"}, {path: "/vendor/orders", label: "Orders"}]
 
   let navLinks = [];
   if (user) {
@@ -193,10 +193,17 @@ function Nav() {
             {/* Profile Info + Dropdown */}
             {user ? (
               <div className="relative" ref={dropdownRef}>
+                
                 <div
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100 cursor-pointer group"
-                >
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                  {isVendor && <div className="text-sm flex items-center">
+                    <FaRupeeSign/>{isVendor && user.balance.toLocaleString('en-IN')}
+                  </div>}
+                  <div
+                  >
+
                   {user?.profile ? (
                     <img
                       src={user.profile}
@@ -208,6 +215,7 @@ function Nav() {
                       {user?.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                   )}
+                  </div>
                   <div className="hidden md:block">
                     <p className="text-sm font-bold text-[#202224] leading-tight">
                       {user?.name || "User"}
@@ -249,12 +257,20 @@ function Nav() {
                 )}
               </div>
             ) : (
-              <button
+              <div className="flex gap-2">
+                <button
                 onClick={() => handleLoginPress()}
                 className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
               >
                 Login
               </button>
+              <button
+                onClick={() => navigate('/vendor/login')}
+                className="bg-[#4379EE] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+              >
+                Seller login
+              </button>
+              </div>
             )}
           </div>
         </div>

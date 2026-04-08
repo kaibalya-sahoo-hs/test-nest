@@ -36,7 +36,7 @@ function CheckoutPage() {
     try {
       if (user) {
         const response = await api.post('/payment/create-order', {
-          amount: cart.total,
+          amount: cart.discountedAmount,
           cartItems: cart.items
         });
 
@@ -50,7 +50,6 @@ function CheckoutPage() {
           description: "Random Description",
           order_id: order.id,
           handler: async function (response) {
-            console.log("Response by Razor pay", response)
             const { data } = await api.post('/payment/verify', response)
             fetchCart()
             navigate('/orders')
@@ -139,7 +138,15 @@ function CheckoutPage() {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between text-gray-600">
                 <span>Price ({cart.items?.length} items)</span>
-                <span>₹{totalAmount}</span>
+                <span>₹{cart.totalAmount}</span>
+              </div>
+              <div className="flex justify-between text-green-500 ">
+                <span className=''>Total Discount : </span>
+                <span>- ₹{cart.discount}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>After discount: </span>
+                <span>₹{cart.discountedAmount}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Charges</span>
@@ -147,7 +154,7 @@ function CheckoutPage() {
               </div>
               <div className="border-t pt-4 flex justify-between items-center">
                 <span className="text-lg font-bold text-gray-800">Total Amount</span>
-                <span className="text-xl font-bold text-[#4379EE]">₹{totalAmount}</span>
+                <span className="text-xl font-bold text-[#4379EE]">₹{cart.discountedAmount}</span>
               </div>
             </div>
 

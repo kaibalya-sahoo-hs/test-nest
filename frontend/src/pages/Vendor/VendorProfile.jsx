@@ -23,7 +23,8 @@ function VendorProfile() {
         return;
       }
       const parsed = JSON.parse(stored);
-      const res = await api.get(`http://localhost:8000/users/profile/${parsed.id}`);
+      const res = await api.get(`http://localhost:8000/vendor/${parsed.id}`);
+      console.log(res.data)
       setUser(res.data);
       setFormData({ name: res.data?.name || '' });
     } catch (err) {

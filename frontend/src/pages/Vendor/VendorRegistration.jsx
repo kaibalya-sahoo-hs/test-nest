@@ -9,7 +9,7 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 function VendorRegistration() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullname: '',
@@ -26,8 +26,7 @@ function VendorRegistration() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Frontend Trimming & Validation
+
     const isAnyEmpty = Object.values(formData).some(val => val.trim() === "");
     if (isAnyEmpty) {
       return toast.error("All fields are required");
@@ -38,7 +37,7 @@ function VendorRegistration() {
       const response = await api.post('/vendor/register', formData);
       if (response.data.id) {
         toast.success("Registration Successful! Your store is under review.");
-        navigate('/login')
+        navigate('/vendor/login')
       } else {
         toast.error(response.data.message);
       }
@@ -52,7 +51,7 @@ function VendorRegistration() {
   return (
     <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-[500px] rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        
+
         {/* Header Section */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-2xl mb-4">
@@ -63,7 +62,7 @@ function VendorRegistration() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          
+
           {/* Full Name */}
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">Full Name</label>
@@ -97,19 +96,32 @@ function VendorRegistration() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">Password</label>
-            <div className="relative">
-              <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">
+              Password
+            </label>
+            <div className="relative group">
+              {/* Left Icon */}
+              <FaKey
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors"
+                size={18}
+              />
+
               <input
                 type={hidePass ? "password" : "text"}
                 name="password"
-                placeholder="Password"
-                className="w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224]"
+                placeholder="••••••••"
+                className="w-full pl-12 pr-12 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] placeholder:text-gray-300"
                 value={formData.password}
                 onChange={handleChange}
               />
-              <button onClick={() => setHidePass(!hidePass)}>
-                {hidePass ? <FaEye/> : <FaEyeSlash/>}
+
+              {/* Right Toggle Button */}
+              <button
+                type="button" // Important: prevents form submission on click
+                onClick={() => setHidePass(!hidePass)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1"
+              >
+                {hidePass ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
               </button>
             </div>
           </div>
@@ -165,7 +177,7 @@ function VendorRegistration() {
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
             Already have a store?{' '}
-            <button onClick={() => navigate('/login')} className="text-[#4379EE] font-bold hover:underline">
+            <button onClick={() => navigate('/vendor/login')} className="text-[#4379EE] font-bold hover:underline">
               Log In
             </button>
           </p>

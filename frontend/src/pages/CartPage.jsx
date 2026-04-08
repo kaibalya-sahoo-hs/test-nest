@@ -42,6 +42,7 @@ const CartPage = () => {
     
       if (data) {
         toast.success(`Coupon "${data.savedCart.coupon.code}" applied!`);
+        fetchCart()
       } else {
         toast.error("Invalid or expired coupon");
       }

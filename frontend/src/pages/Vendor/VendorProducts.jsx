@@ -12,7 +12,7 @@ function VendorProducts() {
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const user = JSON.parse(localStorage.getItem('user'));
-
+    
     const fetchVendorProducts = async () => {
         try {
             setLoading(true);
