@@ -33,6 +33,7 @@ import VendorOrders from "../pages/Vendor/VendorOrders";
 import VendorManagement from "../pages/VendorManagement";
 import AdminOrdersPage from "../pages/Admin/AdminOrdersPage"
 import Payments from "../pages/Admin/Payments";
+import VendorWallet from "../pages/Vendor/VendorWallet";
 
 function AllRoute() {
   return (
@@ -76,6 +77,7 @@ function AllRoute() {
           <Route path="/vendor/profile" element={<VendorProfile/>}/>
           <Route path="/vendor/products" element={<VendorProducts/>}/>
           <Route path="/vendor/orders" element={<VendorOrders/>}/>
+          <Route path="/vendor/profile/wallet" element={<VendorWallet/>}/>
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

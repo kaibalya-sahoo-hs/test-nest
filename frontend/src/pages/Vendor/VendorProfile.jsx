@@ -156,9 +156,9 @@ function VendorProfile() {
               <span className={`inline-block mt-3 px-4 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wide ${getRoleBadge(user.role)}`}>
                 {user.role}
               </span>
-              <div>
-                Vendor Status : <span className='bg-yellow-300 rounded-lg p-1 text-sm'>{user.vendorStatus}</span>
-              </div>
+              <button className='bg-blue-500 text-white p-2 my-2 rounded-xl text-md w-fit block cursor-pointer' onClick={() => navigate('/vendor/profile/wallet')}>
+                Wallet
+              </button>
             </div>
             {!isEditing && (
               <button

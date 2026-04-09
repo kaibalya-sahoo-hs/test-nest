@@ -29,7 +29,7 @@ function Nav() {
   const isAdmin = user?.role === "admin";
   const isVendor = user?.role === "vendor"
 
-  const roleBadge = isAdmin ? "Admin" : (isVendor ? "Vendor": "User" );
+  const roleBadge = isAdmin ? "Admin" : (isVendor ? "Vendor" : "User");
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -63,7 +63,7 @@ function Nav() {
 
   useEffect(() => {
     const publicAuthPaths = ["/login", "/register", "/auth/register/complete"]
-    if(!user && !publicAuthPaths.includes(location.pathname)){
+    if (!user && !publicAuthPaths.includes(location.pathname)) {
       sessionStorage.setItem('redirectTo', location.pathname)
       console.log("Path saved to session storage", location.pathname)
     }
@@ -125,9 +125,9 @@ function Nav() {
   const publicLinks = [
     { path: "/products", label: "Products" }, // Change icon as needed
   ];
-  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, {path: "/address", label: "Addresss" }];
+  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, { path: "/address", label: "Addresss" }];
 
-  const vendorLinks = [{path: "/vendor/dashboard", label: "Dashboard"},  {path: "/vendor/products", label: "Products"},{path: "/vendor/profile", label: "Profile"}, {path: "/vendor/orders", label: "Orders"}]
+  const vendorLinks = [{ path: "/vendor/dashboard", label: "Dashboard" }, { path: "/vendor/products", label: "Products" }, { path: "/vendor/profile", label: "Profile" }, { path: "/vendor/orders", label: "Orders" }]
 
   let navLinks = [];
   if (user) {
@@ -178,7 +178,7 @@ function Nav() {
 
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Notifications */}
-            {user?.role !== "admin" && user?.role !== "vendor"  && <div
+            {user?.role !== "admin" && user?.role !== "vendor" && <div
               className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
               onClick={() => navigate("/cart")}
             >
@@ -192,29 +192,31 @@ function Nav() {
 
             {/* Profile Info + Dropdown */}
             {user ? (
-              <div className="relative" ref={dropdownRef}>
-                
+              <div className="relative">
+
                 <div
                   className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100 cursor-pointer group"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  >
-                  {isVendor && <div className="text-sm flex items-center">
-                    <FaRupeeSign/>{isVendor && user.balance.toLocaleString('en-IN')}
+                >
+                  {isVendor && <div className="text-sm flex items-center bg-gray-300 rounded-2xl border border-gray-400 p-2" onClick={() => navigate('/vendor/wallet')}>
+                    <FaRupeeSign />{isVendor && user.balance.toLocaleString('en-IN')}
                   </div>}
                   <div
+                    ref={dropdownRef}
+                    
                   >
-
-                  {user?.profile ? (
-                    <img
-                      src={user.profile}
-                      alt={user.name}
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
-                    />
-                  ) : (
-                    <div className="bg-[#4379EE] text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex justify-center items-center font-bold text-sm sm:text-base">
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    <div onClick={() => setDropdownOpen(!dropdownOpen)}>
+                      {user?.profile ? (
+                        <img
+                          src={user.profile}
+                          alt={user.name}
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
+                        />
+                      ) : (
+                        <div className="bg-[#4379EE] text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex justify-center items-center font-bold text-sm sm:text-base">
+                          {user?.name?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                      )}
                     </div>
-                  )}
                   </div>
                   <div className="hidden md:block">
                     <p className="text-sm font-bold text-[#202224] leading-tight">
@@ -235,7 +237,7 @@ function Nav() {
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
-                        navigate(isVendor ? "/vendor/profile" :"/profile");
+                        navigate(isVendor ? "/vendor/profile" : "/profile");
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-[#202224] hover:bg-[#F5F6FA] transition-colors"
                     >
@@ -259,17 +261,17 @@ function Nav() {
             ) : (
               <div className="flex gap-2">
                 <button
-                onClick={() => handleLoginPress()}
-                className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => navigate('/vendor/login')}
-                className="bg-[#4379EE] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
-              >
-                Seller login
-              </button>
+                  onClick={() => handleLoginPress()}
+                  className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate('/vendor/login')}
+                  className="bg-[#4379EE] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+                >
+                  Seller login
+                </button>
               </div>
             )}
           </div>
@@ -315,10 +317,9 @@ function Nav() {
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${
-                        isActive
-                          ? "bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100"
-                          : "text-[#202224] hover:bg-gray-100 font-light"
+                      `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${isActive
+                        ? "bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100"
+                        : "text-[#202224] hover:bg-gray-100 font-light"
                       }`
                     }
                   >

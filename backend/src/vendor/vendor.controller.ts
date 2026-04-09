@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Headers, NotFoundException, Param, Patch, Post, RawBodyRequest, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { VendorService } from './vendor.service';
 import { VendorGuard } from 'src/common/guards/auth.vendor';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -41,33 +41,33 @@ export class VendorController {
 
     @Get('orders')
     @UseGuards(VendorGuard)
-    getOrders(@Req() req){
+    getOrders(@Req() req) {
         return this.vendorService.getOrders(req.user.id)
     }
 
     @Get('orders/stats')
     @UseGuards(VendorGuard)
-    getOrderStats(@Req() req){
+    getOrderStats(@Req() req) {
         return this.vendorService.getOrderStats(req.user.id)
     }
 
     @Get('orders/:id')
     @UseGuards(VendorGuard)
-    getOrderDetails(@Req() req, @Param('id') id: string){
+    getOrderDetails(@Req() req, @Param('id') id: string) {
         return this.vendorService.getOrderDetails(req.user.id, id)
     }
 
     @Patch('orders/:id/status')
     @UseGuards(VendorGuard)
-    updateOrderStatus(@Req() req, @Param('id') id: string, @Body('status') status: string){
+    updateOrderStatus(@Req() req, @Param('id') id: string, @Body('status') status: string) {
         return this.vendorService.updateOrderStatus(req.user.id, id, status)
     }
 
     @Get(':id')
-    getVendorProfile(@Param('id') id){
+    getVendorProfile(@Param('id') id) {
         return this.vendorService.getVendorDetails(id)
     }
-    
+
     @Post('login')
     loginVendor(@Body() body: any) {
         return this.vendorService.loginVendor(body)
@@ -109,5 +109,25 @@ export class VendorController {
     @UseGuards(VendorGuard)
     async getVendorCoupons(@Req() req) {
         return this.couponsService.findVendorCoupons(req.user.id);
+    }
+
+    @Post('withdraw')
+    @UseGuards(VendorGuard)
+    async createPayout(@Req() req, @Body() body){
+        return this.vendorService.createWithdrawal(req.user.id, body.amount)
+    }
+
+    @Post('update-payout-status')
+    async updatePayoutStatus(
+        @Headers('x-razorpay-signature') signature: string,
+        @Req() req,
+        @Res() res,
+    ) {
+        if (!signature) {
+            throw new BadRequestException('Missing Razorpay Signature');
+        }
+
+        await this.vendorService.processWebhookEvent(req.body)
+        return res.status(200).send({success: true})
     }
 }
