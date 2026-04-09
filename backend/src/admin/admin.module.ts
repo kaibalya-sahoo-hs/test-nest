@@ -22,11 +22,12 @@ import { CouponModule } from 'src/coupon/coupon.module';
 import { PaymentModule } from 'src/payment/payment.module';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Order } from 'src/payment/order.entity';
+import { Payment } from 'src/payment/payment.entity';
 
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Member, ApiLog, Product, Vendor, Order]),
+        TypeOrmModule.forFeature([User, Member, ApiLog, Product, Vendor, Order, Payment]),
         BullModule.registerQueue({name: 'user'}),
         ProductModule,
         UsersModule ,

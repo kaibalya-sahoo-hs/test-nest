@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt'
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Order } from 'src/payment/order.entity';
+import { Payment } from 'src/payment/payment.entity';
 
 @Injectable()
 export class AdminService {
@@ -15,6 +16,7 @@ export class AdminService {
         @InjectRepository(Product) private productRepo: Repository<Product>,
         @InjectRepository(Vendor) private vendorRepo: Repository<Vendor>,
         @InjectRepository(Order) private orderRepo: Repository<Order>,
+        @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
         private cloudinaryService: CloudinaryService,
     ) { }
 
@@ -224,5 +226,15 @@ export class AdminService {
             console.log("Error updating commission rate", error);
             return { success: false, message: "Error updating commission rate" };
         }
+    }
+
+    async getPaymentLogs(paymentId){
+        const payment = await this.paymentRepo.findOne({where: {id: paymentId}, relations: ['order']})
+        return {logs: payment?.statusHisotry, order: payment?.order.id}
+    }
+
+    async getPayments(orderId){
+        const order = await this.orderRepo.findOne({where: {id: orderId}, relations: ['payments', 'payments.statusHisotry']})
+        return {payments: order?.payments}
     }
 }

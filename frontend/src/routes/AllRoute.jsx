@@ -31,6 +31,8 @@ import CheckoutPage from "../pages/User/CheckoutPage";
 import VendorLogin from "../pages/Vendor/VendorLogin";
 import VendorOrders from "../pages/Vendor/VendorOrders";
 import VendorManagement from "../pages/VendorManagement";
+import AdminOrdersPage from "../pages/Admin/AdminOrdersPage"
+import Payments from "../pages/Admin/Payments";
 
 function AllRoute() {
   return (
@@ -66,6 +68,8 @@ function AllRoute() {
           <Route path="/admin/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><UserProfile /></AdminRoute>} />
           <Route path="/admin/vendors" element={<AdminRoute><VendorManagement /></AdminRoute>} />
+          <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
+          <Route path="/admin/orders/:orderId" element={<AdminRoute><Payments /></AdminRoute>} />
 
           {/* Vendor Routes */}
           <Route path="/vendor/dashboard" element={<VendorDashboard/>}/>

@@ -9,9 +9,11 @@ import { PaymentService } from './payment.service';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
+import { PaymentLogService } from 'src/payment-log/payment-log.service';
+import { PaymentLogModule } from 'src/payment-log/payment-log.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment, Order, Address, Product, Vendor, Coupon]), CartModule],
+  imports: [TypeOrmModule.forFeature([Payment, Order, Address, Product, Vendor, Coupon]), CartModule, PaymentLogModule],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService]

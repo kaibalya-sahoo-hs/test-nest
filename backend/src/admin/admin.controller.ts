@@ -200,4 +200,15 @@ export class AdminController {
     ) {
         return this.adminService.updateCommissionRate(id, rate);
     }
+
+    @Get('logs/payments/:paymentId')
+    async getPaymentLogs(@Param('paymentId') paymentId:string){
+        return await this.adminService.getPaymentLogs(paymentId)
+    }
+
+    @Get('orders/payments/:orderId')
+    async getPayments(@Param('orderId') orderId: string){
+        return this.adminService.getPayments(orderId)
+    }
+
 }

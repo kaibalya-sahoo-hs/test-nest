@@ -10,6 +10,7 @@ import { Address } from 'src/address/address.entity';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
+import { PaymentLogService } from 'src/payment-log/payment-log.service';
 
 @Injectable()
 export class PaymentService {
@@ -28,7 +29,8 @@ export class PaymentService {
         private vendorRepo: Repository<Vendor>,
         @InjectRepository(Coupon)
         private couponRepo: Repository<Coupon>,
-        private cartService: CartService
+        private cartService: CartService,
+        private paymentLogService: PaymentLogService
     ) {
         this.razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_TEST_APIKEY || "",
@@ -42,6 +44,7 @@ export class PaymentService {
             where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
             relations: ['payments'],
         });
+        
         if (existingPendingOrder) {
             // Delete old sub-orders and payments, recreate fresh
             const oldSubOrders = await this.orderRepo.find({ where: { parentOrder: { id: existingPendingOrder.id } } });
@@ -53,7 +56,6 @@ export class PaymentService {
             }
             await this.orderRepo.remove(existingPendingOrder);
         }
-
         // Create a new Razorpay order
         const options = {
             amount: Math.round(amount * 100),
@@ -132,7 +134,6 @@ export class PaymentService {
                 discount: subDiscount,
                 couponType: subCouponType,
             } as any);
-            console.log(subOrderEntity)
             await this.orderRepo.save(subOrderEntity);
         }
         // Create payment record
@@ -143,8 +144,10 @@ export class PaymentService {
             amount
         };
         const newPayment = this.paymentRepo.create(paymentData);
-        console.log(newPayment)
-        await this.paymentRepo.save(newPayment);
+        const saevdPayment = await this.paymentRepo.save(newPayment);
+
+        //Creating a new log
+        await this.paymentLogService.createLog(saevdPayment.id, PaymentStatus.PENDING)
 
         return rzpOrder;
     }
@@ -160,7 +163,6 @@ export class PaymentService {
     }
 
     async updatePaymentToDB(payload: any, signature: string) {
-        console.log("web hook triggered")
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
         const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -181,6 +183,11 @@ export class PaymentService {
                 payment.status = PaymentStatus.COMPLETED
                 payment.razorpayPaymentId = rzpPaymentId
                 await this.paymentRepo.save(payment)
+
+                // creating a new Payment log for the payment
+                await this.paymentLogService.createLog(payment.id, PaymentStatus.COMPLETED)
+
+                // Updating the order status
                 await this.orderRepo.update(payment.order.id, { status: "paid" })
 
                 const subOrders = await this.orderRepo.find({ where: { parentOrder: { id: payment.order.id } }, relations: ['vendor'] })
@@ -253,7 +260,7 @@ export class PaymentService {
 
     async getAllOrders() {
         try {
-            const orders = await this.orderRepo.find({ order: { createdAt: 'DESC' }, relations: ['vendor', 'user'] })
+            const orders = await this.orderRepo.find({where:{status: 'paid'}, order: { createdAt: 'DESC' }, relations: ['payments'] })
             return { orders, success: true }
         } catch (error) {
             console.log("Error while fetching orders data from DB", error)

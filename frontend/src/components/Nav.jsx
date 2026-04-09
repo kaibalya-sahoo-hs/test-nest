@@ -118,7 +118,7 @@ function Nav() {
     { path: "/admin/dashboard", label: "Dashboard" },
     { path: "/admin/users", label: "Users" },
     { path: "/admin/vendors", label: "Vendors" },
-    { path: "/admin/favourites", label: "Favourites" },
+    { path: "/admin/orders", label: "Orders" },
     { path: "/profile", label: "Profile" },
   ];
 

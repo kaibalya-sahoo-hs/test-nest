@@ -1,6 +1,7 @@
 // payment.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Order } from './order.entity';
+import { PaymentLogs } from 'src/payment-log/payment-log.entity';
 
 export enum PaymentStatus {
   PENDING = 'pending',
@@ -34,6 +35,9 @@ export class Payment {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => PaymentLogs,(paymnetLog) => paymnetLog.payment)
+  statusHisotry: PaymentLogs[]
 
   @ManyToOne(() => Order, (order) => order.payments)
   @JoinColumn()
