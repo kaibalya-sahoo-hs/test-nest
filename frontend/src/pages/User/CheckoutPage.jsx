@@ -52,8 +52,9 @@ console.log(cart)
           order_id: order.id,
           handler: async function (response) {
             const { data } = await api.post('/payment/verify', response)
-            fetchCart()
+            console.log("Payment verification")
             navigate('/orders')
+            fetchCart()
           },
           prefill: {
             name: user.name,

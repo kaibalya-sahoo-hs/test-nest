@@ -116,7 +116,6 @@ function Nav() {
   // Define nav links based on role
   const adminLinks = [
     { path: "/admin/dashboard", label: "Dashboard" },
-    { path: "/admin/products", label: "Products" },
     { path: "/admin/users", label: "Users" },
     { path: "/admin/vendors", label: "Vendors" },
     { path: "/admin/favourites", label: "Favourites" },

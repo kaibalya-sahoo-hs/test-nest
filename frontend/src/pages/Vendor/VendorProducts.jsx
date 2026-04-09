@@ -74,7 +74,6 @@ function VendorProducts() {
 
                                 <th className="p-5 text-xs font-bold text-gray-500 uppercase">Product Name</th>
                                 <th className="p-5 text-xs font-bold text-gray-500 uppercase">Price</th>
-                                <th className="p-5 text-xs font-bold text-gray-500 uppercase">Stock</th>
                                 <th className="p-5 text-xs font-bold text-gray-500 uppercase text-center">Action</th>
                             </tr>
                         </thead>
@@ -98,15 +97,8 @@ function VendorProducts() {
                                         </td>
                                         <td className="p-5 font-bold text-[#202224]">{product.name}</td>
                                         <td className="p-5 font-bold text-[#202224]">₹{Number(product.price).toLocaleString('en-IN')}</td>
-                                        <td className="p-5 text-gray-600 font-medium">{product.stock || 0} Piece</td>
                                         <td className="p-5">
                                             <div className="flex justify-center items-center gap-2">
-                                                <button
-                                                    onClick={() => { setEditingProduct(product); setShowModal(true); }}
-                                                    className="p-2 text-gray-400 hover:text-[#4379EE] hover:bg-blue-50 rounded-lg transition-all"
-                                                >
-                                                    <CiEdit size={20} />
-                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"

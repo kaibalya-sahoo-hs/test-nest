@@ -122,12 +122,6 @@ function VendorDashboard() {
             </h1>
             <p className="text-gray-400 text-sm mt-1">Here's what's happening with your store today</p>
           </div>
-          <button
-            onClick={() => navigate('/vendor/products')}
-            className="flex items-center gap-2 px-5 py-3 bg-[#4379EE] text-white rounded-xl font-bold hover:bg-[#3768D1] transition-all shadow-lg shadow-blue-100"
-          >
-            <FaPlus size={14} /> Add Product
-          </button>
         </div>
 
         {/* Stats Cards */}

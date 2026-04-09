@@ -219,9 +219,6 @@ const VendorOrders = () => {
                                 {updatingStatus === order.id ? '...' : `Mark ${getNextStatus(order.status)}`}
                               </button>
                             )}
-                            <button className="text-gray-300 hover:text-[#202224]">
-                              {expandedId === order.id ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
-                            </button>
                           </div>
                         </td>
                       </tr>

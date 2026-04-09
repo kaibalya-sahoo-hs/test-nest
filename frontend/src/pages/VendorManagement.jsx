@@ -280,7 +280,7 @@ function VendorManagement() {
                                 placeholder="%"
                                 min="0" max="100"
                               />
-                              <button onClick={() => saveCommission(vendor.id)} className="text-emerald-500 hover:text-emerald-700">
+                              <button onClick={() => saveCommission(vendor.id)} className="text-emerald-500 hover:text-emerald-700 ">
                                 <FiCheck size={16} />
                               </button>
                               <button onClick={() => setEditingCommission(null)} className="text-red-400 hover:text-red-600">
@@ -315,9 +315,6 @@ function VendorManagement() {
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
                             {getActionButtons(vendor)}
-                            <button className="text-gray-300 hover:text-[#202224] transition-colors ml-2">
-                              {expandedId === vendor.id ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
-                            </button>
                           </div>
                         </td>
                       </tr>

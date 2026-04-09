@@ -325,33 +325,6 @@ function OrdersPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Sub-orders by Vendor */}
-                {orderDetail.subOrders && orderDetail.subOrders.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vendor Fulfillment</h3>
-                    <div className="space-y-3">
-                      {orderDetail.subOrders.map((sub, idx) => (
-                        <div key={idx} className="bg-[#F9FBFF] p-4 rounded-xl border border-gray-50">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-[#202224] text-sm">{sub.vendorName}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${getStatusColor(sub.status)}`}>
-                              {sub.status}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {sub.items?.map((item, i) => (
-                              <img key={i} src={item.productImage} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100 border border-gray-100" />
-                            ))}
-                            <span className="text-sm font-bold text-[#202224] ml-auto flex items-center">
-                              <FaRupeeSign className="text-xs" />{Number(sub.totalAmount).toLocaleString('en-IN')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ) : null}
           </div>
