@@ -30,7 +30,7 @@ export class Vendor {
   @Column({nullable: true})
   vendorStatus!: 'pending' | 'approved' | 'rejected' | 'suspended'
 
-  @Column({nullable: true})
+  @Column({ type: 'decimal' ,nullable: true})
   commisionRate!: number
 
   @OneToMany(() => Product, (product) =>product.vendor)

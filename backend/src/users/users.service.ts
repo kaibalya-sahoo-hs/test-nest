@@ -86,7 +86,8 @@ export class UserService{
                 discount: order.discount,
                 couponType: order.couponType,
                 paymentStatus: order.payments?.[0]?.status || 'unknown',
-                
+                address: order.deliveryAddress,
+
                 items: order.items.map(item => ({
                     id: item.id,
                     quantity: item.quantity,

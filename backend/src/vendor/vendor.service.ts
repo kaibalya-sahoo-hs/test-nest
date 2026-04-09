@@ -141,6 +141,10 @@ export class VendorService {
             relations: ['parentOrder'],
         });
 
+        if(newStatus == 'processing'){
+          
+        }
+
         if (!order) {
             throw new NotFoundException(`Order with ID ${orderId} not found`);
         }

@@ -43,7 +43,7 @@ export class Order {
   @Column({nullable: true})
   couponCode: string
 
-  @Column({ default: 0})
+  @Column({ type: 'decimal', default: 0})
   discount: number
 
   @Column({nullable: true})

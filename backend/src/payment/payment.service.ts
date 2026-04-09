@@ -42,7 +42,6 @@ export class PaymentService {
             where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
             relations: ['payments'],
         });
-
         if (existingPendingOrder) {
             // Delete old sub-orders and payments, recreate fresh
             const oldSubOrders = await this.orderRepo.find({ where: { parentOrder: { id: existingPendingOrder.id } } });
@@ -62,7 +61,6 @@ export class PaymentService {
             receipt: `receipt_${Date.now()}`,
         };
         const rzpOrder = await this.razorpay.orders.create(options);
-
         // Group cart items by vendor
         const vendorGroups = new Map();
         for (const item of cartItems) {
@@ -104,10 +102,8 @@ export class PaymentService {
             couponType: coupon?.creatorType || undefined,
         };
         const masterOrder = await this.orderRepo.save(this.orderRepo.create(masterOrderData));
-
         // Get delivery address
         const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } });
-
         // Create sub-orders per vendor with proportional coupon splitting
         for (const [vendorId, items] of vendorGroups) {
             const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
@@ -136,9 +132,9 @@ export class PaymentService {
                 discount: subDiscount,
                 couponType: subCouponType,
             } as any);
+            console.log(subOrderEntity)
             await this.orderRepo.save(subOrderEntity);
         }
-
         // Create payment record
         const paymentData: Partial<Payment> = {
             razorpayOrderId: rzpOrder.id,
@@ -147,6 +143,7 @@ export class PaymentService {
             amount
         };
         const newPayment = this.paymentRepo.create(paymentData);
+        console.log(newPayment)
         await this.paymentRepo.save(newPayment);
 
         return rzpOrder;
