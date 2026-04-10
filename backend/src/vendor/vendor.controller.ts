@@ -16,6 +16,19 @@ export class VendorController {
         return this.vendorService.registerVendor(body)
     }
 
+    @Get('balance')
+    @UseGuards(VendorGuard)
+    async getbalance(@Req() req){
+        return this.vendorService.getBalance(req.user.id)
+    }
+
+    @Get('withdrawals')
+    @UseGuards(VendorGuard)
+    async getWithdrawHistory(@Req() req){
+        const vendorId = req.user.id
+        return this.vendorService.getWithdrawHistory(vendorId)
+    }
+
     @Get('products')
     @UseGuards(VendorGuard)
     async getAllProducts(@Req() req) {
@@ -123,6 +136,7 @@ export class VendorController {
         @Req() req,
         @Res() res,
     ) {
+        console.log("web hook trigreed")
         if (!signature) {
             throw new BadRequestException('Missing Razorpay Signature');
         }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
+import WithdrawalHistory from './VendorWithdrawals';
 
 const VendorWallet = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,6 +113,8 @@ const VendorWallet = () => {
           </div>
         </div>
       )}
+
+      <WithdrawalHistory/>
     </div>
   );
 };

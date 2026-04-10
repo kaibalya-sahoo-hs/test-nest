@@ -10,10 +10,9 @@ function CheckoutPage() {
   const [addresses, setAddresses] = useState([]);
   const [defaultAddress, setDefaultAddress] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, fetchCart } = useCart();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'))
-console.log(cart)
   const fetchAddress = async () => {
     try {
       const { data } = await api.get('/addresses');
@@ -72,6 +71,7 @@ console.log(cart)
         });
 
         rzp.open();
+        fetchCart()
       } else {
         toast.error("Login to checkout")
         navigate('/login')

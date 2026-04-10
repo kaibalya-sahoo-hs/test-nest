@@ -41,10 +41,10 @@ function VendorProducts() {
     };
 
     return (
-        <div className="bg-[#F5F6FA] min-h-screen p-4 sm:p-8">
+        <div className="bg-[#F5F6FA] min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#202224]">Products</h1>
+                    <h1 className="text-3xl font-bold text-[#202224]">Products<span className='text-blue-700 bg-blue-300 text-sm rounded-2xl py-1 px-2 ms-2'>{products.length}</span></h1>
                     <p className="text-gray-500 text-sm mt-1">Manage your store inventory and pricing</p>
                 </div>
                 {user?.vendorStatus === "approved" && (
@@ -55,13 +55,6 @@ function VendorProducts() {
                         <FaPlus size={20} /> Add New Product
                     </button>
                 )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <p className="text-gray-400 text-sm font-bold uppercase tracking-wider">Total Products</p>
-                    <h2 className="text-3xl font-bold text-[#202224] mt-2">{products.length}</h2>
-                </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

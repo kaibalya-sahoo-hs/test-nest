@@ -11,12 +11,16 @@ import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
 import { PaymentLogService } from 'src/payment-log/payment-log.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class PaymentService {
     private razorpay: Razorpay;
 
     constructor(
+        @InjectQueue('mail-queue')
+        private mailQueue: Queue,
         @InjectRepository(Payment)
         private paymentRepo: Repository<Payment>,
         @InjectRepository(Order)
@@ -44,7 +48,7 @@ export class PaymentService {
             where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
             relations: ['payments'],
         });
-        
+
         if (existingPendingOrder) {
             // Delete old sub-orders and payments, recreate fresh
             const oldSubOrders = await this.orderRepo.find({ where: { parentOrder: { id: existingPendingOrder.id } } });
@@ -109,7 +113,7 @@ export class PaymentService {
         // Create sub-orders per vendor with proportional coupon splitting
         for (const [vendorId, items] of vendorGroups) {
             const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-            
+
             // Calculate proportional discount for this vendor's sub-order
             let subDiscount = 0;
             let subCouponCode: string | null = null;
@@ -146,9 +150,9 @@ export class PaymentService {
         const newPayment = this.paymentRepo.create(paymentData);
         const saevdPayment = await this.paymentRepo.save(newPayment);
 
-        //Creating a new log
-        await this.paymentLogService.createLog(saevdPayment.id, PaymentStatus.PENDING)
 
+
+        await this.paymentLogService.createLog(saevdPayment.id, PaymentStatus.PENDING)
         return rzpOrder;
     }
 
@@ -196,11 +200,11 @@ export class PaymentService {
                     const vendor = subOrder.vendor
                     const commissionRate = subOrder.vendor.commisionRate || 0.10
                     const subTotal = Number(subOrder.totalAmount) + Number(subOrder.discount || 0) // original subtotal before discount
-                    
+
                     // Calculate vendor earning based on coupon ownership
                     let vendorEarning = 0;
                     const platformFee = subTotal * commissionRate;
-                    
+
                     if (subOrder.couponType === 'vendor') {
                         // Vendor-created coupon: vendor bears the discount
                         vendorEarning = subTotal - platformFee - Number(subOrder.discount || 0);
@@ -212,13 +216,18 @@ export class PaymentService {
                         vendorEarning = subTotal - platformFee;
                     }
 
-                    // Ensure vendor earning is not negative
                     vendorEarning = Math.max(0, vendorEarning);
 
                     await this.vendorRepo.update(vendor.id, { balance: () => `balance + ${vendorEarning}` })
                     await this.orderRepo.update(subOrder.id, { status: 'completed' })
+                    await this.vendorRepo.findOne({ where: { id: vendor.id } })
+                    const job = await this.mailQueue.add('vendor-mail', { vendorMail: vendor?.email })
+                    console.log("Vendor mail sent to the queue")
                 }
-
+                const masterOrder = await this.orderRepo.findOne({ where: { id: payment.order.id } , relations: ['user']});
+                await this.mailQueue.add('admin-mail', { adminMail: "admin@gmail.com", user: { email: masterOrder?.user.email, name: masterOrder?.user.name, id: masterOrder?.user.id } })
+                await this.mailQueue.add('user-mail', { user: {email: masterOrder?.user.email}, orderDetails: masterOrder })
+                
                 // Increment coupon usage count
                 if (payment.order.couponCode) {
                     const coupon = await this.couponRepo.findOne({ where: { code: payment.order.couponCode } });
@@ -227,11 +236,10 @@ export class PaymentService {
                         await this.couponRepo.save(coupon);
                     }
                 }
-
-                // Reload master order to access couponCode
-                const masterOrder = await this.orderRepo.findOne({ where: { id: payment.order.id } });
-
+                    
                 await this.cartService.clearCart(payment.order.user.id);
+
+
             }
         }
     }
@@ -260,7 +268,7 @@ export class PaymentService {
 
     async getAllOrders() {
         try {
-            const orders = await this.orderRepo.find({where:{status: 'paid'}, order: { createdAt: 'DESC' }, relations: ['payments'] })
+            const orders = await this.orderRepo.find({ where: { status: 'paid' }, order: { createdAt: 'DESC' }, relations: ['payments'] })
             return { orders, success: true }
         } catch (error) {
             console.log("Error while fetching orders data from DB", error)

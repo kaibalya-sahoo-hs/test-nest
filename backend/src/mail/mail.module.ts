@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
+import { BullModule } from '@nestjs/bull';
+import { MailProcessor } from './mail.processor';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
       },
     }),
   ],
-  providers: [MailService],
+  providers: [MailService, MailProcessor],
   exports: [MailService],
 })
 export class MailModule {}

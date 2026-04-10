@@ -12,9 +12,10 @@ import { Order } from 'src/payment/order.entity';
 import { Vendor } from './vendor.entity';
 import { CouponModule } from 'src/coupon/coupon.module';
 import { Withdraw } from 'src/payment/withdraw.entity';
+import { VendorTransaction } from './vendorTransaction.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw]), ProductModule, CloudinaryModule, MailModule, CouponModule], 
+  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw, VendorTransaction]), ProductModule, CloudinaryModule, MailModule, CouponModule], 
   controllers: [VendorController],
   providers: [VendorService]
 })

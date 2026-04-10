@@ -8,7 +8,7 @@ export class PaymentLogs {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   
-  @ManyToOne(() => Payment, (payment) => payment.statusHisotry)
+  @ManyToOne(() => Payment, (payment) => payment.statusHisotry, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'paymentId' })
   payment: Payment
 

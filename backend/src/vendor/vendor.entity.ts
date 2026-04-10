@@ -1,5 +1,6 @@
 import { Product } from 'src/product/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
+import { VendorTransaction } from './vendorTransaction.entity';
 
 @Entity()
 export class Vendor {

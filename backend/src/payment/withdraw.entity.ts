@@ -19,11 +19,17 @@ export class Withdraw {
     @Column('int')
     amount: number
 
+    @Column('int')
+    remainingBalance: number
+
     @Column({default: 'pending'})
     status: string
     
     @Column({nullable:true})
     transactionId: string
+
+    @Column({nullable: true})
+    payoutId: string
 
     @CreateDateColumn()
     createdAt: Date

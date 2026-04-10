@@ -93,6 +93,7 @@ function Nav() {
   }, []);
 
   const handleLogout = () => {
+    console.log("called")
     localStorage.clear()
     toast.success("Logout Successful");
     navigate("/products");
@@ -192,32 +193,39 @@ function Nav() {
 
             {/* Profile Info + Dropdown */}
             {user ? (
-              <div className="relative">
+              <div className="relative flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100">
+
+                {isVendor && (
+                  <div
+                    className="text-sm flex items-center bg-gray-100 hover:bg-gray-200 rounded-2xl border border-gray-300 px-3 py-1.5 cursor-pointer transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/vendor/profile/wallet');
+                    }}
+                  >
+                    <FaRupeeSign className="mr-1 text-xs" />
+                    <span className="font-bold">{user.balance?.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
 
                 <div
-                  className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100 cursor-pointer group"
+                  className="flex items-center gap-2 cursor-pointer group"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
-                  {isVendor && <div className="text-sm flex items-center bg-gray-300 rounded-2xl border border-gray-400 p-2" onClick={() => navigate('/vendor/wallet')}>
-                    <FaRupeeSign />{isVendor && user.balance.toLocaleString('en-IN')}
-                  </div>}
-                  <div
-                    ref={dropdownRef}
-                    
-                  >
-                    <div onClick={() => setDropdownOpen(!dropdownOpen)}>
-                      {user?.profile ? (
-                        <img
-                          src={user.profile}
-                          alt={user.name}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
-                        />
-                      ) : (
-                        <div className="bg-[#4379EE] text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex justify-center items-center font-bold text-sm sm:text-base">
-                          {user?.name?.charAt(0).toUpperCase() || "U"}
-                        </div>
-                      )}
-                    </div>
+                  <div className="relative">
+                    {user?.profile ? (
+                      <img
+                        src={user.profile}
+                        alt={user.name}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
+                      />
+                    ) : (
+                      <div className="bg-[#4379EE] text-white rounded-full h-8 w-8 sm:h-10 sm:w-10 flex justify-center items-center font-bold text-sm sm:text-base">
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
                   </div>
+
                   <div className="hidden md:block">
                     <p className="text-sm font-bold text-[#202224] leading-tight">
                       {user?.name || "User"}
@@ -226,8 +234,10 @@ function Nav() {
                       {roleBadge}
                     </p>
                   </div>
+
                   <CiCircleChevDown
-                    className={`hidden sm:block text-gray-400 group-hover:text-[#202224] transition-all duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                    className={`hidden sm:block text-gray-400 group-hover:text-[#202224] transition-all duration-200 ${dropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
 
@@ -247,8 +257,7 @@ function Nav() {
                     <div className="mx-4 border-t border-gray-100"></div>
                     <button
                       onClick={() => {
-                        setDropdownOpen(false);
-                        handleLogout();
+                        handleLogout()
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-[#F93C65] hover:bg-red-50 transition-colors"
                     >
@@ -268,9 +277,9 @@ function Nav() {
                 </button>
                 <button
                   onClick={() => navigate('/vendor/login')}
-                  className="bg-[#4379EE] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+                  className="bg-white text-[#4379EE] border border-[#4379EE] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all"
                 >
-                  Seller login
+                  Seller Login
                 </button>
               </div>
             )}

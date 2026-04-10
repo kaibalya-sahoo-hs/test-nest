@@ -256,37 +256,48 @@ export class VendorService {
     }
 
 
-    const contact = await this.rzpX.contacts.create({
-      name: vendor?.name,
-      type: "vendor",
-      reference_id: vendor?.id
-    });
-
-    const fundAccount = await this.rzpX.fundAccounts.create({
-      contact_id: contact.id,
-      account_type: "bank_account",
-      bank_account: {
+    const contact = await (this.rzpX as any).api.post({
+      url: '/contacts',
+      data: {
         name: vendor?.name,
-        ifsc: "RAZR0000001", // Special Test IFSC for Success
-        account_number: "112233445566" // Special Test Account for Success
+        email: vendor?.email,
+      },
+    });
+
+    const fundAccount = await (this.rzpX as any).api.post({
+      url: '/fund_accounts',
+      data: {
+        contact_id: contact.id,
+        account_type: 'bank_account',
+        bank_account: {
+          name: "Test Vendor",
+          ifsc: "RAZR0000001",
+          account_number: "112233445566",
+        },
       }
+    })
+
+
+    const payout = await (this.rzpX as any).api.post({
+      url: '/payouts',
+      data: {
+        account_number: '2323230096795693', // YOUR RazorpayX Account (Only here!)
+        fund_account_id: fundAccount.id,
+        amount: amount * 100,
+        currency: 'INR',
+        mode: 'IMPS',
+        purpose: 'payout',
+      },
     });
 
-    const payout = await this.rzpX.payouts.create({
-      account_number: "2334400300010001", // Standard RazorpayX Test Account Number
-      amount: amount * 100, // in paise
-      currency: "INR",
-      mode: "IMPS",
-      purpose: "payout",
-      fund_account_id: fundAccount.id,
-    });
 
-    console.log(payout)
+    if (vendor) {
+      vendor.balance -= amount;
 
-
-
-    const withdrawal = this.withdrawRepo.create({ vendor: { id: vendorId }, amount, status: WithdrawalStatus.PENDING })
-    await this.withdrawRepo.save(withdrawal)
+      await this.vendorRepo.save(vendor);
+      const withdrawal = this.withdrawRepo.create({ vendor: { id: vendorId }, amount, status: WithdrawalStatus.PENDING, remainingBalance: vendor.balance, payoutId: payout.id })
+      await this.withdrawRepo.save(withdrawal)
+    }
 
     return { success: true, message: "Payout created" }
   }
@@ -306,12 +317,13 @@ export class VendorService {
    */
   async processWebhookEvent(payload: any) {
     const { event, payload: data } = payload;
+
     const payout = data.payout.entity;
     const rzpPayoutId = payout.id;
 
     // Find the record in your database using the Razorpay Payout ID
     const withdrawal = await this.withdrawRepo.findOne({
-      where: { id: rzpPayoutId },
+      where: { payoutId: rzpPayoutId },
     });
 
     if (!withdrawal) {
@@ -330,12 +342,21 @@ export class VendorService {
         break;
 
       case 'payout.initiated':
-        withdrawal.status = WithdrawalStatus.PROCESSING;
+        withdrawal.status = WithdrawalStatus.COMPLETED;
         break;
     }
 
     await this.withdrawRepo.save(withdrawal);
-    console.log("Withsraw status upadted")
+  }
+
+  async getWithdrawHistory(vendorId){
+    const withdraws = await this.withdrawRepo.find({where: {vendor: {id:vendorId}}})
+    return {withdraws, success:true}
+  }
+
+  async getBalance(id){
+    const vendor = await this.vendorRepo.findOne({where: {id}})
+    return {balance: vendor?.balance, success: true}
   }
 }
 
