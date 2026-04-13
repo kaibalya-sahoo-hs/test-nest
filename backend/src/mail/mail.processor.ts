@@ -9,14 +9,12 @@ export class MailProcessor {
     ) { }
     @Process('vendor-mail')
     async handleVendorMail(job) {
-        console.log("Enterd vendor mail process")
         const { vendorMail } = job.data
         await this.mailService.sendOderInfoToVendor(vendorMail)
     }
 
     @Process('admin-mail')
     async handleAdminMail(job) {
-        console.log("Enterd admin mail process")
 
         const { user, adminMail } = job.data
         await this.mailService.sendOderInfoToAdmin(adminMail, user)
@@ -24,10 +22,16 @@ export class MailProcessor {
 
     @Process('user-mail')
     async handleOrderConfirmationMail(job) {
-        console.log("Enterd user mail process")
 
         const { user, orderDetails } = job.data
         await this.mailService.sendOrderConfirmationMail(user.email, orderDetails)
+    }
+
+    @Process('registration-mail')
+    async sendRegistrationMail(job) {
+        console.log("Registration mail added to queue")
+        const {email, name, token} = job.data
+        await this.mailService.sendMail(email, name, token)
     }
 
 }

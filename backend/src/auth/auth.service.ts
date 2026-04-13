@@ -7,10 +7,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from 'src/member/member.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from 'src/mail/mail.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class AuthService {
     constructor(
+        @InjectQueue('mail-queue') private mailQueue: Queue,
         @InjectRepository(User) private userRepo: Repository<User>,
         @InjectRepository(Member) private readonly memberRepo: Repository<Member>,
         private JwtService: JwtService,
@@ -42,11 +45,10 @@ export class AuthService {
             }
     
             const randomToken = uuidv4()
-            console.log("Random Token", randomToken)
             const user = this.userRepo.create({ name: trimmedName, email: trimmedEmail, registartionToken: randomToken })
     
-            const mailResposne = await this.mailService.sendMail(user.email, user.name, user.registartionToken)
-            if(mailResposne.success){
+            const job = await this.mailQueue.add('registration-mail', {email: user.email, name, token: randomToken })
+            if(job){
                 const savedUser =  await this.userRepo.save(user)
                 console.log("Saved user - ", savedUser)
                 return {message: "Email sent successfully", success: true}
@@ -122,7 +124,14 @@ export class AuthService {
 
         return {
             message: "Login successful",
-            user: { id: existingUser.id, name: existingUser.name, email: existingUser.email, profile: existingUser.profile, role: existingUser.role },
+            user: { 
+                id: existingUser.id, 
+                name: existingUser.name, 
+                email: existingUser.email, 
+                profile: existingUser.profile, 
+                role: existingUser.role,
+                balance: existingUser.balance 
+            },
             accessToken,
             refreshToken,
             success: true

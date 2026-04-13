@@ -13,6 +13,7 @@ import { Coupon } from 'src/coupon/coupon.entity';
 import { PaymentLogService } from 'src/payment-log/payment-log.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bullmq';
+import { User } from 'src/users/users.entity';
 
 @Injectable()
 export class PaymentService {
@@ -31,6 +32,8 @@ export class PaymentService {
         private productRepo: Repository<Product>,
         @InjectRepository(Vendor)
         private vendorRepo: Repository<Vendor>,
+        @InjectRepository(User)
+        private userRepo: Repository<User>,
         @InjectRepository(Coupon)
         private couponRepo: Repository<Coupon>,
         private cartService: CartService,
@@ -203,31 +206,33 @@ export class PaymentService {
 
                     // Calculate vendor earning based on coupon ownership
                     let vendorEarning = 0;
-                    const platformFee = subTotal * commissionRate;
+                    let platformFee = subTotal * commissionRate;
+                    let adminEarning = platformFee
 
                     if (subOrder.couponType === 'vendor') {
                         // Vendor-created coupon: vendor bears the discount
                         vendorEarning = subTotal - platformFee - Number(subOrder.discount || 0);
+
                     } else if (subOrder.couponType === 'platform') {
                         // Platform coupon: platform (admin) bears the discount, vendor gets full share minus commission
                         vendorEarning = subTotal - platformFee;
+                        adminEarning = platformFee - subOrder.discount
                     } else {
-                        // No coupon
                         vendorEarning = subTotal - platformFee;
                     }
 
                     vendorEarning = Math.max(0, vendorEarning);
 
                     await this.vendorRepo.update(vendor.id, { balance: () => `balance + ${vendorEarning}` })
+                    await this.userRepo.update({email: 'admin@gmail.com'}, { balance: () => `balance + ${adminEarning}` })
+
                     await this.orderRepo.update(subOrder.id, { status: 'completed' })
-                    await this.vendorRepo.findOne({ where: { id: vendor.id } })
-                    const job = await this.mailQueue.add('vendor-mail', { vendorMail: vendor?.email })
-                    console.log("Vendor mail sent to the queue")
+                    await this.mailQueue.add('vendor-mail', { vendorMail: vendor?.email })
                 }
-                const masterOrder = await this.orderRepo.findOne({ where: { id: payment.order.id } , relations: ['user']});
+                const masterOrder = await this.orderRepo.findOne({ where: { id: payment.order.id }, relations: ['user'] });
                 await this.mailQueue.add('admin-mail', { adminMail: "admin@gmail.com", user: { email: masterOrder?.user.email, name: masterOrder?.user.name, id: masterOrder?.user.id } })
-                await this.mailQueue.add('user-mail', { user: {email: masterOrder?.user.email}, orderDetails: masterOrder })
-                
+                await this.mailQueue.add('user-mail', { user: { email: masterOrder?.user.email }, orderDetails: masterOrder })
+
                 // Increment coupon usage count
                 if (payment.order.couponCode) {
                     const coupon = await this.couponRepo.findOne({ where: { code: payment.order.couponCode } });
@@ -236,7 +241,7 @@ export class PaymentService {
                         await this.couponRepo.save(coupon);
                     }
                 }
-                    
+
                 await this.cartService.clearCart(payment.order.user.id);
 
 

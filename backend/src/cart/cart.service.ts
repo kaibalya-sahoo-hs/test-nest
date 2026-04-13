@@ -9,12 +9,15 @@ import { Repository } from 'typeorm'; // Adjust path
 import { CartItem } from './cart_items.entity';
 import { Cart } from './cart.entity';
 import items from 'razorpay/dist/types/items';
+import { Product } from 'src/product/product.entity';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectRepository(Cart)
     private readonly cartRepo: Repository<Cart>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
     @InjectRepository(CartItem)
     private cartItemsRepo: Repository<CartItem>,
     private readonly couponsService: CouponsService,
@@ -57,9 +60,18 @@ export class CartService {
         user: { id: userId },
       }
     });
+
     if (!cart) {
       cart = this.cartRepo.create({ user: { id: userId } })
       await this.cartRepo.save(cart)
+    }
+
+    const product = await this.productRepo.findOne({where: {id: productId}})
+    const productStock = product?.stock
+
+    if(!product) return {message: "Product not found", success: false}
+    if(productStock && productStock < 1){
+      return {message: "Product is out of stock", success: false}
     }
 
     let cartItem = await this.cartItemsRepo.findOne({ where: { cart: { id: cart.id }, product: { id: productId } } })
@@ -68,7 +80,9 @@ export class CartService {
     } else {
       cartItem = this.cartItemsRepo.create({ product: { id: productId }, cart: { id: cart.id }, quantity })
     }
+    product.stock -= 1
 
+    await this.productRepo.save(product)
 
     await this.cartItemsRepo.save(cartItem)
     return this.getMyCart(userId)
@@ -84,17 +98,30 @@ export class CartService {
   ) {
     const cart = await this.cartRepo.findOne({ where: { user: { id: userId } }, relations: ['cartItems', 'cartItems.product'] })
     let cartItem = await this.cartItemsRepo.findOne({ where: { cart: { id: cart?.id }, product: { id: productId } } })
+
+    // const product = await this.productRepo.findOne({where: {id: productId}})
+    // const productStock = product?.stock || 0
+
+    // if(!product){
+    //   return {message: "Product not found", success: false}
+    // }
+
+    // if(productStock && productStock < 1){
+    //   return {message: "Product is out of stock", success: false}
+    // }
+
     if (!cartItem) {
       return { message: "Cart not found", success: false }
     }
     if (quantity < 1) {
       cartItem.quantity = 1
+      // product.stock = productStock-1
     }
+
     cartItem.quantity = quantity
-
+    // product.stock = productStock - quantity
+    // await this.productRepo.save(product)
     await this.cartItemsRepo.save(cartItem)
-
-    // return {...cart, items: cart?.cartItems, subTotal: cart?.totalAmount}
     return this.getMyCart(userId)
   }
 
@@ -139,7 +166,6 @@ export class CartService {
           quantity: guestItem.quantity,
         });
         await this.cartItemsRepo.save(newItem);
-        console.log("Saved cart")
       }
     }
 

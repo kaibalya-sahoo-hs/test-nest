@@ -9,9 +9,10 @@ import { AdminController } from '../admin/admin.controller';
 import { Member } from 'src/member/member.entity';
 import { MembersModule } from 'src/member/member.module';
 import { MailModule } from 'src/mail/mail.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([User, Member]), MembersModule, MailModule],
+  imports: [ BullModule.registerQueue({name: 'mail-queue'}),TypeOrmModule.forFeature([User, Member]), MembersModule, MailModule],
   controllers: [AuthController],
   providers: [AuthService]
 })
