@@ -39,7 +39,7 @@ export class AdminController {
         return this.adminService.findUserById(id)
     }
 
-    @Delete(':id')
+    @Delete('/users/:id')
     deleteUser(@Param() body: any) {
         return this.adminService.deletUser(body.id)
     }

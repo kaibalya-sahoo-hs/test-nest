@@ -59,6 +59,7 @@ function AllRoute() {
           <Route path="/orders" element={<OrdersPage/>}/>
           <Route path="/products/:id" element={<ProductPage />} />
           <Route path="/checkout" element={<CheckoutPage/>} />
+          <Route path="/profile/wallet" element={<VendorWallet/>}/>
           {/* Admin routes */}
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/admin/apilogs" element={<AdminRoute><ApiLogs /></AdminRoute>} />

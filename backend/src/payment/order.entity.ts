@@ -16,7 +16,7 @@ export class Order {
   @OneToMany(() => Order, (order) => order.parentOrder)
   subOrders: Order[]
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {onDelete: "CASCADE"})
   user: User; // Link to your User entity
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

@@ -39,7 +39,7 @@ export class Payment {
   @OneToMany(() => PaymentLogs,(paymnetLog) => paymnetLog.payment)
   statusHisotry: PaymentLogs[]
 
-  @ManyToOne(() => Order, (order) => order.payments)
+  @ManyToOne(() => Order, (order) => order.payments, {onDelete: 'CASCADE'})
   @JoinColumn()
   order: Order;
 }

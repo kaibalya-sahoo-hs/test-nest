@@ -102,7 +102,6 @@ export class MailService {
             `,
         })
 
-        console.log("maill sent to vendor")
     }
 
 

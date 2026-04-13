@@ -28,8 +28,7 @@ const VendorWallet = () => {
 
     setLoading(true);
     try {
-      const { data } = await api.post('/vendor/withdraw', { amount: withdrawAmount });
-
+      const { data } = await api.post('/withdraw', { amount: withdrawAmount });
       if (data.success) {
         // 2. Update LocalStorage balance
         const user = JSON.parse(localStorage.getItem('user') || '{}');

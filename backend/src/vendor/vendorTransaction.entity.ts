@@ -1,7 +1,7 @@
 import { Product } from 'src/product/product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, ManyToOne } from 'typeorm';
 import { Vendor } from './vendor.entity';
-import { WithdrawalStatus } from 'src/payment/withdraw.entity';
+import { WithdrawalStatus } from 'src/withdraw/withdraw.entity';
 
 @Entity()
 export class VendorTransaction {

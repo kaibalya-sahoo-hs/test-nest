@@ -195,12 +195,12 @@ function Nav() {
             {user ? (
               <div className="relative flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100">
 
-                {isVendor && (
+                {(
                   <div
                     className="text-sm flex items-center bg-gray-100 hover:bg-gray-200 rounded-2xl border border-gray-300 px-3 py-1.5 cursor-pointer transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate('/vendor/profile/wallet');
+                      navigate(`${user.role == "vendor" ? "vendor/profile/wallet" : "/profile/wallet"}`);
                     }}
                   >
                     <FaRupeeSign className="mr-1 text-xs" />

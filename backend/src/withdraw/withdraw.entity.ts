@@ -1,3 +1,4 @@
+import { User } from "src/users/users.entity";
 import { Vendor } from "src/vendor/vendor.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -15,6 +16,9 @@ export class Withdraw {
 
     @ManyToOne(() => Vendor)
     vendor: Vendor
+
+    @ManyToOne(() => User)
+    user: User
 
     @Column('int')
     amount: number

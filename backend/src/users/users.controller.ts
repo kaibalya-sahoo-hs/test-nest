@@ -6,7 +6,10 @@ import { CouponsService } from "src/coupon/coupon.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private userService: UserService, private couponService: CouponsService) { }
+  constructor(
+    private userService: UserService, 
+    private couponService: CouponsService
+  ) { }
   @Get()
   getUser() {
     return this.userService.findAllUsers()
@@ -29,6 +32,12 @@ export class UserController {
     return this.userService.findById(id)
   }
 
+  @Post('withdraw')
+  @UseGuards(AuthGuard)
+  async createWithdraw(@Req() req,@Body() body){
+    return await this.userService.createWithDrawal(req.user.id, body.amount)
+  }
+
   @Get('my-orders')
   @UseGuards(AuthGuard)
   async getMyOrders(@Req() req) {
@@ -48,8 +57,8 @@ export class UserController {
   updateProfile(@Body() body: any) {
     return this.userService.updateProfile(body.id, body.updatedCredentials)
   }
+  
 
-  // Self-service: upload own profile photo
   @Post('profile/upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadProfilePhoto(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
@@ -61,4 +70,4 @@ export class UserController {
     return this.couponService.applyCoupon(coupon, body.cartId)
   }
 
-}
+}

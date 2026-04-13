@@ -127,7 +127,7 @@ export class CartService {
 
   async removeItemByProduct(userId: number, productId: string) {
     const cart = await this.cartRepo.findOne({ where: { user: { id: userId } } });
-    const result = await this.cartItemsRepo.delete({ product: { id: productId }, cart: { id: cart?.id } })
+    const result = await this.cartItemsRepo.delete({ product: productId as any, cart: cart?.id as any })
     if (result.affected === 0) {
       throw new NotFoundException('Item not found in cart');
     }

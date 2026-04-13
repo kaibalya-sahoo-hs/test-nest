@@ -6,6 +6,7 @@ import { LuRotateCcw } from 'react-icons/lu';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import api from '../utils/api';
+import { FaTrash } from 'react-icons/fa6';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -38,20 +39,22 @@ const Users = () => {
     try {
       const file = e.target.files[0]
       console.log(file)
-      Papa.parse(file, { header: true, skipEmptyLines: true, complete: async (result) => {
-        console.log('Sending post request')
-        const {data} = await api.post('/admin/users', {users: result.data})
-        console.log(data)
-        if(data.success){
-          toast.success(data.message)
-        }else{
-          toast.error(data.message)
+      Papa.parse(file, {
+        header: true, skipEmptyLines: true, complete: async (result) => {
+          console.log('Sending post request')
+          const { data } = await api.post('/admin/users', { users: result.data })
+          console.log(data)
+          if (data.success) {
+            toast.success(data.message)
+          } else {
+            toast.error(data.message)
+          }
+          setIsUploading(false)
         }
-        setIsUploading(false)
-      } })
+      })
     } catch (error) {
       console.log(error)
-    }finally{
+    } finally {
       setIsUploading(false)
     }
   }
@@ -111,6 +114,21 @@ const Users = () => {
     setShowAddForm(false);
   };
 
+  const handleDelete = async (e, userId) => {
+    e.stopPropagation(); // Prevents the row's onClick from firing
+
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await api.delete(`/users/${userId}`);
+        // Update state to remove user from UI
+        setUsers(prev => prev.filter(user => user.id !== userId));
+        toast.success("User deleted successfully");
+      } catch (error) {
+        toast.error("Failed to delete user");
+      }
+    }
+  };
+
   const handleAddMember = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -141,7 +159,7 @@ const Users = () => {
 
   const formatId = (id) => String(id).padStart(5, '0');
 
-  const roleOptions = ['All', 'guest', 'member', 'admin', 'vendor'];
+  const roleOptions = ['All', 'guest', 'member', 'admin'];
   const sortOptions = ['Default', 'A-Z', 'Z-A', 'Newest', 'Oldest'];
 
   return (
@@ -243,6 +261,7 @@ const Users = () => {
                 <th className="px-4 sm:px-6 py-4 sm:py-5 text-[12px] sm:text-[13px] font-extrabold text-[#202224] uppercase tracking-wider">Name</th>
                 <th className="px-4 sm:px-6 py-4 sm:py-5 text-[12px] sm:text-[13px] font-extrabold text-[#202224] uppercase tracking-wider hidden sm:table-cell">Email</th>
                 <th className="px-4 sm:px-6 py-4 sm:py-5 text-[12px] sm:text-[13px] font-extrabold text-[#202224] uppercase tracking-wider text-center">Role</th>
+                <th className="px-4 sm:px-6 py-4 sm:py-5 text-[12px] sm:text-[13px] font-extrabold text-[#202224] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -264,7 +283,6 @@ const Users = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="text-sm font-bold text-[#202224] block truncate">{user.name}</span>
-                        {/* Show email below name on mobile */}
                         <span className="text-xs text-gray-400 sm:hidden block truncate">{user.email}</span>
                       </div>
                     </div>
@@ -275,11 +293,21 @@ const Users = () => {
                   <td className="px-4 sm:px-6 py-4 sm:py-5 text-center">
                     <span className={getRoleBadge(user.role)}>{user.role}</span>
                   </td>
+                  {/* DELETE BUTTON CELL */}
+                  <td className="px-4 sm:px-6 py-4 sm:py-5 text-right">
+                    <button
+                      onClick={(e) => handleDelete(e, user.id)}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      title="Delete User"
+                    >
+                      <FaTrash size={16} />
+                    </button>
+                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="4" className="px-6 py-16 text-center text-gray-400 font-medium">
-                    No users found{roleFilter !== 'All' ? ` for role "${roleFilter}"` : ''}.
+                  <td colSpan="5" className="px-6 py-16 text-center text-gray-400 font-medium">
+                    No users found.
                   </td>
                 </tr>
               )}

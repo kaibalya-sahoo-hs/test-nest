@@ -23,8 +23,6 @@ const Login = () => {
     }
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -62,7 +60,7 @@ const Login = () => {
         } else if(data.user.role === 'vendor') {
           navigate('/vendor/dashboard')
         }else {
-          navigate(sessionStorage.getItem('redirectTo'))
+          navigate(sessionStorage.getItem('redirectTo') ?? '/')
           console.log("Called")
           syncCartWithServer()
           fetchCart();

@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt'
 import { Order } from 'src/payment/order.entity';
 import { Vendor } from './vendor.entity';
 import { JwtService } from '@nestjs/jwt';
-import { Withdraw, WithdrawalStatus } from 'src/payment/withdraw.entity';
+import { Withdraw, WithdrawalStatus } from 'src/withdraw/withdraw.entity';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
 

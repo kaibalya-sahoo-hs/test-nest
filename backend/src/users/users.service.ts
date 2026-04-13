@@ -4,6 +4,7 @@ import { Order } from 'src/payment/order.entity';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
+import { WithdrawService } from 'src/withdraw/withdraw.service';
 
 
 @Injectable()
@@ -11,9 +12,10 @@ export class UserService{
     constructor(
         @InjectRepository(User)
         private userRepo: Repository<User>,
-        private cloudinarySevice: CloudinaryService,
         @InjectRepository(Order)
-        private orderRepo:Repository<Order>
+        private orderRepo:Repository<Order>,
+        private cloudinarySevice: CloudinaryService,
+        private witdrawService: WithdrawService
     ){}
 
     findAllUsers(){
@@ -162,5 +164,10 @@ export class UserService{
             console.error("Error fetching order detail:", error);
             throw new InternalServerErrorException("Failed to fetch order details");
         }
+    }
+
+    async createWithDrawal(userId, amount){
+        const result = await this.witdrawService.createWithdrawal(userId, amount)
+        return result
     }
 }

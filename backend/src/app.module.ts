@@ -28,6 +28,7 @@ import { Order } from './payment/order.entity';
 import { AddressModule } from './address/address.module';
 import { VendorModule } from './vendor/vendor.module';
 import { PaymentLogModule } from './payment-log/payment-log.module';
+import { WithdrawModule } from './withdraw/withdraw.module';
 
 
 @Module({
@@ -75,6 +76,7 @@ import { PaymentLogModule } from './payment-log/payment-log.module';
     AddressModule,
     VendorModule,
     PaymentLogModule,
+    WithdrawModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService],

@@ -119,7 +119,7 @@ function VendorProfile() {
 
   return (
     <div className="font-sans">
-      <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-6 sm:mb-8">My Profile</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-4">My Profile</h1>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
         {/* Cover + Avatar */}

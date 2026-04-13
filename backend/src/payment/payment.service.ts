@@ -47,6 +47,14 @@ export class PaymentService {
 
     async createOrder(userID: number, amount: number, cartItems: any, couponCode: string) {
         // Check for existing pending master order for this user (payment retry)
+
+        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } });
+
+        if(!address){
+            return {message: "Address is required", success: false}
+        }
+
+
         const existingPendingOrder = await this.orderRepo.findOne({
             where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
             relations: ['payments'],
@@ -112,7 +120,7 @@ export class PaymentService {
         };
         const masterOrder = await this.orderRepo.save(this.orderRepo.create(masterOrderData));
         // Get delivery address
-        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } });
+        
         // Create sub-orders per vendor with proportional coupon splitting
         for (const [vendorId, items] of vendorGroups) {
             const subTotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);

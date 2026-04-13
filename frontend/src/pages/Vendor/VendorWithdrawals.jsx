@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
-const WithdrawalHistory = () => {
+const WithdrawalHistory = ({user}) => {
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetchWithdrawals();
   }, []);
 
   const fetchWithdrawals = async () => {
     try {
-      const { data } = await api.get('/vendor/withdrawals');
-      console.log(data)
+      const { data } = await api.get('/withdraw');
       setWithdrawals(data.withdraws);
     } catch (err) {
       console.error("Failed to fetch history", err);
