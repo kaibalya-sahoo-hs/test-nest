@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router';
 import { CartProvider } from './context/CartContext';
 import { vi } from 'vitest';
 import { Toaster } from 'react-hot-toast';
+import AllRoutes from "./routes/AllRoute"
 
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'localStorage', {
@@ -34,7 +35,6 @@ const customRender = (ui, options) =>
     wrapper: ({ children }) => (
       <CartProvider>
         <MemoryRouter>
-          <Toaster/>
           {children}
         </MemoryRouter>
       </CartProvider>

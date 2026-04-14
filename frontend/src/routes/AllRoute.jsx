@@ -47,19 +47,19 @@ function AllRoute() {
           path="/auth/register/complete"
           element={<CompleteRegistration />}
         />
-        <Route path="/vendor/register" element={<VendorRegistration/>}/>
-          <Route path="/vendor/login" element={<VendorLogin/>}/>
+        <Route path="/vendor/register" element={<VendorRegistration />} />
+        <Route path="/vendor/login" element={<VendorLogin />} />
 
         <Route element={<Nav />}>
-          <Route path="/" element={<Index/>}/>
-          <Route path="/address" element={<AddressManager/>}/>
-          <Route path="/cart" element={<CartPage/>} />
+          <Route path="/" element={<Index />} />
+          <Route path="/address" element={<AddressManager />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/products" element={<Products />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/orders" element={<OrdersPage/>}/>
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/products/:id" element={<ProductPage />} />
-          <Route path="/checkout" element={<CheckoutPage/>} />
-          <Route path="/profile/wallet" element={<VendorWallet/>}/>
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/profile/wallet" element={<VendorWallet />} />
           {/* Admin routes */}
           <Route path="/admin/dashboard" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/admin/apilogs" element={<AdminRoute><ApiLogs /></AdminRoute>} />
@@ -74,11 +74,11 @@ function AllRoute() {
           <Route path="/admin/orders/:orderId" element={<AdminRoute><Payments /></AdminRoute>} />
 
           {/* Vendor Routes */}
-          <Route path="/vendor/dashboard" element={<VendorDashboard/>}/>
-          <Route path="/vendor/profile" element={<VendorProfile/>}/>
-          <Route path="/vendor/products" element={<VendorProducts/>}/>
-          <Route path="/vendor/orders" element={<VendorOrders/>}/>
-          <Route path="/vendor/profile/wallet" element={<VendorWallet/>}/>
+          <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+          <Route path="/vendor/profile" element={<VendorProfile />} />
+          <Route path="/vendor/products" element={<VendorProducts />} />
+          <Route path="/vendor/orders" element={<VendorOrders />} />
+          <Route path="/vendor/profile/wallet" element={<VendorWallet />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

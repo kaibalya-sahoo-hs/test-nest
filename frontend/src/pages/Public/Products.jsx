@@ -95,7 +95,7 @@ function Products() {
 
                                     <img
                                         src={item.image || "https://via.placeholder.com/200"}
-                                        alt={item.name}
+                                        alt={"Product image"}
                                         className="w-48 h-48 object-contain cursor-pointer"
                                         onClick={() => navigate(`/products/${item.id}`)}
                                     />

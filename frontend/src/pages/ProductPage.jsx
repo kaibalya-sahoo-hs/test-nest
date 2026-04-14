@@ -153,7 +153,6 @@ function ProductPage() {
                 className='w-full md:w-auto bg-[#4379EE] px-10 py-4 rounded-xl text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2'
                 onClick={() => handleAddtoCart(product)}
               >
-                <FaShoppingCart />
                 Add to cart
               </button>
             )}

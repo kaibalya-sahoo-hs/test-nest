@@ -181,6 +181,7 @@ function Nav() {
             {/* Notifications */}
             {user?.role !== "admin" && user?.role !== "vendor" && <div
               className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
+              aria-label="cart"
               onClick={() => navigate("/cart")}
             >
               <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-[#4379EE]" />
