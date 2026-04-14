@@ -75,10 +75,7 @@ const Login = () => {
     }
   };
 
-  // useEffect(() => {
-  //   localStorage.clear();
-  // }, []);
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)' }}>
