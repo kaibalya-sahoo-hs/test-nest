@@ -11,8 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-.agile-device-493307-g5-07e288ccee39.json
-
+agile-device-493307-g5-07e288ccee39.json
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
