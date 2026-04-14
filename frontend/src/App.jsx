@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import './App.css'
+import { CartProvider } from './context/CartContext'
+import AllRoute from './routes/AllRoute'
 
 function App() {
 
   return (
-    <>
-    <h1>Home</h1>
-    </>
+    <CartProvider>
+        <AllRoute/>
+    </CartProvider>
   )
 }
 

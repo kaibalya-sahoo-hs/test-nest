@@ -37,8 +37,6 @@ import VendorWallet from "../pages/Vendor/VendorWallet";
 
 function AllRoute() {
   return (
-    <BrowserRouter>
-      <Toaster />
 
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -82,7 +80,6 @@ function AllRoute() {
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
   );
 }
 

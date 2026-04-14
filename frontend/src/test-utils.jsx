@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { BrowserRouter, MemoryRouter } from 'react-router';
 import { CartProvider } from './context/CartContext';
 import { vi } from 'vitest';
 import { Toaster } from 'react-hot-toast';
@@ -34,9 +34,10 @@ const customRender = (ui, options) =>
   render(ui, {
     wrapper: ({ children }) => (
       <CartProvider>
-        <MemoryRouter>
+        <BrowserRouter>
+          <Toaster/>
           {children}
-        </MemoryRouter>
+        </BrowserRouter>
       </CartProvider>
     ),
     ...options,

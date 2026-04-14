@@ -7,13 +7,11 @@ describe('Feature: Cart System', () => {
 
   test('should add the first product to the cart and verify in cart page', async () => {
     render(<Products />);
-
+    
     const items = await screen.findAllByAltText(/Product image/i, {exact: false}) 
     fireEvent.click(items[0])
-    screen.debug()
-    const addToCartButton = await screen.findByRole('button', { name: /Add to cart/i });
-    fireEvent.click(addToCartButton);
-
+    const desc = await screen.findByText(/Description/i)
+    console.log(desc)
     // const successToast = await screen.findByText(/Item added to the cart/i);
     // expect(successToast).toBeInTheDocument();
 

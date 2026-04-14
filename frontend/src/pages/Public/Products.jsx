@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { CiHeart } from 'react-icons/ci';
 import { FaAngleLeft, FaAngleRight, FaIndianRupeeSign, FaStar } from 'react-icons/fa6';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import api from '../../utils/api';
 import ProductFilterBar from '../../components/ProductFilterBar';
 
@@ -87,6 +87,7 @@ function Products() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                         {filteredProducts.map((item) => (
+                            <Link to={`/products/${item.id}`}>
                             <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
                                 <div className="relative flex justify-center items-center mb-6">
                                     <button className="absolute left-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -97,7 +98,6 @@ function Products() {
                                         src={item.image || "https://via.placeholder.com/200"}
                                         alt={"Product image"}
                                         className="w-48 h-48 object-contain cursor-pointer"
-                                        onClick={() => navigate(`/products/${item.id}`)}
                                     />
 
                                     <button className="absolute right-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -129,6 +129,7 @@ function Products() {
                                     </span>
                                 </div> */}
                             </div>
+                            </Link>
                         ))}
                     </div>
                 )}
