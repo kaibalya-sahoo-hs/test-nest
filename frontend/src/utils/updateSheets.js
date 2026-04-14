@@ -1,6 +1,6 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
-import creds from '../../agile-device-493307-g5-07e288ccee39.json';
+import creds from '../../../../Downloads/agile-device-493307-g5-07e288ccee39.json';
 const serviceAccountAuth = new JWT({
   email: creds.client_email,
   key: creds.private_key,
