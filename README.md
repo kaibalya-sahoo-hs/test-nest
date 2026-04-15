@@ -1,6 +1,6 @@
-# User Management System
+# Ecommerce APP
 
-A full-stack **User Management System** built with **React (Frontend)** and **NestJS (Backend)** using **PostgreSQL** as the database.
+A full-stack **Ecommerce APP** built with **React (Frontend)** and **NestJS (Backend)** using **PostgreSQL** as the database.
 
 The system allows managing users by performing operations such as creating, viewing, updating, and deleting user records.
 
@@ -85,13 +85,25 @@ This will start the React development server.
 
 ---
 
+### Start Ngork (For making payments)
+```
+ngrok http 8000
+```
+PORT (default - 8000)
+
+### Start Local Tunnel (For making withdraws)
+```
+lt --port 8000 --subdomain razor-pay-payout
+```
+PORT (default - 8000)
+
+
 ## Database
 
 The project uses **PostgreSQL** as the database.
 
 Make sure PostgreSQL is running and the database configuration is correctly set in the backend environment configuration.
 
----
 
 ## Technologies Used
 
@@ -107,3 +119,16 @@ Backend:
 Database:
 
 * PostgreSQL (TypeORM)
+
+## To run tests
+
+* To run all the tests
+In your root folder run the following command
+```
+npm test
+```
+* To run individual test
+```
+npx vitest src/frontend/test/filename.jsx 
+```
+
