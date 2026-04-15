@@ -27,7 +27,7 @@ describe('Feature: Login', () => {
 
     test('Scenario: Valid User', async () => {
         // try {
-        screen.debug()
+            screen.debug()
             fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
             fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
             fireEvent.click(loginButton)
