@@ -110,7 +110,7 @@ const CartPage = () => {
               <div className="w-24 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-50">
                 <img
                   src={item.product?.image}
-                  alt={item.product?.name}
+                  alt={'Product image'}
                   className="w-full h-full object-cover mix-blend-multiply"
                 />
               </div>
@@ -145,6 +145,7 @@ const CartPage = () => {
                   }
                   className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 disabled:opacity-30"
                   disabled={item.quantity <= 1}
+                  aria-label="Decrease quantity"
                 >
                   <FiMinus size={16} />
                 </button>
@@ -160,6 +161,7 @@ const CartPage = () => {
                     )
                   }
                   className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500"
+                  aria-label="Increase quantity"
                 >
                   <FiPlus size={16} />
                 </button>
@@ -169,6 +171,7 @@ const CartPage = () => {
               <button
                 onClick={() => removeItem(item.product.id, couponInput)}
                 className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                aria-label="remove item"
               >
                 <FiTrash2 size={20} />
               </button>
@@ -249,7 +252,7 @@ const CartPage = () => {
                 </span>
               </div>
             </div>
-              <button className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handleCheckout}>
+              <button aria-label="checkout btn" className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handleCheckout}>
                 Proceed to Checkout
               </button>
           </div>

@@ -2,25 +2,105 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { render } from '../../test-utils';
 import App from '../../App';
 import Products from '../../pages/Public/Products';
+import ProductPage from '../../pages/ProductPage';
+import { Route, Routes } from 'react-router';
+import CartPage from '../../pages/CartPage';
+import { beforeEach, expect } from 'vitest';
+import { updateTestResult } from '../../utils/updateSheets';
 
 describe('Feature: Cart System', () => {
 
+  beforeEach(() => {
+
+    render(
+      <>
+        <Routes>
+          <Route path="/" element={<Products />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+        </Routes>
+      </>
+    );
+  })
   test('should add the first product to the cart and verify in cart page', async () => {
-    render(<Products />);
-    
-    const items = await screen.findAllByAltText(/Product image/i, {exact: false}) 
-    fireEvent.click(items[0])
-    const desc = await screen.findByText(/Description/i)
-    console.log(desc)
-    // const successToast = await screen.findByText(/Item added to the cart/i);
-    // expect(successToast).toBeInTheDocument();
 
-    // const cartLink = screen.getByRole('link', { name: /cart/i });
-    // fireEvent.click(cartLink);
+    try {
+      const items = await screen.findAllByAltText(/Product image/i, { exact: false })
+      fireEvent.click(items[0])
+      const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+      fireEvent.click(addToCartBtn)
+      const viewCartButton = await screen.findByRole('button', { name: /View Cart/i });
+      fireEvent.click(viewCartButton)
 
-    // // 6. Verify if the product is in the list
-    // // You can check for a specific test ID or text that usually appears in your cart items
-    // const cartItem = await screen.findByTestId('cart-item'); 
-    // expect(cartItem).toBeInTheDocument();
+      await screen.findAllByText(/Shopping Cart/)
+      const cartItems = await screen.findAllByAltText(/Product image/i, { exact: false })
+      expect(cartItems[0])
+      await updateTestResult('TC_CART_01', 'pass')
+    } catch (error) {
+      await updateTestResult('TC_CART_01', 'fail')
+
+    }
   });
+
+  test('Update cart items', async () => {
+    try {
+    const items = await screen.findAllByAltText(/Product image/i, { exact: false })
+    fireEvent.click(items[0])
+    const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+    fireEvent.click(addToCartBtn)
+
+    await screen.findByText(/1/)
+
+    const buttons = screen.getAllByRole('button');
+
+    const minusBtn = buttons.find(btn =>
+      btn.innerHTML.includes('M432 256')
+    );
+
+    const plusBtn = buttons.find(btn =>
+      btn.innerHTML.includes('M256 80')
+    );
+    fireEvent.click(plusBtn)
+
+    const increasedQuantity = await screen.findByText(/2/)
+    expect(increasedQuantity)
+
+    fireEvent.click(minusBtn)
+
+    const decreasedQuantity = await screen.findByText(/1/)
+    expect(decreasedQuantity)
+
+      await updateTestResult('TC_CART_02', 'pass')
+    } catch (error) {
+      await updateTestResult('TC_CART_02', 'fail')
+    }
+  })
+
+  test('Rmove item from cart', async () => {
+
+    try {
+    screen.debug()
+    const items = await screen.findAllByAltText(/Product image/i, { exact: false })
+    fireEvent.click(items[0])
+    const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+    fireEvent.click(addToCartBtn)
+    const viewCartButton = await screen.findByRole('button', { name: /View Cart/i });
+    fireEvent.click(viewCartButton)
+
+    await screen.findAllByText(/Shopping Cart/)
+    const cartItems = await screen.findAllByAltText(/Product image/i, { exact: false })
+    expect(cartItems[0])
+
+    const removeBtn = await screen.findByRole('button', { name: /remove item/i })
+    fireEvent.click(removeBtn)
+
+    const emptyText = await screen.findByText(/Your cart is empty/i)
+    expect(emptyText)
+      await updateTestResult('TC_CART_03', 'pass')
+    } catch (error) {
+      await updateTestResult('TC_CART_03', 'fail')
+
+    }
+  });
+
 });

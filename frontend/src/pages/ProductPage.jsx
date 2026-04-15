@@ -72,7 +72,7 @@ function ProductPage() {
         <div className="md:w-1/2 bg-[#F9FAFB] md:h-fit md:sticky md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
           <img
             src={product.image || "https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"}
-            alt={product.name}
+            alt={"Product image"}
             className="w-full max-w-[400px] rounded-2xl h-auto object-contain mix-blend-multiply"
           />
         </div>

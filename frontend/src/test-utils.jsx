@@ -34,10 +34,9 @@ const customRender = (ui, options) =>
   render(ui, {
     wrapper: ({ children }) => (
       <CartProvider>
-        <BrowserRouter>
-          <Toaster/>
+        <MemoryRouter>
           {children}
-        </BrowserRouter>
+        </MemoryRouter>
       </CartProvider>
     ),
     ...options,
