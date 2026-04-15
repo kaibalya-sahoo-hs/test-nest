@@ -273,6 +273,7 @@ function Nav() {
                 <button
                   onClick={() => handleLoginPress()}
                   className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+                  aria-label="login btn"
                 >
                   Login
                 </button>

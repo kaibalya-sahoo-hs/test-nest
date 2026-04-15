@@ -21,10 +21,11 @@ const CartPage = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
  
-
+  console.log("Called cart page")
   const handleCheckout = () => {
     if(!user){
       toast.error("Please login before checkout")
+      sessionStorage.setItem('redirectTo', '/checkout');
       navigate("/login")
     }else{
       navigate('/checkout')

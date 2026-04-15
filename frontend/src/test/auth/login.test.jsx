@@ -12,7 +12,7 @@ describe('Feature: Login', () => {
     beforeEach(() => {
 
         render(
-            <Login />
+            <App />
         );
         emailInput = screen.getByPlaceholderText(/esteban_schiller@gmail.com/)
         passwordInput = screen.getByPlaceholderText(/••••••/)

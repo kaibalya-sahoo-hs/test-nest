@@ -39,12 +39,11 @@ function CheckoutPage() {
           amount: cart.discountedAmount,
           cartItems: cart.items
         });
-
         const order = response.data;
-
+        console.log(order)
         const options = {
           key: import.meta.env.VITE_RAZORPAY_TEST_KEY, // Your Public Key ID
-          amount: order.amount,
+          amount: order.discountedAmount,
           currency: order.currency,
           name: "DashStack Store",
           description: "Random Description",
@@ -74,6 +73,7 @@ function CheckoutPage() {
         fetchCart()
       } else {
         toast.error("Login to checkout")
+        sessionStorage.setItem('redirectTo', '/checkout');
         navigate('/login')
       }
 
@@ -165,6 +165,7 @@ function CheckoutPage() {
               disabled={loading || !cart.items?.length}
               className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all ${loading ? 'bg-gray-400' : 'bg-[#4379EE] hover:bg-[#3262cc] shadow-lg shadow-blue-200'
                 }`}
+                aria-label='payment button'
             >
               <CiCreditCard2 size={20} />
               {loading ? 'Processing...' : 'Pay with Razorpay'}

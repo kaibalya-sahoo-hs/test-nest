@@ -87,8 +87,8 @@ function Products() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                         {filteredProducts.map((item) => (
-                            <Link to={`/products/${item.id}`}>
-                            <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
+                            <Link key={item.id} to={`/products/${item.id}`}>
+                            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
                                 <div className="relative flex justify-center items-center mb-6">
                                     <button className="absolute left-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <FaAngleLeft size={16} />

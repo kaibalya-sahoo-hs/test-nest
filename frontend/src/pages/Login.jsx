@@ -41,6 +41,7 @@ const Login = () => {
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
+
       const data = await response.json();
       console.log("Logged in user: ", data);
 
@@ -54,15 +55,16 @@ const Login = () => {
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         localStorage.setItem('user', JSON.stringify(data.user));
-
+        console.log(data)
         if (data.user.role === 'admin') {
           navigate("/admin/dashboard");
-        } else if(data.user.role === 'vendor') {
-          navigate('/vendor/dashboard')
-        }else {
-          navigate(sessionStorage.getItem('redirectTo') ?? '/')
-          console.log("Called")
-          syncCartWithServer()
+        } else if (data.user.role === 'vendor') {
+          navigate('/vendor/dashboard');
+        } else {
+          const redirectPath = sessionStorage.getItem('redirectTo');
+          sessionStorage.removeItem('redirectTo');
+          navigate(redirectPath || '/');
+          syncCartWithServer();
           fetchCart();
         }
       } else {

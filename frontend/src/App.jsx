@@ -6,9 +6,7 @@ import AllRoute from './routes/AllRoute'
 function App() {
 
   return (
-    <CartProvider>
         <AllRoute/>
-    </CartProvider>
   )
 }
 
