@@ -1,17 +1,16 @@
 import { fireEvent, screen } from "@testing-library/react"
-import Login from "../src/pages/Login"
 import { beforeEach, describe, expect, test, vi } from "vitest"
-import { render } from "../src/test-utils"
-import { updateTestResult } from "../src/utils/updateSheets"
-import Admin from "../src/pages/Admin"
+import { render } from "../test-utils"
+import { updateTestResult } from "../utils/updateSheets"
 import { Route, Routes } from "react-router"
-import Nav from "../src/components/Nav"
-import App from "../src/App"
-import Users from "../src/pages/Users"
-import UserProfile from "../src/pages/UserProfile"
-import VendorManagement from "../src/pages/VendorManagement"
-import AdminOrdersPage from "../src/pages/Admin/AdminOrdersPage"
-import Payments from "../src/pages/Admin/Payments"
+import Nav from "../components/Nav"
+import Login from "../pages/Login"
+import Admin from "../pages/Admin"
+import Users from "../pages/Users"
+import UserProfile from "../pages/UserProfile"
+import VendorManagement from "../pages/VendorManagement"
+import AdminOrdersPage from "../pages/Admin/AdminOrdersPage"
+import Payments from "../pages/Admin/Payments"
 
 describe('Feature: Admin', () => {
 
@@ -41,8 +40,8 @@ describe('Feature: Admin', () => {
     })
 
 
-    test('Scenario: Valid User', async () => {
-        // try {
+    test('Scenario: login', async () => {
+        try {
         fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
         fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
         fireEvent.click(loginButton)
@@ -56,7 +55,6 @@ describe('Feature: Admin', () => {
         const usersText = await screen.findByText(/Users List/i)
         expect(usersText)
 
-        // find test with someone
         const users = await screen.findAllByText(/Someone/i)
         expect(users[0])
         users[0].click()
@@ -65,14 +63,15 @@ describe('Feature: Admin', () => {
         expect(userProfile)
         screen.debug()
 
-        //     await updateTestResult('TC_LOG_01', 'pass')
-        // } catch (error) {
-        //     await updateTestResult('TC_LOG_01', 'fail')
-        // }
+            await updateTestResult('TC_ADMIN_01', 'pass')
+        } catch (error) {
+            await updateTestResult('TC_ADMIN_01', 'fail')
+        }
     });
 
     // test scneario to delete a user
     test('Scenario: Delete a User', async () => {
+        try {
         fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
         fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
         fireEvent.click(loginButton)
@@ -93,54 +92,68 @@ describe('Feature: Admin', () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true);
         const deletedMessage = await screen.findByText(/User deleted successfully/i)
         expect(deletedMessage)
+        await updateTestResult('TC_ADMIN_02', 'pass')
+        } catch (error) {
+            await updateTestResult('TC_ADMIN_02', 'fail')
+        }
     });
 
     // test scenario to select vndors link and check if the vendor management page is displayed and then click on supspend button and click on reapprove button
     test('Scenario: Suspend and Reapprove a Vendor', async () => {
-        fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
-        fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
-        fireEvent.click(loginButton)
-
-        const successMessage = await screen.findAllByText(/Login successful/i)
-        expect(successMessage[0])
-        const vendorLink = await screen.findByRole('link', {name: /Vendors/i})
-        fireEvent.click(vendorLink)
-
-        const vendorsText = await screen.findByText(/Vendor Management/i)
-        expect(vendorsText)
-
-        // find  suspend button and click on it
-        const suspendButtons = await screen.findAllByRole('button', { name: /suspend vendor/i })
-        expect(suspendButtons[0])
-        fireEvent.click(suspendButtons[0])
-        screen.debug()
-        const suspendMessage = await screen.findByText(/Vendor status updated to ['"]?suspended['"]?/i)
-        expect(suspendMessage)
-
-        // find  reapprove button and click on it
-        const reapproveButtons = await screen.findAllByRole('button', { name: /reapprove button/i })
-        expect(reapproveButtons[0])
-        fireEvent.click(reapproveButtons[0])
-        const reapproveMessage = await screen.findByText(/Vendor status updated to ['"]?approved['"]?/i)
-        expect(reapproveMessage)
+        try {
+            fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
+            fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
+            fireEvent.click(loginButton)
+    
+            const successMessage = await screen.findAllByText(/Login successful/i)
+            expect(successMessage[0])
+            const vendorLink = await screen.findByRole('link', {name: /Vendors/i})
+            fireEvent.click(vendorLink)
+    
+            const vendorsText = await screen.findByText(/Vendor Management/i)
+            expect(vendorsText)
+    
+            // find  suspend button and click on it
+            const suspendButtons = await screen.findAllByRole('button', { name: /suspend vendor/i })
+            expect(suspendButtons[0])
+            fireEvent.click(suspendButtons[0])
+            screen.debug()
+            const suspendMessage = await screen.findByText(/Vendor status updated to ['"]?suspended['"]?/i)
+            expect(suspendMessage)
+    
+            // find  reapprove button and click on it
+            const reapproveButtons = await screen.findAllByRole('button', { name: /reapprove button/i })
+            expect(reapproveButtons[0])
+            fireEvent.click(reapproveButtons[0])
+            const reapproveMessage = await screen.findByText(/Vendor status updated to ['"]?approved['"]?/i)
+            expect(reapproveMessage)
+            await updateTestResult('TC_ADMIN_03', 'pass')
+        } catch (error) {
+            await updateTestResult('TC_ADMIN_03', 'fail')
+        }
     });
 
-    test.only('Scenario: View Orders', async () => {
-        fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
-        fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
-        fireEvent.click(loginButton)
-        const successMessage = await screen.findAllByText(/Login successful/i)
-        expect(successMessage[0])
-        const ordersLink = await screen.findByRole('link', {name: /Orders/i})
-        fireEvent.click(ordersLink);
-        const ordersText = await screen.findAllByText(/Orders/i)
-        expect(ordersText[0])
-
-        const viewPaymentLogs = await screen.findByText(/View Payment Logs/i)
-        expect(viewPaymentLogs)
-        fireEvent.click(viewPaymentLogs)
-        screen.debug()
-        const paymentLogsText = await screen.findByText(/view logs/i)
-        expect(paymentLogsText)
+    test('Scenario: View Orders', async () => {
+        try {
+            fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
+            fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
+            fireEvent.click(loginButton)
+            const successMessage = await screen.findAllByText(/Login successful/i)
+            expect(successMessage[0])
+            const ordersLink = await screen.findByRole('link', {name: /Orders/i})
+            fireEvent.click(ordersLink);
+            const ordersText = await screen.findAllByText(/Orders/i)
+            expect(ordersText[0])
+    
+            const viewPaymentLogs = await screen.findByText(/View Payment Logs/i)
+            expect(viewPaymentLogs)
+            fireEvent.click(viewPaymentLogs)
+            screen.debug()
+            const paymentLogsText = await screen.findByText(/view logs/i)
+            expect(paymentLogsText)
+            await updateTestResult('TC_ADMIN_04', 'pass')
+        } catch (error) {
+            await updateTestResult('TC_ADMIN_04', 'fail')
+        }
     });
 })
