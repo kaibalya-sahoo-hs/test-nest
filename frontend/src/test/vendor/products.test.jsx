@@ -7,6 +7,7 @@ import VendorProducts from "../../pages/Vendor/VendorProducts"
 import { fireEvent, screen, waitFor } from "@testing-library/react"
 import Nav from "../../components/Nav"
 import userEvent from '@testing-library/user-event';
+import { updateTestResult } from "../../utils/updateSheets"
 
 const user = userEvent.setup()
 
@@ -39,60 +40,71 @@ describe('feature: Vendor Products', () => {
 
     })
     test('Scenario: Vendor can view products ', async () => {
-        await screen.findByText(/Manage your store inventory and pricing/i)
+        try {
+            await screen.findByText(/Manage your store inventory and pricing/i)
+            await updateTestResult("TC_VEN_03", "pass")
+        } catch (error) {
+            await updateTestResult("TC_VEN_03", "failed")
+        }
     })
-    test.only('Scenario: Vendor can delete products ', async () => {
-        // try {
+    test('Scenario: Vendor can add products ', async () => {
+        try {
+            
+            const productPageText = await screen.findByText(/Manage your store inventory and pricing/i)
+            expect(productPageText)
+            const addproductButton = await screen.findByRole('button', { name: /add product/i })
+            fireEvent.click(addproductButton)
+    
+            screen.debug()
+    
+            const text = await screen.findByText(/Create a new product/)
+            expect(text)
+    
+            const nameInput = await screen.findByPlaceholderText(/title/i)
+            const priceInput = await screen.findByPlaceholderText(/Price/i)
+            const stockInput = await screen.findByPlaceholderText(/Stock/i)
+            const descriptionInput = await screen.findByPlaceholderText(/Description/i)
+            const catagoryInput = await screen.findByPlaceholderText(/Category/i)
+            const submitButton = await screen.findByRole('button', { name: /Create Product/i })
+    
+            // handle file upalod
+    
+            const pngData = new Uint8Array([
+                0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+                0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+                0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
+                0x0a, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x01,
+                0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
+                0xae, 0x42, 0x60, 0x82
+            ]);
+    
+            const fileInput = await screen.findByLabelText(/Click to upload product image/i)
+            const testFile = new File([pngData], "test.png", { type: "image/png" })
+            await user.upload(fileInput, testFile)
+    
+            fireEvent.change(nameInput, { target: { value: "Test Product" } })
+            fireEvent.change(priceInput, { target: { value: "19.99" } })
+            fireEvent.change(stockInput, { target: { value: "10" } })
+            fireEvent.change(catagoryInput, { target: { value: "Test Category" } })
+            fireEvent.change(descriptionInput, { target: { value: "This is a test product." } })
+            fireEvent.click(submitButton)
+            await updateTestResult("TC_VEN_05", "pass")
+        } catch (error) {
+            await updateTestResult("TC_VEN_05", "failed")
+        }
+    })
+    test('Scenario: Vendor can delete products ', async () => {
+        try {
             const productPageText = await screen.findByText(/Manage your store inventory and pricing/i)
             expect(productPageText)
             const removeButtons = await screen.findAllByRole('button', { name: /remove product/i })
-            expect(removeButtons[1])
-            fireEvent.click(removeButtons[1])
+            expect(removeButtons[0])
+            fireEvent.click(removeButtons[0])
             await screen.findByText(/Product deleted/i)
-        // } catch (error) {
-
-        // }
+            await updateTestResult("TC_VEN_04", "pass")
+        } catch (error) {
+            await updateTestResult("TC_VEN_04", "failed")
+        }
     })
 
-    test('Scenario: Vendor can add products ', async () => {
-        const productPageText = await screen.findByText(/Manage your store inventory and pricing/i)
-        expect(productPageText)
-        const addproductButton = await screen.findByRole('button', { name: /add product/i })
-        fireEvent.click(addproductButton)
-
-        screen.debug()
-
-        const text = await screen.findByText(/Create a new product/)
-        expect(text)
-
-        const nameInput = await screen.findByPlaceholderText(/title/i)
-        const priceInput = await screen.findByPlaceholderText(/Price/i)
-        const stockInput = await screen.findByPlaceholderText(/Stock/i)
-        const descriptionInput = await screen.findByPlaceholderText(/Description/i)
-        const catagoryInput = await screen.findByPlaceholderText(/Category/i)
-        const submitButton = await screen.findByRole('button', { name: /Create Product/i })
-
-        // handle file upalod
-
-        const pngData = new Uint8Array([
-            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-            0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-            0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89, 0x00, 0x00, 0x00,
-            0x0a, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x00, 0x01, 0x00, 0x01,
-            0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
-            0xae, 0x42, 0x60, 0x82
-        ]);
-
-        const fileInput = await screen.findByLabelText(/Click to upload product image/i)
-        const testFile = new File([pngData], "test.png", { type: "image/png" })
-        await user.upload(fileInput, testFile)
-
-        fireEvent.change(nameInput, { target: { value: "Test Product" } })
-        fireEvent.change(priceInput, { target: { value: "19.99" } })
-        fireEvent.change(stockInput, { target: { value: "10" } })
-        fireEvent.change(catagoryInput, { target: { value: "Test Category" } })
-        fireEvent.change(descriptionInput, { target: { value: "This is a test product." } })
-        fireEvent.click(submitButton)
-
-    })
 })

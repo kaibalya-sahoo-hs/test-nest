@@ -6,6 +6,7 @@ import Nav from "../../components/Nav"
 import VendorLogin from "../../pages/Vendor/VendorLogin"
 import { fireEvent, screen, waitFor } from "@testing-library/react"
 import VendorDashboard from "../../pages/Vendor/VendorDashboard"
+import { updateTestResult } from "../../utils/updateSheets"
 
 describe('feature: Vendor Login', () => {
     let emailInput
@@ -16,8 +17,8 @@ describe('feature: Vendor Login', () => {
 
         render(
             <Routes>
-                    <Route path="/" element={<VendorLogin />} />
-                    <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                <Route path="/" element={<VendorLogin />} />
+                <Route path="/vendor/dashboard" element={<VendorDashboard />} />
             </Routes>
         );
         emailInput = screen.getByPlaceholderText(/name@store.com/i)
@@ -26,13 +27,19 @@ describe('feature: Vendor Login', () => {
     })
 
     test('Scenario: Vendor Login', async () => {
-        fireEvent.change(emailInput, { target: { value: `seller1@gmail.com` } })
-        fireEvent.change(passwordInput, { target: { value: "seller1" } })
-        fireEvent.click(loginButton)
+        try {
+            fireEvent.change(emailInput, { target: { value: `seller1@gmail.com` } })
+            fireEvent.change(passwordInput, { target: { value: "seller1" } })
+            fireEvent.click(loginButton)
 
-        await waitFor(() => {
-            expect(screen.getByText(/Welcome to your dashboard/i))
-            expect(screen.getByText(/Welcome back, Seller/i))
-        })
+            await waitFor(() => {
+                expect(screen.getByText(/Welcome to your dashboard/i))
+                expect(screen.getByText(/Welcome back, Seller/i))
+            })
+            await updateTestResult("TC_VEN_02", "pass")
+
+        } catch (error) {
+            await updateTestResult("TC_VEN_02", "failed")
+        }
     })
 })

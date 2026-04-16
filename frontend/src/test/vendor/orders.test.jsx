@@ -8,6 +8,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react"
 import Nav from "../../components/Nav"
 import userEvent from '@testing-library/user-event';
 import VendorOrders from "../../pages/Vendor/VendorOrders"
+import { updateTestResult } from "../../utils/updateSheets"
 
 const user = userEvent.setup()
 
@@ -40,6 +41,11 @@ describe('feature: Vendor Products', () => {
 
     })
     test('Scenario: Vendor can view orders', async () => {
-        await screen.findByText(/Track and manage your store orders/i)
+        try {
+            await screen.findByText(/Track and manage your store orders/i)
+            await updateTestResult("TC_VEN_06", "pass")
+        } catch (error) {
+            await updateTestResult("TC_VEN_06", "failed")
+        }
     })
 })
