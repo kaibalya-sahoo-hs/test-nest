@@ -3,21 +3,21 @@ import { useParams } from 'react-router'
 import api from '../../utils/api'
 
 function Payments() {
-    const {orderId} = useParams()
-    const [payments, setPayments] = useState([])
-    const [expandedRow, setExpandedRow] = useState(null);
+  const { orderId } = useParams()
+  const [payments, setPayments] = useState([])
+  const [expandedRow, setExpandedRow] = useState(null);
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
-    const fetchPayments = async () => {
-        const {data} = await api.get(`/admin/orders/payments/${orderId}`)
-        console.log(data)
-        setPayments(data.payments)
-    }
-    useEffect(() => {
-        fetchPayments()
-    }, [])
+  const fetchPayments = async () => {
+    const { data } = await api.get(`/admin/orders/payments/${orderId}`)
+    console.log(data)
+    setPayments(data.payments)
+  }
+  useEffect(() => {
+    fetchPayments()
+  }, [])
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Transaction & Logs</h2>
@@ -45,9 +45,8 @@ function Payments() {
                     {payment.currency} {parseFloat(payment.amount).toLocaleString()}
                   </td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${
-                      payment.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${payment.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
                       {payment.status}
                     </span>
                   </td>
@@ -55,7 +54,7 @@ function Payments() {
                     {new Date(payment.createdAt).toLocaleDateString()}
                   </td>
                   <td className="p-4 text-center">
-                    <button 
+                    <button
                       onClick={() => toggleRow(payment.id)}
                       className="text-blue-500 hover:text-blue-700 text-sm font-semibold underline"
                     >

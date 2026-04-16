@@ -82,8 +82,7 @@ const Admin = () => {
       if (!res.ok) throw new Error("Failed to fetch");
 
       const allData = await res.json();
-      console.log(allData);
-      // Filtering based on role
+      
       setUsers(allData.filter((user) => user.role === "guest"));
       setMembers(allData.filter((user) => user.role === "member"));
     } catch (err) {

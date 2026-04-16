@@ -108,6 +108,7 @@ function VendorLogin() {
             type="submit"
             disabled={loading}
             className="w-full bg-[#4379EE] hover:bg-[#3768D1] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-100 disabled:opacity-70 mt-4 active:scale-[0.98]"
+            aria-label='vendor-signin'
           >
             {loading ? (
               <LuLoader className="animate-spin" size={24} />

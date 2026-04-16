@@ -104,14 +104,14 @@ function VendorManagement() {
     } else if (vendorStatus === 'approved') {
       buttons.push(
         <button key="suspend" onClick={(e) => { e.stopPropagation(); updateStatus(id, 'suspended'); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-all">
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-all" aria-label='suspend vendor'>
           <FiPause size={14} /> Suspend
         </button>
       );
     } else if (vendorStatus === 'suspended' || vendorStatus === 'rejected') {
       buttons.push(
         <button key="reapprove" onClick={(e) => { e.stopPropagation(); updateStatus(id, 'approved'); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all">
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all" aria-label='reapprove button'>
           <FiCheck size={14} /> Re-Approve
         </button>
       );

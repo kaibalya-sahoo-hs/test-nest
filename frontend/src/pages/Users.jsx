@@ -115,17 +115,15 @@ const Users = () => {
   };
 
   const handleDelete = async (e, userId) => {
-    e.stopPropagation(); // Prevents the row's onClick from firing
+    e.stopPropagation();
 
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await api.delete(`/users/${userId}`);
-        // Update state to remove user from UI
-        setUsers(prev => prev.filter(user => user.id !== userId));
-        toast.success("User deleted successfully");
-      } catch (error) {
-        toast.error("Failed to delete user");
-      }
+    try {
+      await api.delete(`/users/${userId}`);
+      // Update state to remove user from UI
+      setUsers(prev => prev.filter(user => user.id !== userId));
+      toast.success("User deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete user");
     }
   };
 
@@ -299,6 +297,7 @@ const Users = () => {
                       onClick={(e) => handleDelete(e, user.id)}
                       className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       title="Delete User"
+                      aria-label='Delete User'
                     >
                       <FaTrash size={16} />
                     </button>

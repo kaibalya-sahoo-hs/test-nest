@@ -30,7 +30,6 @@ function VendorProducts() {
     useEffect(() => { fetchVendorProducts(); }, []);
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this product?")) return;
         try {
             await api.delete(`/vendor/products/${id}`);
             toast.success("Product deleted");
@@ -49,6 +48,7 @@ function VendorProducts() {
                 </div>
                 {user?.vendorStatus === "approved" && (
                     <button
+                    aria-label='add product'
                         onClick={() => { setEditingProduct(null); setShowModal(true); }}
                         className="bg-[#4379EE] hover:bg-[#3768D1] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-100"
                     >
@@ -95,6 +95,7 @@ function VendorProducts() {
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    aria-label='remove product'
                                                 >
                                                     <FiTrash2 size={18} />
                                                 </button>
@@ -186,7 +187,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-8 overflow-y-auto max-h-[95vh]">
                 <h2 className="text-2xl font-bold text-[#202224] mb-6">
-                    {initialData ? 'Edit Product' : 'Add New Product'}
+                    {initialData ? 'Edit Product' : 'Create a new product'}
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -209,6 +210,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                         <div className="space-y-1 col-span-2">
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Name</label>
                             <input
+                            placeholder='title'
                                 required
                                 className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                                 value={formData.name}
@@ -218,6 +220,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price (₹)</label>
                             <input
+                            placeholder='price'
                                 type="number"
                                 required
                                 className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none"
@@ -228,6 +231,8 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock Count</label>
                             <input
+                                placeholder='stock'
+
                                 type="number"
                                 required
                                 className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none"
@@ -238,6 +243,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                         <div className="space-y-1 col-span-2">
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Category</label>
                             <input
+                                placeholder='category'
                                 required
                                 className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none"
                                 value={formData.category}
@@ -247,6 +253,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                         <div className="space-y-1 col-span-2">
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1">Description</label>
                             <textarea
+                                placeholder='description'
                                 rows="3"
                                 className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none resize-none"
                                 value={formData.description}
