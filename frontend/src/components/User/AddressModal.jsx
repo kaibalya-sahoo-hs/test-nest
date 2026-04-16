@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 const AddressModal = ({ onClose, onSave, initialData }) => {
+  console.log("Address modal called")
     const [formData, setFormData] = useState(initialData || {
       fullName: '',
       phoneNumber: '',
@@ -18,9 +19,9 @@ const AddressModal = ({ onClose, onSave, initialData }) => {
     };
   
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div role="dialog" aria-labelledby="address-modal-title" data-testid="address-modal" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
-          <h3 className="text-xl font-bold mb-6">{initialData ? 'Edit' : 'Add New'} Address</h3>
+          <h3 id="address-modal-title" className="text-xl font-bold mb-6">{initialData ? 'Edit' : 'Add New'} Address</h3>
           
           <div className="grid grid-cols-1 gap-4">
             <input required placeholder="Full Name" className="w-full p-3 border rounded-lg" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />

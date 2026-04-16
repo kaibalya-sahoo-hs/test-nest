@@ -126,7 +126,7 @@ function Nav() {
   const publicLinks = [
     { path: "/products", label: "Products" }, // Change icon as needed
   ];
-  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, { path: "/address", label: "Addresss" }];
+  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, { path: "/address", label: "Address" }];
 
   const vendorLinks = [{ path: "/vendor/dashboard", label: "Dashboard" }, { path: "/vendor/products", label: "Products" }, { path: "/vendor/profile", label: "Profile" }, { path: "/vendor/orders", label: "Orders" }]
 
@@ -217,7 +217,7 @@ function Nav() {
                     {user?.profile ? (
                       <img
                         src={user.profile}
-                        alt={user.name}
+                        alt={'profile'}
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
                       />
                     ) : (

@@ -37,7 +37,7 @@ describe('feature: Vendor Products', () => {
         expect(welcomeText[0])
         const productsLink = await screen.findByRole('link', { name: /Products/i })
         fireEvent.click(productsLink)
-
+        
     })
     test('Scenario: Vendor can view products ', async () => {
         try {

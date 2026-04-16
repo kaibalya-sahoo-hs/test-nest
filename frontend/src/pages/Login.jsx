@@ -63,7 +63,7 @@ const Login = () => {
         } else {
           const redirectPath = sessionStorage.getItem('redirectTo');
           sessionStorage.removeItem('redirectTo');
-          navigate(redirectPath || '/');
+          navigate(redirectPath || '/profile');
           syncCartWithServer();
           fetchCart();
         }

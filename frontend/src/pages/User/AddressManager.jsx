@@ -6,6 +6,7 @@ import api from '../../utils/api';
 import { toast, useToasterStore } from "react-hot-toast"
 
 const AddressManager = () => {
+  console.log("Mangae Address")
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -77,10 +78,11 @@ const AddressManager = () => {
       <div className="flex justify-between items-center mb-8 border-b pb-4">
         <h2 className="text-2xl font-bold text-gray-800">My Addresses</h2>
         <button
-          onClick={() => { setEditingAddress(null); setShowModal(true); }}
+          aria-label='add-btn'
+          onClick={() => { setEditingAddress(null); setShowModal(true); console.log("Clicked ")}}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
         >
-          <FaPlus size={18} /> Add New Address
+          Add New Address
         </button>
       </div>
 
