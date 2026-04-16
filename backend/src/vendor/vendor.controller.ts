@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Headers, NotFoundException, Param, Patch, Post, RawBodyRequest, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, NotFoundException, Param, Patch, Post, RawBodyRequest, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { VendorService } from './vendor.service';
 import { VendorGuard } from 'src/common/guards/auth.vendor';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -109,6 +109,12 @@ export class VendorController {
             success: true,
             product,
         };
+    }
+
+    @Delete('products/:id')
+    @UseGuards(VendorGuard)
+    async deletProduct(@Param('id') id:string, @Req() req){
+        return await this.vendorService.removeProduct(id, req.user.id)
     }
 
     // Vendor coupon management

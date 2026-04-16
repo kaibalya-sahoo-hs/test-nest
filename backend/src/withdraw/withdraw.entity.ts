@@ -17,7 +17,7 @@ export class Withdraw {
     @ManyToOne(() => Vendor)
     vendor: Vendor
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, {onDelete: 'SET NULL'})
     user: User
 
     @Column('int')
