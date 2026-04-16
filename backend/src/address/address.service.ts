@@ -15,7 +15,6 @@ export class AddressesService {
 
   // 1. CREATE ADDRESS
   async create(userId: number, dto: CreateAddressDto) {
-    // If this new address is set as default, unset others first
     if (dto.isDefault) {
       await this.unsetOtherDefaults(userId);
     }

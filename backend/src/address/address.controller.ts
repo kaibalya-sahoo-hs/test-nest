@@ -11,6 +11,7 @@ export class AddressesController {
 
   @Post()
   create(@Req() req, @Body() dto: CreateAddressDto) {
+    console.log("Called")
     return this.addressesService.create(req.user.id, dto);
   }
 
