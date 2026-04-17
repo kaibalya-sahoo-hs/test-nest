@@ -16,8 +16,8 @@ import { ApiLogsService } from './api-logs/api-logs.service';
 import { ApiLogsModule } from './api-logs/api-logs.module';
 import { ApiLog } from './api-logs/api-logs.entity';
 import { User } from './users/users.entity';
-import { redisStore } from 'cache-manager-redis-yet'
-import { CacheModule } from "@nestjs/cache-manager"
+import { redisStore } from 'cache-manager-redis-yet';
+import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bull';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/product.entity';
@@ -29,13 +29,13 @@ import { AddressModule } from './address/address.module';
 import { VendorModule } from './vendor/vendor.module';
 import { PaymentLogModule } from './payment-log/payment-log.module';
 import { WithdrawModule } from './withdraw/withdraw.module';
-
+import { SeedService } from './database/seed.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    BullModule.forRoot({redis: {host: 'localhost', port: 6379}}),
-    BullModule.registerQueue({name: 'user'}),
+    BullModule.forRoot({ redis: { host: 'localhost', port: 6379 } }),
+    BullModule.registerQueue({ name: 'user' }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
@@ -43,14 +43,14 @@ import { WithdrawModule } from './withdraw/withdraw.module';
     }),
     CacheModule.registerAsync({
       useFactory: async () => ({
-          isGlobal: true,
-          store: await redisStore({
-              url: 'redis://localhost:6379',
-              ttl: 60000,
-          })
-      })
-  }),
-    TypeOrmModule.forFeature([User ,ApiLog, Product, CartModule, Order]),
+        isGlobal: true,
+        store: await redisStore({
+          url: 'redis://localhost:6379',
+          ttl: 60000,
+        }),
+      }),
+    }),
+    TypeOrmModule.forFeature([User, ApiLog, Product, CartModule, Order]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -61,7 +61,7 @@ import { WithdrawModule } from './withdraw/withdraw.module';
       autoLoadEntities: true,
       synchronize: true, // dev only
     }),
-    
+
     UsersModule,
     MembersModule,
     AuthModule,
@@ -79,6 +79,6 @@ import { WithdrawModule } from './withdraw/withdraw.module';
     WithdrawModule,
   ],
   controllers: [AppController, TestController, AdminController],
-  providers: [AppService, CloudinaryService, ApiLogsService],
+  providers: [AppService, CloudinaryService, ApiLogsService, SeedService],
 })
 export class AppModule {}
