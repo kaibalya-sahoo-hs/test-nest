@@ -69,16 +69,15 @@ export class UserService{
     }
 
     async getUserOrders(userId: number) {
+        console.log("Fetching my orders", userId)
         try {
             const orders = await this.orderRepo.find({
                 where: { user: { id: userId } },
                 order: { createdAt: 'DESC' },
                 relations: ['parentOrder', 'deliveryAddress', 'payments']
             });
-            
-            // Only return master (parent) orders
+    
             const filteredOrders = orders.filter(order => !order.parentOrder)
-
             const simplifiedOrders = filteredOrders.map(order => ({
                 id: order.id,
                 status: order.status,

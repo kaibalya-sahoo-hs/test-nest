@@ -124,8 +124,8 @@ export class AuthService {
             role: existingUser.role
         };
 
-        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '30min' });
-        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '1d' });
+        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '20s' });
+        const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '30m' });
 
         return {
             message: "Login successful",
@@ -153,14 +153,14 @@ export class AuthService {
                 return { message: "Invalid token type", success: false };
             }
 
-            const user = await this.userRepo.findOneBy({ id: payload.user });
+            const user = await this.userRepo.findOneBy({ id: payload.id });
             if (!user) {
                 return { message: "User not found", success: false };
             }
 
             const newPayload = { id: user.id, email: user.email, name: user.name, role: user.role};
-            const newAccessToken = await this.JwtService.signAsync(newPayload, { expiresIn: '30m' });
-            const newRefreshToken = await this.JwtService.signAsync({ ...newPayload, type: 'refresh' }, { expiresIn: '1d' });
+            const newAccessToken = await this.JwtService.signAsync(newPayload, { expiresIn: '20s' });
+            const newRefreshToken = await this.JwtService.signAsync({ ...newPayload, type: 'refresh' }, { expiresIn: '30m' });
 
             return {
                 accessToken: newAccessToken,
