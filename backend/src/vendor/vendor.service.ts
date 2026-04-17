@@ -112,9 +112,9 @@ export class VendorService {
 
 
   // Create a new product
-  async createProduct(productData: Partial<Product>, file: Express.Multer.File, userID): Promise<Product> {
+  async createProduct(productData: Partial<Product>, file: Express.Multer.File, userId): Promise<Product> {
     const result = await this.cloudinaryService.uploadImage(file)
-    const newProduct = this.productRepo.create({ ...productData, vendor: { id: userID } });
+    const newProduct = this.productRepo.create({ ...productData, vendor: { id: userId } });
     if (result?.url) {
       newProduct.image = result?.url
     }
@@ -136,7 +136,7 @@ export class VendorService {
     return orders
   }
 
-  async getOrderDetails(vendorId: number, orderId: string) {
+  async getOrderDetails(vendorId: string, orderId: string) {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, vendor: { id: vendorId } },
       relations: ['user', 'deliveryAddress', 'parentOrder'],
@@ -147,7 +147,7 @@ export class VendorService {
     return { success: true, order };
   }
 
-  async updateOrderStatus(vendorId: number, orderId: string, newStatus: string) {
+  async updateOrderStatus(vendorId: string, orderId: string, newStatus: string) {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, vendor: { id: vendorId } },
       relations: ['parentOrder'],
@@ -190,7 +190,7 @@ export class VendorService {
     return { success: true, message: `Order status updated to '${newStatus}'`, order };
   }
 
-  async getOrderStats(vendorId: number) {
+  async getOrderStats(vendorId: string) {
     const totalOrders = await this.orderRepo.count({ where: { vendor: { id: vendorId } } });
     const pendingOrders = await this.orderRepo.count({ where: { vendor: { id: vendorId }, status: 'pending' } });
     const completedOrders = await this.orderRepo.count({ where: { vendor: { id: vendorId }, status: 'completed' } });

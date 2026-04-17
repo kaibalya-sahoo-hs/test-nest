@@ -4,8 +4,8 @@ import { VendorTransaction } from './vendorTransaction.entity';
 
 @Entity()
 export class Vendor {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column()
   name!: string;

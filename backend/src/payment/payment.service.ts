@@ -45,10 +45,10 @@ export class PaymentService {
         });
     }
 
-    async createOrder(userID: number, amount: number, cartItems: any, couponCode: string) {
+    async createOrder(userId: string, amount: number, cartItems: any, couponCode: string) {
         // Check for existing pending master order for this user (payment retry)
 
-        const address = await this.addressRepo.findOne({ where: { user: { id: userID }, isDefault: true } });
+        const address = await this.addressRepo.findOne({ where: { user: { id: userId }, isDefault: true } });
 
         if(!address){
             return {message: "Address is required", success: false}
@@ -56,7 +56,7 @@ export class PaymentService {
 
 
         const existingPendingOrder = await this.orderRepo.findOne({
-            where: { user: { id: userID }, status: 'pending', parentOrder: null as any },
+            where: { user: { id: userId }, status: 'pending', parentOrder: null as any },
             relations: ['payments'],
         });
 
@@ -110,7 +110,7 @@ export class PaymentService {
 
         // Create master order
         const masterOrderData: Partial<Order> = {
-            user: { id: userID } as any,
+            user: { id: userId } as any,
             items: cartItems,
             totalAmount: amount,
             status: 'pending',
@@ -140,7 +140,7 @@ export class PaymentService {
             const subOrderEntity = this.orderRepo.create({
                 parentOrder: masterOrder,
                 vendor: { id: vendorId } as any,
-                user: { id: userID } as any,
+                user: { id: userId } as any,
                 items,
                 totalAmount: subTotal - subDiscount,
                 status: 'pending',

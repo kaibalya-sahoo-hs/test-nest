@@ -6,8 +6,8 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typ
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column()
   name!: string;

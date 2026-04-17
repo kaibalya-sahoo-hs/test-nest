@@ -20,7 +20,7 @@ export class AdminService {
         private cloudinaryService: CloudinaryService,
     ) { }
 
-    deletUser(id: number) {
+    deletUser(id: string) {
         const user = this.userRepo.delete(id)
         return user
     }
@@ -29,7 +29,7 @@ export class AdminService {
         return this.userRepo.find()
     }
 
-    findUserById(id: number) {
+    findUserById(id: string) {
         return this.userRepo.findOneBy({ id })
     }
 
@@ -152,7 +152,7 @@ export class AdminService {
         }
     }
 
-    async getVendorById(id: number) {
+    async getVendorById(id: string) {
         try {
             const vendor = await this.vendorRepo.findOne({ where: { id }, relations: ['products'] });
             if (!vendor) {
@@ -176,7 +176,7 @@ export class AdminService {
         }
     }
 
-    async updateVendorStatus(id: number, status: 'approved' | 'rejected' | 'suspended') {
+    async updateVendorStatus(id: string, status: 'approved' | 'rejected' | 'suspended') {
         try {
             const vendor = await this.vendorRepo.findOneBy({ id });
             if (!vendor) {
@@ -207,7 +207,7 @@ export class AdminService {
         }
     }
 
-    async updateCommissionRate(id: number, rate: number) {
+    async updateCommissionRate(id: string, rate: number) {
         try {
             if (rate < 0 || rate > 1) {
                 throw new BadRequestException('Commission rate must be between 0 and 1');

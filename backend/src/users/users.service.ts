@@ -22,7 +22,7 @@ export class UserService{
         return this.userRepo.find()
     }
 
-    findById(id: number){
+    findById(id: string){
         return this.userRepo.findOneBy({ id })
     }
 
@@ -31,12 +31,12 @@ export class UserService{
         return this.userRepo.save(user)
     }
 
-    deletUser(id: number){
+    deletUser(id: string){
         const user = this.userRepo.delete(id)
         return user
     }
 
-    async updateProfile(id: number, updatedCredentials: Partial<User>){
+    async updateProfile(id: string, updatedCredentials: Partial<User>){
         try {
             // Only allow updating name (not role/email for self-service)
             const allowedUpdates: Partial<User> = {};
@@ -51,7 +51,7 @@ export class UserService{
         }
     }
 
-    async uploadProfilePhoto(id: number, file: Express.Multer.File){
+    async uploadProfilePhoto(id: string, file: Express.Multer.File){
         try {
             console.log(id, file)
             const result = await this.cloudinarySevice.uploadImage(file)
@@ -68,7 +68,7 @@ export class UserService{
         }
     }
 
-    async getUserOrders(userId: number) {
+    async getUserOrders(userId: string) {
         console.log("Fetching my orders", userId)
         try {
             const orders = await this.orderRepo.find({
@@ -106,7 +106,7 @@ export class UserService{
         }
     }
 
-    async getOrderDetail(userId: number, orderId: string) {
+    async getOrderDetail(userId: string, orderId: string) {
         try {
             // Get the master order
             const masterOrder = await this.orderRepo.findOne({

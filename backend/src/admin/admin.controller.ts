@@ -35,7 +35,7 @@ export class AdminController {
     }
 
     @Get('users/:id')
-    getUserById(@Param('id', ParseIntPipe) id: number) {
+    getUserById(@Param('id') id: string) {
         return this.adminService.findUserById(id)
     }
 
@@ -57,7 +57,7 @@ export class AdminController {
     }
 
     @Delete('members/:id')
-    async removeMember(@Param('id', ParseIntPipe) id: number) {
+    async removeMember(@Param('id', ParseIntPipe) id: string) {
         return await this.memberService.deleteMember(id);
     }
 
@@ -181,13 +181,13 @@ export class AdminController {
     }
 
     @Get('vendors/:id')
-    async getVendorById(@Param('id', ParseIntPipe) id: number) {
+    async getVendorById(@Param('id', ParseIntPipe) id: string) {
         return this.adminService.getVendorById(id);
     }
 
     @Patch('vendors/:id/status')
     async updateVendorStatus(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body('status') status: 'approved' | 'rejected' | 'suspended'
     ) {
         return this.adminService.updateVendorStatus(id, status);
@@ -195,7 +195,7 @@ export class AdminController {
 
     @Patch('vendors/:id/commission')
     async updateCommissionRate(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', ParseIntPipe) id: string,
         @Body('rate') rate: number
     ) {
         return this.adminService.updateCommissionRate(id, rate);

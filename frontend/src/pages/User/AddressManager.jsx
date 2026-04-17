@@ -40,6 +40,16 @@ const AddressManager = () => {
   // Handle Add or Update
   const saveAddress = async (formData) => {
     try {
+      if(!formData.fullName || !formData.phoneNumber || !formData.streetAddress || !formData.city || !formData.state || !formData.postalCode){
+        toast.error("Please fill all required fields");
+        return;
+      }
+
+      // checkfor valid postal code
+      if(formData.postalCode.toString().length < 4 || formData.postalCode.toString().length > 10){
+        toast.error("Please enter a valid postal code");
+        return;
+      }
       if (editingAddress) {
         await api.patch(`/addresses/${editingAddress.id}`, formData);
       } else {

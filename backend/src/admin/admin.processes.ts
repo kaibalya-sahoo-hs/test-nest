@@ -40,13 +40,10 @@ export class ProcesUser {
 
         const json2csvParser = new Parser();
         const csvReport = json2csvParser.parse(reportData);
-        console.log(csvReport)
+        
         const fileName = `report-${job.id}-${Date.now()}.csv`;
         const relativePath = `/reports/${fileName}`;
         const fullPath = path.join(__dirname, '..', '..', 'public', relativePath);
-
-        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-        fs.writeFileSync(fullPath, csvReport);
         
         const result = await this.mailService.sendCSVReport(adminEmail, csvReport, job.id || "")
 

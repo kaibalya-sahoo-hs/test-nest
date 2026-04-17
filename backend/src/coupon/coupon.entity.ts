@@ -4,8 +4,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } f
 
 @Entity('coupons')
 export class Coupon {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({ unique: true })
     code: string; // e.g., 'SAVE50'

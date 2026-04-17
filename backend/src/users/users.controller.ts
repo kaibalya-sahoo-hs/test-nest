@@ -28,7 +28,7 @@ export class UserController {
   // Self-service: get own profile by ID
   @Get('profile/:id')
   @UseGuards(AuthGuard)
-  getProfile(@Param('id') id: number) {
+  getProfile(@Param('id') id: string) {
     return this.userService.findById(id)
   }
 

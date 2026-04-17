@@ -269,7 +269,7 @@ const Users = () => {
                   className="border-b border-gray-50 last:border-0 hover:bg-[#F8F9FC] transition-colors cursor-pointer"
                   onClick={() => handleUserClick(user)}
                 >
-                  <td className="px-4 sm:px-6 py-4 sm:py-5 text-sm text-gray-500 font-medium">{formatId(user.id)}</td>
+                  <td className="px-4 sm:px-6 py-4 sm:py-5 text-sm text-gray-500 font-medium">{formatId(user.id.toString().split('-')[0])}</td>
                   <td className="px-4 sm:px-6 py-4 sm:py-5">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#F1F4F9] flex items-center justify-center overflow-hidden border border-gray-100 flex-shrink-0">

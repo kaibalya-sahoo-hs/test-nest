@@ -92,7 +92,7 @@ export class CouponsService {
     }
 
     // Vendor coupon (created by vendor)
-    async createVendorCoupon(coupon, vendorId: number) {
+    async createVendorCoupon(coupon, vendorId: string) {
         const existing = await this.couponRepo.findOne({ 
           where: { code: coupon.code.toUpperCase() } 
         });
@@ -118,7 +118,7 @@ export class CouponsService {
     }
 
     // Get vendor coupons
-    async findVendorCoupons(vendorId: number) {
+    async findVendorCoupons(vendorId: string) {
         return await this.couponRepo.find({ where: { vendor: { id: vendorId } }, order: { id: 'DESC' } });
     }
 
@@ -130,4 +130,4 @@ export class CouponsService {
             await this.couponRepo.save(coupon);
         }
     }
-}
+}

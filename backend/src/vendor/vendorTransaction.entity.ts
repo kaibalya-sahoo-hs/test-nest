@@ -5,7 +5,7 @@ import { WithdrawalStatus } from 'src/withdraw/withdraw.entity';
 
 @Entity()
 export class VendorTransaction {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id!: number;
 
     @Column({ type: 'decimal' })

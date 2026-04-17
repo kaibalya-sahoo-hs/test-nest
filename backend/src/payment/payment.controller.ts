@@ -8,8 +8,8 @@ export class PaymentController {
     @Post('create-order')
     @UseGuards(AuthGuard)
     async createOrder(@Req() req, @Body() body: any) {
-        const userID = req.user.id
-        return this.paymentService.createOrder(userID, body.amount, body.cartItems, body.coupon);
+        const userId = req.user.id
+        return this.paymentService.createOrder(userId, body.amount, body.cartItems, body.coupon);
     }
 
     @Post('verify')

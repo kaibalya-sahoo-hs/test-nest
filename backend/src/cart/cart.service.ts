@@ -23,7 +23,7 @@ export class CartService {
     private readonly couponsService: CouponsService,
   ) { }
 
-  async getMyCart(userId: number) {
+  async getMyCart(userId: string) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
       relations: ['cartItems', 'cartItems.product', 'coupon']
@@ -54,7 +54,7 @@ export class CartService {
   /**
    * Add or Increment Item in Cart
    */
-  async addToCart(userId: number, productId: string, quantity: number = 1) {
+  async addToCart(userId: string, productId: string, quantity: number = 1) {
     let cart = await this.cartRepo.findOne({
       where: {
         user: { id: userId },
@@ -92,7 +92,7 @@ export class CartService {
    * Update Quantity using Product ID (Frontend Friendly)
    */
   async updateQuantityByProduct(
-    userId: number,
+    userId: string,
     productId: string,
     quantity: number,
   ) {
@@ -125,7 +125,7 @@ export class CartService {
     return this.getMyCart(userId)
   }
 
-  async removeItemByProduct(userId: number, productId: string) {
+  async removeItemByProduct(userId: string, productId: string) {
     const cart = await this.cartRepo.findOne({ where: { user: { id: userId } } });
     const result = await this.cartItemsRepo.delete({ product: productId as any, cart: cart?.id as any })
     if (result.affected === 0) {
@@ -135,7 +135,7 @@ export class CartService {
     return this.getMyCart(userId);
   }
 
-  async mergeCarts(userId: number, guestItems: any[]) {
+  async mergeCarts(userId: string, guestItems: any[]) {
     if (!guestItems || guestItems.length === 0) {
       return this.getMyCart(userId);
     }
@@ -174,7 +174,7 @@ export class CartService {
   /**
    * Clear Entire Cart (Used after successful Checkout)
    */
-  async clearCart(userId: number) {
+  async clearCart(userId: string) {
     await this.cartRepo.delete({ user: { id: userId } });
     return { message: 'Cart cleared successfully' };
   }

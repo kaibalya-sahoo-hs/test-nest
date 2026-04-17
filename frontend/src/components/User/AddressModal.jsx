@@ -1,4 +1,5 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const AddressModal = ({ onClose, onSave, initialData }) => {
   console.log("Address modal called")
@@ -14,6 +15,10 @@ const AddressModal = ({ onClose, onSave, initialData }) => {
     });
   
     const handleSubmit = (e) => {
+      // see for validation and error handling
+      
+
+
       e.preventDefault();
       onSave(formData);
     };
@@ -30,7 +35,7 @@ const AddressModal = ({ onClose, onSave, initialData }) => {
             
             <div className="grid grid-cols-2 gap-4">
               <input required placeholder="City" className="p-3 border rounded-lg" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
-              <input required placeholder="Postal Code" className="p-3 border rounded-lg" value={formData.postalCode} onChange={e => setFormData({...formData, postalCode: e.target.value})} />
+              <input type="number" required placeholder="Postal Code" className="p-3 border rounded-lg" value={formData.postalCode} onChange={e => setFormData({...formData, postalCode: e.target.value})} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

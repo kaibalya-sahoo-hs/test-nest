@@ -26,7 +26,7 @@ export class MemberService {
         return await this.memberRepo.find();
     }
     
-    async deleteMember(id: number) {
+    async deleteMember(id: string) {
         return await this.memberRepo.delete(id);
     }
 }

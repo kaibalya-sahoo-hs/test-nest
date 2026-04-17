@@ -18,7 +18,7 @@ function CheckoutPage() {
       const { data } = await api.get('/addresses');
       setAddresses(data);
       const defaultAdd = data.find((i) => i.isDefault);
-      setDefaultAddress(defaultAdd || data[0]); // Fallback to first address if no default
+      setDefaultAddress(defaultAdd); // Fallback to first address if no default
     } catch (err) {
       toast.error("Failed to load addresses");
     }
@@ -34,6 +34,10 @@ function CheckoutPage() {
   const handlePayment = async () => {
     try {
       if (user) {
+        if(!defaultAddress){
+          toast.error("Please add a default shipping address to proceed");
+          return;
+        }
         const response = await api.post('/payment/create-order', {
           coupon: cart.coupon ? cart.coupon.code: null,
           amount: cart.discountedAmount,

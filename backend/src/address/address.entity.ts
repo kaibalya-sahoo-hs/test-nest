@@ -3,8 +3,9 @@ import { User } from 'src/users/users.entity';
 
 @Entity('addresses')
 export class Address {
-  @PrimaryGeneratedColumn()
-  id: number;
+  
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   fullName: string; // Recipient name

@@ -91,8 +91,8 @@ export class VendorController {
     @UseGuards(VendorGuard)
     @UseInterceptors(FileInterceptor('file'))
     createProduct(@Body() body: any, @Req() req, @UploadedFile() file) {
-        const userID = req.user.id
-        return this.vendorService.createProduct(body, file, userID)
+        const userId = req.user.id
+        return this.vendorService.createProduct(body, file, userId)
     }
 
 

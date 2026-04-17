@@ -21,12 +21,12 @@ export class AddressesController {
   }
 
   @Patch(':id')
-  update(@Req() req, @Param('id') id: number, @Body() dto) {
+  update(@Req() req, @Param('id') id: string, @Body() dto) {
     return this.addressesService.update(req.user.id, id, dto);
   }
 
   @Delete(':id')
-  remove(@Req() req, @Param('id') id: number) {
+  remove(@Req() req, @Param('id') id: string) {
     return this.addressesService.remove(req.user.id, id);
   }
 }
