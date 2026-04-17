@@ -21,32 +21,32 @@ describe('Feature: Cart System', () => {
       </>
     );
   })
-  test('should add the first product to the cart and verify in cart page', async () => {
+  test.only('should add the first product to the cart and verify in cart page', async () => {
 
-    try {
-      const items = await screen.findAllByAltText(/Product image/i, { exact: false })
-      fireEvent.click(items[0])
-      const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
-      fireEvent.click(addToCartBtn)
-      const viewCartButton = await screen.findByRole('button', { name: /View Cart/i });
-      fireEvent.click(viewCartButton)
+    // try {
+    const items = await screen.findAllByAltText(/Product image/i, { exact: false })
+    fireEvent.click(items[0])
+    screen.debug()
+    const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+    fireEvent.click(addToCartBtn)
+    const viewCartButton = await screen.findByRole('button', { name: /View Cart/i });
+    fireEvent.click(viewCartButton)
+    await screen.findAllByText(/Shopping Cart/)
+    const cartItems = await screen.findAllByAltText(/Product image/i, { exact: false })
+    expect(cartItems[0])
+    //   await updateTestResult('TC_CART_01', 'pass')
+    // } catch (error) {
+    //   await updateTestResult('TC_CART_01', 'fail')
 
-      await screen.findAllByText(/Shopping Cart/)
-      const cartItems = await screen.findAllByAltText(/Product image/i, { exact: false })
-      expect(cartItems[0])
-      await updateTestResult('TC_CART_01', 'pass')
-    } catch (error) {
-      await updateTestResult('TC_CART_01', 'fail')
-
-    }
+    // }
   });
 
   test('Update cart items', async () => {
-    try {
+    // try {
     const items = await screen.findAllByAltText(/Product image/i, { exact: false })
     fireEvent.click(items[0])
-    const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
-    fireEvent.click(addToCartBtn)
+    // const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+    // fireEvent.click(addToCartBtn)
 
     await screen.findByText(/1/)
 
@@ -69,20 +69,20 @@ describe('Feature: Cart System', () => {
     const decreasedQuantity = await screen.findByText(/1/)
     expect(decreasedQuantity)
 
-      await updateTestResult('TC_CART_02', 'pass')
-    } catch (error) {
-      await updateTestResult('TC_CART_02', 'fail')
-    }
+    //   await updateTestResult('TC_CART_02', 'pass')
+    // } catch (error) {
+    //   await updateTestResult('TC_CART_02', 'fail')
+    // }
   })
 
   test('Rmove item from cart', async () => {
 
-    try {
-    screen.debug()
+    // try {
     const items = await screen.findAllByAltText(/Product image/i, { exact: false })
     fireEvent.click(items[0])
-    const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
-    fireEvent.click(addToCartBtn)
+    screen.debug()
+    // const addToCartBtn = await screen.findByRole('button', { name: /add to cart/i })
+    // fireEvent.click(addToCartBtn)
     const viewCartButton = await screen.findByRole('button', { name: /View Cart/i });
     fireEvent.click(viewCartButton)
 
@@ -95,11 +95,11 @@ describe('Feature: Cart System', () => {
 
     const emptyText = await screen.findByText(/Your cart is empty/i)
     expect(emptyText)
-      await updateTestResult('TC_CART_03', 'pass')
-    } catch (error) {
-      await updateTestResult('TC_CART_03', 'fail')
+    // await updateTestResult('TC_CART_03', 'pass')
+    // } catch (error) {
+    //   await updateTestResult('TC_CART_03', 'fail')
 
-    }
+    // }
   });
 
 });

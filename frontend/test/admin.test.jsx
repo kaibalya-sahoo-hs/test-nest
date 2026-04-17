@@ -86,7 +86,7 @@ describe('Feature: Admin', () => {
 
         // find  delete button and click on it
         const deleteButtons = await screen.findAllByRole('button', { name: /Delete User/i })
-        expect(deleteButtons[deleteButtons.length / 2])
+        expect(deleteButtons[0])
         fireEvent.click(deleteButtons[0])
         screen.debug()
         vi.spyOn(window, 'confirm').mockReturnValue(true);
