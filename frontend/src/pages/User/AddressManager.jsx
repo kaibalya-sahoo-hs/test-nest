@@ -28,10 +28,10 @@ const AddressManager = () => {
 
   // Handle Delete
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this address?")) return;
     try {
       await api.delete(`/addresses/${id}`);
       setAddresses(prev => prev.filter(addr => addr.id !== id));
+      toast.success('Address deleted')
     } catch (err) {
       alert("Delete failed");
     }
@@ -103,7 +103,7 @@ const AddressManager = () => {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setEditingAddress(addr); setShowModal(true); }} className="p-1.5 hover:bg-gray-100 rounded text-gray-600"><FaEdit size={16} /></button>
+                    <button onClick={() => { setEditingAddress(addr); setShowModal(true); }} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" aria-label='edit-btn'><FaEdit size={16} /></button>
                     <button onClick={() => handleDelete(addr.id)} className="p-1.5 hover:bg-red-50 rounded text-red-500" aria-label='delt-btn'><FaTrash size={16} /></button>
                   </div>
                 </div>
