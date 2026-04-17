@@ -14,8 +14,8 @@ import { MailProcessor } from './mail.processor';
         port: 465,
         secure: true,
         auth: {
-          user: 'kaibalya.sahoo@hyscaler.com',
-          pass: 'iubdyxocahupwqgj',
+          user: process.env.GOOGLE_MAIL,
+          pass: process.env.APP_PASSWORD,
         },
       },
       defaults: {

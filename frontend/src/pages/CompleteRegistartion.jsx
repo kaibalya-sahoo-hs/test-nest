@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
-import { toast } from 'react-hot-toast';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-hot-toast";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 function CompleteRegistration() {
   const [searchParams] = useSearchParams();
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ function CompleteRegistration() {
   const validate = () => {
     const newErrors = {};
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -35,9 +35,9 @@ function CompleteRegistration() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/completeRegistration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/completeRegistration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
 
@@ -45,7 +45,7 @@ function CompleteRegistration() {
 
       if (response.ok && data.success) {
         toast.success(data.message || "Password set successfully!");
-        navigate('/login');
+        navigate("/login");
       } else {
         toast.error(data.message || "Failed to complete registration.");
       }
@@ -58,36 +58,53 @@ function CompleteRegistration() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)' }}>
-
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, #4379EE 0%, #6C9CFF 50%, #4379EE 100%)",
+      }}
+    >
       <div className="relative z-10 w-full max-w-md mx-4">
         <div className="bg-white rounded-3xl shadow-2xl p-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-[#202224] mb-2">Complete Registration</h1>
-            <p className="text-gray-400 text-sm">Set your password to finalize your account</p>
+            <h1 className="text-3xl font-bold text-[#202224] mb-2">
+              Complete Registration
+            </h1>
+            <p className="text-gray-400 text-sm">
+              Set your password to finalize your account
+            </p>
           </div>
 
           {/* Token status */}
-          <div className={`mb-6 p-3 rounded-xl text-sm font-medium text-center ${
-            token
-              ? 'bg-green-50 border border-green-100 text-green-600'
-              : 'bg-red-50 border border-red-100 text-red-500'
-          }`}>
-            {token ? '✓ Registration token verified' : '✕ Missing or invalid token'}
+          <div
+            className={`mb-6 p-3 rounded-xl text-sm font-medium text-center ${
+              token
+                ? "bg-green-50 border border-green-100 text-green-600"
+                : "bg-red-50 border border-red-100 text-red-500"
+            }`}
+          >
+            {token
+              ? "✓ Registration token verified"
+              : "✕ Missing or invalid token"}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
-              <label className="block text-sm font-semibold text-[#202224] mb-2">New Password:</label>
+              <label className="block text-sm font-semibold text-[#202224] mb-2">
+                New Password:
+              </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className={`w-full px-4 py-3.5 pr-12 bg-[#F5F6FA] border rounded-xl text-sm text-[#202224] font-medium outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all placeholder-gray-400 ${errors.password ? 'border-red-400' : 'border-gray-100 focus:border-[#4379EE]/30'}`}
+                  className={`w-full px-4 py-3.5 pr-12 bg-[#F5F6FA] border rounded-xl text-sm text-[#202224] font-medium outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all placeholder-gray-400 ${errors.password ? "border-red-400" : "border-gray-100 focus:border-[#4379EE]/30"}`}
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: '' }); }}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                  }}
                 />
                 <button
                   type="button"
@@ -97,7 +114,11 @@ function CompleteRegistration() {
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.password}</p>}
+              {errors.password && (
+                <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             <button

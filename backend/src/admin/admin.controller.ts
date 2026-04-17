@@ -51,6 +51,11 @@ export class AdminController {
     return this.adminService.findAllUsers();
   }
 
+  @Get('dashboard')
+  async getDashBoardDetails() {
+    return await this.adminService.getDashBoardDetails();
+  }
+
   @Get('users/:id')
   getUserById(@Param('id') id: number) {
     return this.adminService.findUserById(id);

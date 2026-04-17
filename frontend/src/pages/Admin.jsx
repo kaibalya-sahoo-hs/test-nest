@@ -60,7 +60,7 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const navigate = useNavigate();
-  const BASE_URL = "http://localhost:8000";
+  const BASE_URL = "";
 
   // --- Auth & Logout ---
   const handleLogout = () => {
@@ -68,21 +68,21 @@ const Admin = () => {
     localStorage.removeItem("admin");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    
+
     navigate("/login");
   };
 
   // --- API Calls ---
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${BASE_URL}/admin/users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch");
 
       const allData = await res.json();
-      
+
       setUsers(allData.filter((user) => user.role === "guest"));
       setMembers(allData.filter((user) => user.role === "member"));
     } catch (err) {
@@ -93,7 +93,7 @@ const Admin = () => {
   useEffect(() => {
     const userData = localStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== "admin") {
       navigate("/login");
     } else {
       fetchData();
@@ -109,8 +109,11 @@ const Admin = () => {
   const deleteUser = async (e, id) => {
     e.stopPropagation(); // 4. Prevents modal from opening when clicking delete
     if (!window.confirm("Delete User?")) return;
-    const token = localStorage.getItem('accessToken');
-    const res = await fetch(`${BASE_URL}/admin/${id}`, { method: "DELETE", headers: { 'Authorization': `Bearer ${token}` } });
+    const token = localStorage.getItem("accessToken");
+    const res = await fetch(`${BASE_URL}/admin/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) {
       setUsers(users.filter((u) => u.id !== id));
       toast.success("User removed");
@@ -126,10 +129,13 @@ const Admin = () => {
     ) {
       toast.error("Fileds cannot be empty");
     } else {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${BASE_URL}/admin/member`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(newMember),
       });
       const data = await res.json();
@@ -143,10 +149,10 @@ const Admin = () => {
 
   const deleteMember = async (id) => {
     if (!window.confirm("Delete Member?")) return;
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     const res = await fetch(`${BASE_URL}/admin/members/${id}`, {
       method: "DELETE",
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
       setMembers(members.filter((m) => m.id !== id));
@@ -156,10 +162,13 @@ const Admin = () => {
 
   const updateUser = async (id, newName, newId) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`${BASE_URL}/admin/edit`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           id: id, // The original ID to find the user
           updatedCredentials: {
@@ -202,7 +211,9 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Users
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-[#202224]">40,689</p>
+                <p className="text-xl sm:text-2xl font-bold text-[#202224]">
+                  40,689
+                </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-purple-200 text-[#8280FF] w-fit text-xl flex-shrink-0">
                 <LuUsers />
@@ -226,7 +237,9 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Orders
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-[#202224]">10,293</p>
+                <p className="text-xl sm:text-2xl font-bold text-[#202224]">
+                  10,293
+                </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#FFF3D6] text-[#FEC53D] w-fit text-xl flex-shrink-0">
                 <GoPackage />
@@ -250,7 +263,9 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Sales
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-[#202224]">$89,000</p>
+                <p className="text-xl sm:text-2xl font-bold text-[#202224]">
+                  $89,000
+                </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#D9F7E8] text-[#4AD991] w-fit text-xl flex-shrink-0">
                 <AiOutlineStock />
@@ -274,7 +289,9 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Pending
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-[#202224]">2,040</p>
+                <p className="text-xl sm:text-2xl font-bold text-[#202224]">
+                  2,040
+                </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#FFDED1] text-[#FF9066] w-fit text-xl flex-shrink-0">
                 <FaClockRotateLeft />
@@ -301,7 +318,9 @@ const Admin = () => {
 
         <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-sm border border-gray-50 mt-6 sm:mt-10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-[#202224]">Deals Details</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-[#202224]">
+              Deals Details
+            </h2>
             <select className="bg-gray-50 border border-gray-200 text-gray-400 text-xs rounded-lg px-2 py-1 outline-none">
               <option>October</option>
             </select>

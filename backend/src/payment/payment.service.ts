@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Razorpay from 'razorpay';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Order } from './order.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CartService } from '../cart/cart.service';
@@ -352,7 +352,7 @@ export class PaymentService {
   async getAllOrders() {
     try {
       const orders = await this.orderRepo.find({
-        where: { status: 'paid' },
+        where: { parentOrder: IsNull() },
         order: { createdAt: 'DESC' },
         relations: ['payments'],
       });
