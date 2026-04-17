@@ -350,7 +350,6 @@ export class PaymentService {
   }
 
   async getAllOrders() {
-    //
     try {
       const orders = await this.orderRepo.find({
         where: { status: 'paid' },
