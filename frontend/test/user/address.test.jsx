@@ -2,13 +2,12 @@ import { Route, Routes } from "react-router"
 import { beforeEach, describe, expect, test } from "vitest"
 import { findByAltText, fireEvent, screen, waitFor } from "@testing-library/react"
 import userEvent from '@testing-library/user-event';
-import AddressManager from "../../pages/User/AddressManager";
-import Profile from "../../pages/Profile";
-import {render} from "../../test-utils";
-import Nav from "../../components/Nav";
-import Index from "../../pages/Index";
-import Login from "../../pages/Login";
-import { updateTestResult } from "../../utils/updateSheets";
+import Nav from "../../src/components/Nav";
+import Login from "../../src/pages/Login";
+import Profile from "../../src/pages/Profile";
+import AddressManager from "../../src/pages/User/AddressManager";
+import { render } from "../test-utils";
+import { updateTestResult } from "../../src/utils/updateSheets";
 
 
 describe('feature: Vendor Products', () => {
@@ -118,7 +117,7 @@ describe('feature: Vendor Products', () => {
         }
     })
 
-    test.only('should delete the first address', async () => { 
+    test('should delete the first address', async () => { 
         try {
             const myAddressesText = await screen.findByText(/My Addresses/i)
             expect(myAddressesText)

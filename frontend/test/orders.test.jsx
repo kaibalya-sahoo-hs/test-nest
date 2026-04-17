@@ -3,7 +3,7 @@ import Login from "../pages/Login";
 import Products from "../pages/Public/Products";
 import CheckoutPage from "../pages/User/CheckoutPage";
 import { expect, vi } from "vitest";
-import { render } from "../test-utils";
+import { render } from "./test-utils";
 import { Route, Routes } from "react-router";
 import ProductPage from "../pages/ProductPage";
 import CartPage from "../pages/CartPage";

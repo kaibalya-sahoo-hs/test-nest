@@ -1,7 +1,7 @@
 import { screen, fireEvent } from '@testing-library/react'
-import Register from "../../pages/Register"
-import { render } from '../../test-utils';
-import { updateTestResult } from '../../utils/updateSheets';
+import Register from '../../src/pages/Register'
+import { render } from '../test-utils'
+import { updateTestResult } from '../../src/utils/updateSheets'
 
 describe('Feature: Registartion', () => {
 

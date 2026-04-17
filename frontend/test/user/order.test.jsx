@@ -1,13 +1,13 @@
 import { beforeEach, describe, test } from "vitest";
-import { render } from "../../test-utils";
+import { render } from "../test-utils";
 import { Route, Routes } from "react-router";
-import Nav from "../../components/Nav";
-import OrdersPage from "../../pages/OrdersPage";
 import userEvent from "@testing-library/user-event";
-import Login from "../../pages/Login";
-import Profile from "../../pages/Profile";
 import { findByAltText, fireEvent, screen, waitFor } from "@testing-library/react"
-import { updateTestResult } from "../../utils/updateSheets";
+import Nav from "../../src/components/Nav";
+import Login from "../../src/pages/Login";
+import Profile from "../../src/pages/Profile";
+import OrdersPage from "../../src/pages/OrdersPage";
+import { updateTestResult } from "../../src/utils/updateSheets";
 
 describe('feature: User Orders', () => {
     let emailInput

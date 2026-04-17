@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router';
-import { CartProvider } from './context/CartContext';
+import { CartProvider } from '../src/context/CartContext';
 import { vi } from 'vitest';
 import { Toaster } from 'react-hot-toast';
-import AllRoutes from "./routes/AllRoute"
+import AllRoutes from "../src/routes/AllRoute"
 
 global.window.Razorpay = vi.fn().mockImplementation(function () {
   return {

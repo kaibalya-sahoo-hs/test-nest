@@ -1,7 +1,8 @@
 import { screen, fireEvent } from '@testing-library/react'
-import Login from "../../pages/Login"
-import { render } from '../../test-utils';
-import { updateTestResult } from '../../utils/updateSheets';
+import App from '../../src/App'
+import { updateTestResult } from '../../src/utils/updateSheets'
+import Login from '../../src/pages/Login'
+import { render } from '../test-utils'
 
 describe('Feature: Login', () => {
 
@@ -12,7 +13,7 @@ describe('Feature: Login', () => {
     beforeEach(() => {
 
         render(
-            <App />
+            <Login />
         );
         emailInput = screen.getByPlaceholderText(/esteban_schiller@gmail.com/)
         passwordInput = screen.getByPlaceholderText(/••••••/)

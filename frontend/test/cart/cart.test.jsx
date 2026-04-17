@@ -1,12 +1,11 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { render } from '../../test-utils';
-import App from '../../App';
-import Products from '../../pages/Public/Products';
-import ProductPage from '../../pages/ProductPage';
 import { Route, Routes } from 'react-router';
-import CartPage from '../../pages/CartPage';
 import { beforeEach, expect } from 'vitest';
-import { updateTestResult } from '../../utils/updateSheets';
+import Products from '../../src/pages/Public/Products';
+import ProductPage from '../../src/pages/ProductPage';
+import CartPage from '../../src/pages/CartPage';
+import { updateTestResult } from '../../src/utils/updateSheets';
+import { render } from '../test-utils';
 
 describe('Feature: Cart System', () => {
 

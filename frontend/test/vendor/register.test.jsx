@@ -1,11 +1,10 @@
 import { beforeEach, test } from "vitest"
-import VendorRegistration from "../../pages/Vendor/VendorRegistration"
-import { render } from "../../test-utils"
 import { Route, Routes } from "react-router"
-import Nav from "../../components/Nav"
-import VendorLogin from "../../pages/Vendor/VendorLogin"
 import { fireEvent, screen, waitFor } from "@testing-library/react"
-import { updateTestResult } from "../../utils/updateSheets"
+import VendorRegistration from "../../src/pages/Vendor/VendorRegistration"
+import VendorLogin from "../../src/pages/Vendor/VendorLogin"
+import { render } from "../test-utils"
+import { updateTestResult } from "../../src/utils/updateSheets"
 
 describe('feature: Vendor', () => {
     let emailInput

@@ -1,13 +1,13 @@
 import { Route, Routes } from "react-router"
-import { render } from "../../test-utils"
 import { beforeEach, describe, expect, test } from "vitest"
-import VendorDashboard from "../../pages/Vendor/VendorDashboard"
-import VendorLogin from "../../pages/Vendor/VendorLogin"
-import VendorProducts from "../../pages/Vendor/VendorProducts"
 import { fireEvent, screen, waitFor } from "@testing-library/react"
-import Nav from "../../components/Nav"
 import userEvent from '@testing-library/user-event';
-import { updateTestResult } from "../../utils/updateSheets"
+import { render } from "../test-utils";
+import Nav from "../../src/components/Nav";
+import VendorLogin from "../../src/pages/Vendor/VendorLogin";
+import VendorDashboard from "../../src/pages/Vendor/VendorDashboard";
+import VendorProducts from "../../src/pages/Vendor/VendorProducts";
+import { updateTestResult } from "../../src/utils/updateSheets";
 
 const user = userEvent.setup()
 
