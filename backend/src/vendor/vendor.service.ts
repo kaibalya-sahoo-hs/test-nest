@@ -28,8 +28,8 @@ export class VendorService {
     private jwtService: JwtService
   ) {
     this.rzpX = new Razorpay({
-      key_id: process.env.RAZORPAYX_TEST_APIKEY, // Use Test Keys
-      key_secret: process.env.RAZORPAYX_TEST_APISECRET,
+      key_id: process.env.RAZORPAY_PAYOUT_TEST_APIKEY, // Use Test Keys
+      key_secret: process.env.RAZORPAY_PAYOUT_TEST_APISECRET,
     });
   }
   async registerVendor(body) {

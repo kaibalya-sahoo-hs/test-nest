@@ -7,7 +7,7 @@ export class MailService {
     async sendMail(email: string, name: string, token: string) {
         console.log(email, name, token)
         try {
-            const url = `${process.env.FRONTRND_URL + token}`;
+            const url = `${process.env.FRONTEND_URL}/auth/register/complete?token=${token}`;
             await this.mailerService.sendMail({
                 to: email,
                 subject: 'Welcome! Confirm your Email',
