@@ -80,7 +80,9 @@ export class AuthService {
         //     return { message: "Password must contain at least one number", success: false }
         // }
         const user = await this.userRepo.findOneBy({ registartionToken: token })
-        console.log("User from registartionToken - ", user)
+
+        console.log(user)
+
         if (!user) {
             return { message: "Invalid or expired token", success: false };
         }
@@ -124,7 +126,7 @@ export class AuthService {
             role: existingUser.role
         };
 
-        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '20s' });
+        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '10min' });
         const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '30m' });
 
         return {
@@ -159,7 +161,7 @@ export class AuthService {
             }
 
             const newPayload = { id: user.id, email: user.email, name: user.name, role: user.role};
-            const newAccessToken = await this.JwtService.signAsync(newPayload, { expiresIn: '5m' });
+            const newAccessToken = await this.JwtService.signAsync(newPayload, { expiresIn: '10m' });
             const newRefreshToken = await this.JwtService.signAsync({ ...newPayload, type: 'refresh' }, { expiresIn: '30m' });
 
             return {

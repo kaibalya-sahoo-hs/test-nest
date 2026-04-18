@@ -30,10 +30,34 @@ import { VendorModule } from './vendor/vendor.module';
 import { PaymentLogModule } from './payment-log/payment-log.module';
 import { WithdrawModule } from './withdraw/withdraw.module';
 import { SeedService } from './database/seed.service';
+import { MailerModule } from 'node_modules/@nestjs-modules/mailer/dist/mailer.module';
+import { join } from 'path';
+import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+     MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.GOOGLE_MAIL?.toString(),
+          pass: process.env.APP_PASSWORD?.toString(),
+        },
+      },
+      defaults: {
+        from: '"No Reply" <noreply@example.com>',
+      },
+      template: {
+        dir: join(process.cwd(), 'dist', 'mail', 'templates'),
+        adapter: new EjsAdapter(),
+        options: {
+          strict: false,
+        },
+      },
+    }),
     BullModule.forRoot({ redis: { host: 'localhost', port: 6379 } }),
     BullModule.registerQueue({ name: 'user' }),
     JwtModule.register({

@@ -183,6 +183,12 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!file) {
+      toast.error("product image is required");
+      return;
+    }
+
     setUploading(true);
 
     const data = new FormData();
@@ -202,11 +208,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
       if (initialData) {
         // If editing, you might use PATCH.
         // Note: Multi-part form data usually works better with POST/PUT in some NestJS setups
-
-        if (!file) {
-          toast.error("product image is required");
-          return;
-        }
 
         await api.patch(`/products/${initialData.id}`, data, {
           headers: { "Content-Type": "multipart/form-data" },

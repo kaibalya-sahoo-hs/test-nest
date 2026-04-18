@@ -171,9 +171,7 @@ export class CartService {
 
     return this.getMyCart(userId);
   }
-  /**
-   * Clear Entire Cart (Used after successful Checkout)
-   */
+  
   async clearCart(userId: number) {
     await this.cartRepo.delete({ user: { id: userId } });
     return { message: 'Cart cleared successfully' };

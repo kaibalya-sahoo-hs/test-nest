@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-hot-toast";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { api } from "../utils/api";
 
 function CompleteRegistration() {
   const [searchParams] = useSearchParams();
@@ -35,15 +36,12 @@ function CompleteRegistration() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/completeRegistration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
+      const { data } = await api.post("/completeRegistration", {
+        token,
+        password,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         toast.success(data.message || "Password set successfully!");
         navigate("/login");
       } else {
