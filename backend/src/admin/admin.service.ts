@@ -147,8 +147,8 @@ export class AdminService {
       if (status) {
         where.vendorStatus = status;
       }
-      const vendors = await this.vendorRepo.find({
-        where,
+      const vendors = await this.userRepo.find({
+        where: { role: 'vendor' },
         order: { id: 'DESC' },
       });
 
@@ -211,7 +211,7 @@ export class AdminService {
     status: 'approved' | 'rejected' | 'suspended',
   ) {
     try {
-      const vendor = await this.vendorRepo.findOneBy({ id });
+      const vendor = await this.userRepo.findOneBy({ id, role: 'vendor' });
       if (!vendor) {
         throw new NotFoundException(`Vendor with ID ${id} not found`);
       }
@@ -232,7 +232,7 @@ export class AdminService {
       }
 
       vendor.vendorStatus = status;
-      await this.vendorRepo.save(vendor);
+      await this.userRepo.save(vendor);
 
       return {
         success: true,

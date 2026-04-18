@@ -274,7 +274,7 @@ export class PaymentService {
 
           vendorEarning = Math.max(0, vendorEarning);
 
-          await this.vendorRepo.update(vendor.id, {
+          await this.userRepo.update(vendor.id, {
             balance: () => `balance + ${vendorEarning}`,
           });
           await this.userRepo.update(

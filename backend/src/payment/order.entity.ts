@@ -1,7 +1,15 @@
 // order.entity.ts
 import { Address } from 'src/address/address.entity';
 import { User } from 'src/users/users.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  OneToOne,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { Payment } from './payment.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 
@@ -10,13 +18,13 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Order, {nullable: true})
-  parentOrder: Order
+  @ManyToOne(() => Order, { nullable: true })
+  parentOrder: Order;
 
   @OneToMany(() => Order, (order) => order.parentOrder)
-  subOrders: Order[]
+  subOrders: Order[];
 
-  @ManyToOne(() => User, {onDelete: "CASCADE"})
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User; // Link to your User entity
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
@@ -35,17 +43,17 @@ export class Order {
   createdAt: Date;
 
   @ManyToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
-  deliveryAddress: Address
+  deliveryAddress: Address;
 
-  @ManyToOne(() => Vendor)
-  vendor: Vendor
+  @ManyToOne(() => User)
+  vendor: User;
 
-  @Column({nullable: true})
-  couponCode: string
+  @Column({ nullable: true })
+  couponCode: string;
 
-  @Column({ type: 'decimal', default: 0})
-  discount: number
+  @Column({ type: 'decimal', default: 0 })
+  discount: number;
 
-  @Column({nullable: true})
-  couponType: 'platform' | 'vendor'
+  @Column({ nullable: true })
+  couponType: 'platform' | 'vendor';
 }

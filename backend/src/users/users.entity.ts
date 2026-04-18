@@ -43,6 +43,7 @@ export class User {
   @Column({ default: 0 })
   balance: number;
 
+  // vendor fields
   @Column({ nullable: true })
   storeName!: string;
 

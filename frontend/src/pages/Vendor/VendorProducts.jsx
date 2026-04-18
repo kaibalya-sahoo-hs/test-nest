@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 import { CiEdit } from "react-icons/ci";
-import { FiTrash2, FiUploadCloud } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiUploadCloud } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa6";
 
 // Main Component remains mostly the same, ensuring fetchVendorProducts is passed correctly
@@ -39,6 +39,12 @@ function VendorProducts() {
     } catch (err) {
       toast.error("Delete failed");
     }
+  };
+
+  const handleEdit = (id) => {
+    const product = products.find((p) => p.id === id);
+    setEditingProduct(product);
+    setShowModal(true);
   };
 
   return (
@@ -132,6 +138,13 @@ function VendorProducts() {
                     <td className="p-5">
                       <div className="flex justify-center items-center gap-2">
                         <button
+                          onClick={() => handleEdit(product.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          aria-label="remove product"
+                        >
+                          <FiEdit size={18} />
+                        </button>
+                        <button
                           onClick={() => handleDelete(product.id)}
                           className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           aria-label="remove product"
@@ -184,11 +197,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!file) {
-      toast.error("product image is required");
-      return;
-    }
-
     setUploading(true);
 
     const data = new FormData();
@@ -209,11 +217,16 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
         // If editing, you might use PATCH.
         // Note: Multi-part form data usually works better with POST/PUT in some NestJS setups
 
-        await api.patch(`/products/${initialData.id}`, data, {
+        await api.patch(`vendor/products/${initialData.id}`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("Product updated!");
       } else {
+        if (!file) {
+          toast.error("product image is required");
+          return;
+        }
+
         await api.post("/vendor/product", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });

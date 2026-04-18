@@ -14,6 +14,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Withdraw, WithdrawalStatus } from 'src/withdraw/withdraw.entity';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
+import { User } from 'src/users/users.entity';
+import { retry } from 'rxjs';
 
 @Injectable()
 export class VendorService {
@@ -27,6 +29,8 @@ export class VendorService {
     private orderRepo: Repository<Order>,
     @InjectRepository(Withdraw)
     private withdrawRepo: Repository<Withdraw>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
     private cloudinaryService: CloudinaryService,
 
     private jwtService: JwtService,
@@ -48,7 +52,7 @@ export class VendorService {
       ) {
         return { message: 'Empty values are not allowed' };
       }
-      const existingVendor = await this.vendorRepo.findOne({
+      const existingVendor = await this.userRepo.findOne({
         where: { email },
       });
       if (existingVendor) {
@@ -66,16 +70,17 @@ export class VendorService {
       }
       const hashedPass = await bcrypt.hash(password, 10);
 
-      const neweVendor = this.vendorRepo.create({
+      const neweVendor = this.userRepo.create({
         name: fullname,
         email,
         password: hashedPass,
         storeName,
         storeDescription,
         vendorStatus: 'pending',
+        role: 'vendor',
       });
 
-      return await this.vendorRepo.save(neweVendor);
+      return await this.userRepo.save(neweVendor);
     } catch (error) {
       console.log('Error while registering vendor', error);
       return { messsage: 'Error while registering vendor', success: false };
@@ -83,7 +88,6 @@ export class VendorService {
   }
 
   async loginVendor({ email, password }) {
-    // Validation
     if (!email || !email.trim()) {
       return { message: 'Email is required', success: false };
     }
@@ -95,10 +99,11 @@ export class VendorService {
       return { message: 'Password is required', success: false };
     }
 
-    const existingUser: Vendor | null = await this.vendorRepo.findOneBy({
+    const existingUser: User | null = await this.userRepo.findOneBy({
       email: email.trim().toLowerCase(),
+      role: 'vendor',
     });
-    console.log(existingUser);
+
     if (!existingUser) {
       return { message: 'Vendor does not exist', success: false };
     }
@@ -112,7 +117,8 @@ export class VendorService {
       id: existingUser.id,
       email: existingUser.email,
       name: existingUser.name,
-      role: 'vendor',
+      role: existingUser.role,
+      vendorStatus: existingUser.vendorStatus,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -130,7 +136,7 @@ export class VendorService {
         name: existingUser.name,
         email: existingUser.email,
         profile: existingUser.profile,
-        role: 'vendor',
+        role: existingUser.role,
         vendorStatus: existingUser.vendorStatus,
         balance: existingUser.balance,
       },
@@ -161,8 +167,8 @@ export class VendorService {
   }
 
   async getVendorDetails(id) {
-    const vendor = await this.vendorRepo.findOneBy({ id });
-    return { ...vendor, role: 'vendor' };
+    const vendor = await this.userRepo.findOneBy({ id, role: 'vendor' });
+    return { ...vendor };
   }
 
   async getOrders(vendorId) {
@@ -195,12 +201,29 @@ export class VendorService {
       relations: ['parentOrder'],
     });
 
-    if (newStatus == 'processing') {
-    }
-
     if (!order) {
       throw new NotFoundException(`Order with ID ${orderId} not found`);
     }
+
+    const parentOrderId = order.parentOrder.id;
+    const orders = await this.orderRepo.find({
+      where: { parentOrder: { id: parentOrderId } },
+    });
+
+    const statuses = orders.map((o) => o.status);
+
+    function getParentOrderStatus() {
+      if (statuses.every((s) => s === 'delivered')) return 'delivered';
+      if (statuses.every((s) => s === 'shipped')) return 'shipped';
+      return 'processing';
+    }
+
+    console.log(getParentOrderStatus());
+
+    await this.orderRepo.update(
+      { id: parentOrderId },
+      { status: getParentOrderStatus() },
+    );
 
     // Validate status transitions
     const validTransitions = {
@@ -301,7 +324,7 @@ export class VendorService {
   }
 
   // Edit / Update product
-  async updateProduct(id: string, updateData: any, file?: Express.Multer.File) {
+  async updateProduct(id: string, updateData: any, file) {
     const product = await this.productRepo.findOneBy({ id });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -322,7 +345,9 @@ export class VendorService {
   }
 
   async createWithdrawal(vendorId, amount = 0) {
-    const vendor = await this.vendorRepo.findOne({ where: { id: vendorId } });
+    const vendor = await this.userRepo.findOne({
+      where: { id: vendorId, role: 'vendor' },
+    });
     const currentBalance = vendor?.balance;
     if (currentBalance) {
       if (currentBalance < amount) {
