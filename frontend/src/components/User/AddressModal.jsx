@@ -46,6 +46,7 @@ const AddressModal = ({ onClose, onSave, initialData }) => {
             }
           />
           <input
+          type="number"
             required
             placeholder="Phone Number"
             className="w-full p-3 border rounded-lg"
