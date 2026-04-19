@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
 import WithdrawalHistory from './VendorWithdrawals';
+import { useUser } from '../../context/UserContext';
 
 const VendorWallet = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { setBalance: updateBalance } = useUser();
 
   // Sync state with LocalStorage on mount
   useEffect(() => {
@@ -38,6 +40,7 @@ const VendorWallet = () => {
         
         // 3. Update State
         setBalance(newBalance);
+        updateBalance(newBalance); 
         alert("Withdrawal Initiated Successfully!");
         setIsModalOpen(false);
         setAmount('');

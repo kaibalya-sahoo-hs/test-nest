@@ -40,7 +40,7 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.get(`/cart`);
-      console.log(data)
+      console.log(data);
       setCart(data.cart);
       return data.cart;
     } catch (err) {
@@ -52,6 +52,12 @@ export const CartProvider = ({ children }) => {
 
   // 2. ADD TO CART
   const addToCart = async (product) => {
+
+    if(product.stock < 1) {
+      toast.error("Sorry, this product is out of stock.");
+      return;
+    }
+
     const user = getUser();
     if (user) {
       try {
@@ -61,7 +67,7 @@ export const CartProvider = ({ children }) => {
         toast.error("Failed to add to cart");
       }
     } else {
-      console.log(cart)
+      console.log(cart);
       let newItems = [...cart.items];
       // Look for product.id inside the nested structure
       const existing = newItems.find((item) => item.product.id === product.id);
@@ -83,12 +89,19 @@ export const CartProvider = ({ children }) => {
   };
 
   // 3. UPDATE QUANTITY
-  const updateQuantity = async (productId, newQuantity, coupon) => {
-    console.log("Called")
+  const updateQuantity = async (productId, newQuantity, coupon, stock, currentQuantity) => {
+    
+
+
     if (newQuantity < 1) return;
     const user = getUser();
 
     if (user) {
+      const isIncreasing = currentQuantity < newQuantity;
+    if( isIncreasing && stock == 0) {
+      toast.error("Sorry, this product is out of stock.");
+      return;
+    }
       try {
         const res = await api.patch(`/cart/${productId}`, {
           quantity: newQuantity,
@@ -98,7 +111,10 @@ export const CartProvider = ({ children }) => {
         toast.error("Update failed");
       }
     } else {
-      console.log("Called");
+      if(newQuantity > stock){
+        toast.error("Sorry, not enough stock available.");
+        return;
+      }
       const newItems = cart.items.map((item) => {
         console.log(item);
         return item.product.id === productId
@@ -124,8 +140,10 @@ export const CartProvider = ({ children }) => {
         toast.error("Removal failed");
       }
     } else {
-      console.log("Trigreed")
-      const newItems = cart.items.filter((item) => item.product.id !== productId);
+      console.log("Trigreed");
+      const newItems = cart.items.filter(
+        (item) => item.product.id !== productId,
+      );
       const guestState = calculateGuestTotals(newItems);
       setCart(guestState);
       localStorage.setItem("cart", JSON.stringify(guestState));

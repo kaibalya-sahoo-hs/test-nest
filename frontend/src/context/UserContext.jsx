@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { createContext, useContext } from 'react'
 import api from '../utils/api'
 
-const UserContext = createContext(null)
+const UserContext = createContext()
 
 export function UserProvider({children}) {
 
@@ -12,10 +12,10 @@ export function UserProvider({children}) {
 
 
   return (
-    <UserContext.Provider value={{balance}}>
+    <UserContext.Provider value={{balance, setBalance}}>
       {children}
     </UserContext.Provider>
   )
 }
 
-export const useUser = useContext(UserContext) 
+export const useUser = () => useContext(UserContext) 

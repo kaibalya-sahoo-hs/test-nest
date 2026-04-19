@@ -26,6 +26,10 @@ function ProductPage() {
     cart.items.find((itm) => itm?.product.id === product.id);
 
   const handleAddtoCart = async (product) => {
+    if (product.stock < 1) {
+      toast.error("Sorry, this product is out of stock.");
+      return;
+    }
     const data = await addToCart(product);
     toast.success("Item added to the cart");
   };
@@ -35,8 +39,7 @@ function ProductPage() {
       await removeItem(cartItem.product.id);
       toast.success("Removed from cart");
     } else {
-      console.log(cartItem);
-      await updateQuantity(cartItem.product.id, newQty);
+      await updateQuantity(cartItem.product.id, newQty, null, product.stock, cartItem.quantity);
     }
   };
 
@@ -45,6 +48,7 @@ function ProductPage() {
       try {
         setLoading(true);
         const response = await api.get(`/products/${id}`);
+        console.log(response.data);
         if (response.data.success) {
           setProduct(response.data.product);
         }
@@ -55,7 +59,7 @@ function ProductPage() {
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, cart]);
 
   if (loading)
     return (
@@ -83,9 +87,9 @@ function ProductPage() {
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="flex flex-col md:flex-row">
         {/* Left Side: Sticky Image Container */}
-        <div className="md:w-1/2 bg-[#F9FAFB] md:h-fit md:sticky md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
+        <div className="md:w-1/2 bg-[#F9FAFB] md:h-fit md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
           <img
             src={
               product.image ||
@@ -97,7 +101,7 @@ function ProductPage() {
         </div>
 
         {/* Right Side: Scrollable Details */}
-        <div className="md:w-1/2 p-8 sm:p-12 flex flex-col">
+        <div className="md:w-1/2 h-fit p-8 sm:p-12">
           <div className="max-w-xl mx-auto md:mx-0">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -136,9 +140,15 @@ function ProductPage() {
                 <FaRupeeSign className="text-2xl" />
                 {Number(product.price).toLocaleString("en-IN")}
               </p>
-              <p className="text-sm text-green-500 font-semibold mt-1">
-                In Stock - Ready to ship
-              </p>
+              {product.stock > 0 ? (
+                <p className="text-sm text-green-500 font-semibold mt-1">
+                  In Stock - Ready to ship
+                </p>
+              ) : (
+                <p className="text-sm text-red-500 font-semibold mt-1">
+                  Out of Stock
+                </p>
+              )}
             </div>
 
             {/* Description */}
@@ -151,7 +161,7 @@ function ProductPage() {
                   "No description provided for this product. Here is some filler text to ensure the content is long enough to demonstrate the scrolling effect on the right side while the image stays fixed."}
               </p>
             </div>
-            {cartItem ? (
+            {product && product.stock > 0 ? cartItem ? (
               /* IF IT IS IN THE CART: Show Quantity Controls */
               <div className="flex items-center gap-4">
                 <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
@@ -191,7 +201,7 @@ function ProductPage() {
               >
                 Add to cart
               </button>
-            )}
+            ) : null}
             <div className="sticky bottom-8 md:static"></div>
           </div>
         </div>

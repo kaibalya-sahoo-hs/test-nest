@@ -393,7 +393,7 @@ export class VendorService {
 
       await this.vendorRepo.save(vendor);
       const withdrawal = this.withdrawRepo.create({
-        vendor: { id: vendorId },
+        user: { id: vendorId },
         amount,
         status: WithdrawalStatus.PENDING,
         remainingBalance: vendor.balance,
@@ -419,6 +419,7 @@ export class VendorService {
    * Processes the payout event
    */
   async processWebhookEvent(payload: any) {
+    console.log('web hook trgireed');
     const { event, payload: data } = payload;
 
     const payout = data.payout.entity;
@@ -454,7 +455,7 @@ export class VendorService {
 
   async getWithdrawHistory(vendorId) {
     const withdraws = await this.withdrawRepo.find({
-      where: { vendor: { id: vendorId } },
+      where: { user: { id: vendorId } },
     });
     return { withdraws, success: true };
   }

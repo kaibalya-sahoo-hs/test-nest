@@ -182,7 +182,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     name: initialData?.name || "",
     price: initialData?.price || "",
     category: initialData?.category || "",
-    stock: initialData?.stock || "",
+    stock: initialData?.stock || 0,
     description: initialData?.description || "",
   });
 
@@ -203,7 +203,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     // Append text fields
     data.append("name", formData.name);
     data.append("price", formData.price);
-    data.append("category", formData.category);
     data.append("stock", formData.stock);
     data.append("description", formData.description);
 
@@ -318,20 +317,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                 value={formData.stock}
                 onChange={(e) =>
                   setFormData({ ...formData, stock: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Category
-              </label>
-              <input
-                placeholder="category"
-                required
-                className="w-full p-3 bg-[#F1F4F9] rounded-xl outline-none"
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
                 }
               />
             </div>

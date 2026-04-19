@@ -45,5 +45,5 @@ export class Product {
   vendor!: User;
 
   @Column({ nullable: true })
-  catagory: string;
+  category: string; 
 }

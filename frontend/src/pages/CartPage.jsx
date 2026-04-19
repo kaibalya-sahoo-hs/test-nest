@@ -142,6 +142,8 @@ const CartPage = () => {
                       item.product.id,
                       item.quantity - 1,
                       couponInput,
+                      item.product.stock,
+                      item.quantity
                     )
                   }
                   className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 disabled:opacity-30"
@@ -159,6 +161,8 @@ const CartPage = () => {
                       item.product.id,
                       item.quantity + 1,
                       couponInput,
+                      item.product.stock,
+                      item.quantity
                     )
                   }
                   className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500"

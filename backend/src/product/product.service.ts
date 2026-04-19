@@ -17,6 +17,7 @@ export class ProductService {
     productData: Partial<Product>,
     file: Express.Multer.File,
   ): Promise<Product> {
+    console.log(productData)
     const result = await this.cloudinaryService.uploadImage(file);
     const newProduct = this.productRepo.create(productData);
     if (result?.url) {
