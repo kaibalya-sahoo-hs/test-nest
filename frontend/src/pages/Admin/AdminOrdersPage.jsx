@@ -46,7 +46,13 @@ function AdminOrdersPage() {
                 <th className="p-4 border-b">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            {orders && orders.length === 0 ? <tbody>
+              <tr>
+                <td className="p-4 text-center text-gray-500" colSpan="5">
+                  No orders found.
+                </td>
+              </tr>
+            </tbody> :<tbody className="divide-y divide-gray-200">
               {orders.map((order) => (
                 <tr
                   key={order.id}
@@ -123,7 +129,8 @@ function AdminOrdersPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
+            </tbody>}
+            
           </table>
         </div>
       </div>

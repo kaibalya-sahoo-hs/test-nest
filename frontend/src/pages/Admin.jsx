@@ -8,7 +8,8 @@ import { IoMdTrendingDown, IoMdTrendingUp } from "react-icons/io";
 import Charts from "../components/Charts";
 import { GoPackage } from "react-icons/go";
 import { AiOutlineStock } from "react-icons/ai";
-import { FaClockRotateLeft } from "react-icons/fa6";
+import { FaClockRotateLeft, FaIndianRupeeSign, FaRupeeSign } from "react-icons/fa6";
+import {api} from "../utils/api"
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -21,6 +22,12 @@ const Admin = () => {
   });
   const [message, setMessage] = useState("");
   const [isMemberFormOpen, setIsMemberFormOpen] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    usersCount: 0,
+    ordersCount: 0,
+    totalSales: 0,
+    totalPendingOrders: 0
+  });
 
   const data = [
     { name: "1k", uv: 2000, pv: 2400, amt: 2400 },
@@ -60,7 +67,6 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const navigate = useNavigate();
-  const BASE_URL = "";
 
   // --- Auth & Logout ---
   const handleLogout = () => {
@@ -76,15 +82,9 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${BASE_URL}/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch");
-
-      const allData = await res.json();
-
-      setUsers(allData.filter((user) => user.role === "guest"));
-      setMembers(allData.filter((user) => user.role === "member"));
+      const {data} = await api.get(`/admin/dashboard` );
+      console.log(data)
+      setDashboardData(data);
     } catch (err) {
       console.log(err);
     }
@@ -212,21 +212,12 @@ const Admin = () => {
                   Total Users
                 </span>
                 <p className="text-xl sm:text-2xl font-bold text-[#202224]">
-                  40,689
+                  {dashboardData.usersCount?.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-purple-200 text-[#8280FF] w-fit text-xl flex-shrink-0">
                 <LuUsers />
               </div>
-            </div>
-            <div className="flex text-sm mt-4 gap-1 items-center">
-              <span className="text-[#00B69B] font-bold flex gap-1 items-center">
-                <IoMdTrendingUp />
-                <span>8.5%</span>{" "}
-              </span>
-              <span className="text-gray-400 font-medium">
-                up from yesterday
-              </span>
             </div>
           </div>
 
@@ -238,21 +229,12 @@ const Admin = () => {
                   Total Orders
                 </span>
                 <p className="text-xl sm:text-2xl font-bold text-[#202224]">
-                  10,293
+                  {dashboardData.ordersCount?.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#FFF3D6] text-[#FEC53D] w-fit text-xl flex-shrink-0">
                 <GoPackage />
               </div>
-            </div>
-            <div className="flex text-sm mt-4 gap-1 items-center">
-              <span className="text-[#00B69B] font-bold flex gap-1 items-center">
-                <IoMdTrendingUp />
-                <span>1.3%</span>{" "}
-              </span>
-              <span className="text-gray-400 font-medium">
-                up from past week
-              </span>
             </div>
           </div>
 
@@ -263,22 +245,13 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Sales
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-[#202224]">
-                  $89,000
+                <p className=" sm:text-2xl font-bold text-[#202224] flex items-center gap-1 text-sm">
+                  <FaIndianRupeeSign size={20}/><div>{dashboardData.totalSales}</div>
                 </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#D9F7E8] text-[#4AD991] w-fit text-xl flex-shrink-0">
                 <AiOutlineStock />
               </div>
-            </div>
-            <div className="flex text-sm mt-4 gap-1 items-center">
-              <span className="text-[#F93C65] font-bold flex gap-1 items-center">
-                <IoMdTrendingDown />
-                <span>4.3%</span>{" "}
-              </span>
-              <span className="text-gray-400 font-medium">
-                down from yesterday
-              </span>
             </div>
           </div>
 
@@ -290,21 +263,12 @@ const Admin = () => {
                   Total Pending
                 </span>
                 <p className="text-xl sm:text-2xl font-bold text-[#202224]">
-                  2,040
+                  {dashboardData.totalPendingOrders?.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#FFDED1] text-[#FF9066] w-fit text-xl flex-shrink-0">
                 <FaClockRotateLeft />
               </div>
-            </div>
-            <div className="flex text-sm mt-4 gap-1 items-center">
-              <span className="text-[#00B69B] font-bold flex gap-1 items-center">
-                <IoMdTrendingUp />
-                <span>1.8%</span>{" "}
-              </span>
-              <span className="text-gray-400 font-medium">
-                up from yesterday
-              </span>
             </div>
           </div>
         </div>
@@ -316,119 +280,6 @@ const Admin = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-sm border border-gray-50 mt-6 sm:mt-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-[#202224]">
-              Deals Details
-            </h2>
-            <select className="bg-gray-50 border border-gray-200 text-gray-400 text-xs rounded-lg px-2 py-1 outline-none">
-              <option>October</option>
-            </select>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-[#F1F4F9] text-[#202224]">
-                  <th className="p-4 font-bold text-sm rounded-l-xl">
-                    Product Name
-                  </th>
-                  <th className="p-4 font-bold text-sm">Location</th>
-                  <th className="p-4 font-bold text-sm">Date - Time</th>
-                  <th className="p-4 font-bold text-sm">Piece</th>
-                  <th className="p-4 font-bold text-sm">Amount</th>
-                  <th className="p-4 font-bold text-sm rounded-r-xl text-center">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src="https://llounge.in/wp-content/uploads/2024/09/MC7J4ref_FV99_VW_34FRwatch-case-46-titanium-natural-cell-s10_VW_34FRwatch-face-46-titanium-natural-s10_VW_34FR.jfif-removebg-preview.webp"
-                      className="w-8 h-8 rounded-md"
-                      alt="Watch"
-                    />
-                    <span className="text-sm font-semibold text-[#202224]">
-                      Apple Watch
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    6096 Marjory Landing
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    12.09.2026 - 12.53 PM
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">423</td>
-                  <td className="p-4 text-sm font-bold text-[#202224]">
-                    $34,295
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className="bg-[#00B69B] text-white text-[12px] font-bold px-4 py-1.5 rounded-full uppercase">
-                      Delivered
-                    </span>
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src="https://llounge.in/wp-content/uploads/2024/09/MC7J4ref_FV99_VW_34FRwatch-case-46-titanium-natural-cell-s10_VW_34FRwatch-face-46-titanium-natural-s10_VW_34FR.jfif-removebg-preview.webp"
-                      className="w-8 h-8 rounded-md"
-                      alt="Watch"
-                    />
-                    <span className="text-sm font-semibold text-[#202224]">
-                      Apple Watch
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    6096 Marjory Landing
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    12.09.2026 - 12.53 PM
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">423</td>
-                  <td className="p-4 text-sm font-bold text-[#202224]">
-                    $34,295
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className="bg-[#00B69B] text-white text-[12px] font-bold px-4 py-1.5 rounded-full uppercase">
-                      Delivered
-                    </span>
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src="https://llounge.in/wp-content/uploads/2024/09/MC7J4ref_FV99_VW_34FRwatch-case-46-titanium-natural-cell-s10_VW_34FRwatch-face-46-titanium-natural-s10_VW_34FR.jfif-removebg-preview.webp"
-                      className="w-8 h-8 rounded-md"
-                      alt="Watch"
-                    />
-                    <span className="text-sm font-semibold text-[#202224]">
-                      Apple Watch
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    6096 Marjory Landing
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    12.09.2026 - 12.53 PM
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">423</td>
-                  <td className="p-4 text-sm font-bold text-[#202224]">
-                    $34,295
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className="bg-[#00B69B] text-white text-[12px] font-bold px-4 py-1.5 rounded-full uppercase">
-                      Delivered
-                    </span>
-                  </td>
-                </tr>
-                {/* Repeat for other rows */}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   );

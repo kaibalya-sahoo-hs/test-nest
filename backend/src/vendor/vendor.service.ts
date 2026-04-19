@@ -210,21 +210,6 @@ export class VendorService {
       where: { parentOrder: { id: parentOrderId } },
     });
 
-    const statuses = orders.map((o) => o.status);
-
-    function getParentOrderStatus() {
-      if (statuses.every((s) => s === 'delivered')) return 'delivered';
-      if (statuses.every((s) => s === 'shipped')) return 'shipped';
-      return 'processing';
-    }
-
-    console.log(getParentOrderStatus());
-
-    await this.orderRepo.update(
-      { id: parentOrderId },
-      { status: getParentOrderStatus() },
-    );
-
     // Validate status transitions
     const validTransitions = {
       completed: ['processing'],
@@ -242,18 +227,27 @@ export class VendorService {
     order.status = newStatus;
     await this.orderRepo.save(order);
 
-    // If all sub-orders of parent are delivered, update parent to delivered
-    if (newStatus === 'delivered' && order.parentOrder) {
-      const siblings = await this.orderRepo.find({
-        where: { parentOrder: { id: order.parentOrder.id } },
-      });
-      const allDelivered = siblings.every((s) => s.status === 'delivered');
-      if (allDelivered) {
-        await this.orderRepo.update(order.parentOrder.id, {
-          status: 'delivered',
-        });
-      }
+    let parentOrderStatus;
+
+    const siblings = await this.orderRepo.find({
+      where: { parentOrder: { id: order.parentOrder.id } },
+    });
+    const allDelivered = siblings.every((s) => s.status === 'delivered');
+    const allProcessing = siblings.every((s) => s.status === 'processing')
+    const allShipped = siblings.every((s) => s.status === 'shipped')
+    
+    if (allDelivered) {
+      parentOrderStatus = 'delivered'
+    }else if(allShipped){
+      parentOrderStatus = 'shipped'
+    }else{
+      parentOrderStatus = 'processing'
     }
+    // If all sub-orders of parent are delivered, update parent to delivered
+    // if (newStatus === 'delivered' && order.parentOrder) {
+    // }
+
+    await this.orderRepo.update({id: order.parentOrder.id}, {status: parentOrderStatus})
 
     return {
       success: true,

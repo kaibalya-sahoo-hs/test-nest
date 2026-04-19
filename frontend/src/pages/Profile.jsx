@@ -59,14 +59,12 @@ const Profile = () => {
     setIsUploading(true);
     try {
       const res = await api.post("/users/profile/upload", uploadData);
-      console.log(res);
+      console.log(res)
       if (res.data.success) {
         toast.success("Photo updated!");
         fetchUser();
-        // Update localStorage so navbar reflects new photo
-        const updated = await res.json();
         const stored = JSON.parse(localStorage.getItem("user"));
-        stored.profile = updated.url;
+        stored.profile = res.data.url;
         localStorage.setItem("user", JSON.stringify(stored));
       } else {
         toast.error("Upload failed");

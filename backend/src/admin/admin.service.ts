@@ -51,7 +51,7 @@ export class AdminService {
     const totalPendingOrders = await this.orderRepo.count({
       where: { status: 'pending' },
     });
-    return { usersCount, ordersCount, totalSales, totalPendingOrders };
+    return { usersCount, ordersCount, totalSales: totalSales || 0, totalPendingOrders };
   }
   async saveImage(id, file) {
     try {
