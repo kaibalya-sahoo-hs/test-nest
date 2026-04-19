@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import { useUser } from '../../context/UserContext';
 
 const WithdrawalHistory = ({user}) => {
   const [withdrawals, setWithdrawals] = useState([]);

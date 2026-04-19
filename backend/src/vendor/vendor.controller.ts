@@ -40,6 +40,12 @@ export class VendorController {
     return this.vendorService.getBalance(req.user.id);
   }
 
+  @Get('vendorStatus')
+  @UseGuards(VendorGuard)
+  async getVendorStatus(@Req() req){
+    return this.vendorService.getVedorStatus(req.user.id)
+  }
+
   @Get('withdrawals')
   @UseGuards(VendorGuard)
   async getWithdrawHistory(@Req() req) {

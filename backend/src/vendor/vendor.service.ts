@@ -171,6 +171,11 @@ export class VendorService {
     return { ...vendor };
   }
 
+  async getVedorStatus(id){
+    const vendor = await this.getVendorDetails(id)
+    return {vendorStatus: vendor.vendorStatus}
+  }
+
   async getOrders(vendorId) {
     const orders = await this.orderRepo.find({
       where: { vendor: { id: vendorId } },

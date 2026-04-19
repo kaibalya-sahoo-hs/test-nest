@@ -245,9 +245,9 @@ const Admin = () => {
                 <span className="text-sm text-[#202224] font-semibold opacity-70">
                   Total Sales
                 </span>
-                <p className=" sm:text-2xl font-bold text-[#202224] flex items-center gap-1 text-sm">
+                <div className=" sm:text-2xl font-bold text-[#202224] flex items-center gap-1 text-sm">
                   <FaIndianRupeeSign size={20}/><div>{dashboardData.totalSales}</div>
-                </p>
+                </div>
               </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-[#D9F7E8] text-[#4AD991] w-fit text-xl flex-shrink-0">
                 <AiOutlineStock />

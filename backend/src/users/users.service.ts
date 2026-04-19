@@ -36,6 +36,11 @@ export class UserService{
         return user
     }
 
+    async getUserBalance(userId: number){
+        const user = await this.userRepo.findOne({where:  {id: userId}})
+        return {balance: user?.balance, success: true}
+    }
+
     async updateProfile(id: number, updatedCredentials: Partial<User>){
         try {
             // Only allow updating name (not role/email for self-service)

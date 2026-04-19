@@ -17,7 +17,7 @@ function Nav() {
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const { cart, setCart } = useCart();
-  const { balance, setBalance } = useUser();
+  const { balance, setBalance, getBalance } = useUser();
   const [user, setUser] = useState(null)
 
   // Determine role from localStorage
@@ -66,7 +66,7 @@ function Nav() {
     const userData = localStorage.getItem("user");
     const user = userData ? JSON.parse(userData) : null;
     setUser(user);
-    setBalance(user?.balance || 0);
+    getBalance();
   }, []);
 
   useEffect(() => {

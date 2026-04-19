@@ -32,6 +32,12 @@ export class UserController {
     return this.userService.findById(id)
   }
 
+  @Get('balance')
+  @UseGuards(AuthGuard)
+  getBalance(@Req() req: any){
+    return this.userService.getUserBalance(req.user.id)
+  }
+
   @Post('withdraw')
   @UseGuards(AuthGuard)
   async createWithdraw(@Req() req,@Body() body){
