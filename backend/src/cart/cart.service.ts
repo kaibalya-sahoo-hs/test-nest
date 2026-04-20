@@ -23,7 +23,7 @@ export class CartService {
     private readonly couponsService: CouponsService,
   ) {}
 
-  async getMyCart(userId: string) {
+  async getMyCart(userId: number) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
       relations: ['cartItems', 'cartItems.product', 'coupon'],
@@ -60,7 +60,7 @@ export class CartService {
   /**
    * Add or Increment Item in Cart
    */
-  async addToCart(userId: string, productId: string, quantity: number = 1) {
+  async addToCart(userId: number, productId: string, quantity: number = 1) {
     let cart = await this.cartRepo.findOne({
       where: {
         user: { id: userId },
@@ -106,7 +106,7 @@ export class CartService {
    * Update Quantity using Product ID (Frontend Friendly)
    */
   async updateQuantityByProduct(
-    userId: string,
+    userId: number,
     productId: string,
     quantity: number,
   ) {
@@ -188,7 +188,7 @@ export class CartService {
     return this.getMyCart(userId);
   }
 
-  async mergeCarts(userId: string, guestItems: any[]) {
+  async mergeCarts(userId: number, guestItems: any[]) {
     if (!guestItems || guestItems.length === 0) {
       return this.getMyCart(userId);
     }

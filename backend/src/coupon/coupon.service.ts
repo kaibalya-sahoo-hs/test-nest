@@ -118,7 +118,7 @@ export class CouponsService {
     }
 
     // Get vendor coupons
-    async findVendorCoupons(vendorId: string) {
+    async findVendorCoupons(vendorId: number) {
         return await this.couponRepo.find({ where: { vendor: { id: vendorId } }, order: { id: 'DESC' } });
     }
 

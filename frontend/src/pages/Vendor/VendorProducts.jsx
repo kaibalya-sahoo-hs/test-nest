@@ -199,6 +199,18 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
     setUploading(true);
 
+    if (!formData.name || !formData.price || !formData.stock) {
+      toast.error("Please fill in all required fields");
+      setUploading(false);
+      return;
+    }
+
+    if(formData.name.trim() === "" || formData.description.trim() === "" || formData.price <= 0 || formData.stock < 0) {  
+      toast.error("Please provide valid product details");
+      setUploading(false);
+      return;
+    }
+
     const data = new FormData();
     // Append text fields
     data.append("name", formData.name);

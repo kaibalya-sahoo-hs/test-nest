@@ -27,8 +27,7 @@ export class WithdrawService {
       key_secret: process.env.RAZORPAY_PAYOUT_TEST_APISECRET,
     });
   }
-  async createWithdrawal(userId, role, amount = 0) {
-    console.log('trigreed');
+  async createWithdrawal(userId, amount = 0) {
     let user = await this.userRepo.findOne({ where: { id: userId } });
 
     if (!user) {

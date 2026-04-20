@@ -14,7 +14,7 @@ export class AddressesService {
   ) {}
 
   // 1. CREATE ADDRESS
-  async create(userId: string, dto: CreateAddressDto) {
+  async create(userId: number, dto: CreateAddressDto) {
     if (dto.isDefault) {
       await this.unsetOtherDefaults(userId);
     }
@@ -28,7 +28,7 @@ export class AddressesService {
   }
 
   // 2. GET ALL ADDRESSES FOR A USER
-  async findAll(userId: string) {
+  async findAll(userId: number) {
     return await this.addressRepo.find({
       where: { user: { id: userId } },
       order: { isDefault: 'DESC', createdAt: 'DESC' }, // Show default first
@@ -36,7 +36,7 @@ export class AddressesService {
   }
 
   // 3. UPDATE ADDRESS
-  async update(userId: string, addressId: string, dto) {
+  async update(userId: number, addressId: string, dto) {
     const address = await this.addressRepo.findOne({
       where: { id: addressId, user: { id: userId } },
     });
@@ -53,7 +53,7 @@ export class AddressesService {
   }
 
   // 4. DELETE ADDRESS
-  async remove(userId: string, addressId: string) {
+  async remove(userId: number, addressId: string) {
     const address = await this.addressRepo.findOne({
       where: { id: addressId, user: { id: userId } },
     });
@@ -65,7 +65,7 @@ export class AddressesService {
   }
 
   // INTERNAL HELPER: Ensure only one address is "Default"
-  private async unsetOtherDefaults(userId: string) {
+  private async unsetOtherDefaults(userId: number) {
     await this.addressRepo.update(
       { user: { id: userId }, isDefault: true },
       { isDefault: false },

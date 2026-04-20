@@ -185,7 +185,7 @@ export class VendorService {
     return orders;
   }
 
-  async getOrderDetails(vendorId: string, orderId: string) {
+  async getOrderDetails(vendorId: number, orderId: string) {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, vendor: { id: vendorId } },
       relations: ['user', 'deliveryAddress', 'parentOrder'],

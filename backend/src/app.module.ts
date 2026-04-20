@@ -37,14 +37,14 @@ import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-     MailerModule.forRoot({
+    MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
         port: 465,
         secure: true,
         auth: {
-          user: process.env.GOOGLE_MAIL?.toString(),
-          pass: process.env.APP_PASSWORD?.toString(),
+          user: process.env.GOOGLE_MAIL,
+          pass: process.env.APP_PASSWORD,
         },
       },
       defaults: {
@@ -105,4 +105,4 @@ import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService, SeedService],
 })
-export class AppModule {}
+export class AppModule { }

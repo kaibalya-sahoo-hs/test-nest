@@ -22,7 +22,7 @@ export class UserService{
         return this.userRepo.find()
     }
 
-    findById(id: string){
+    findById(id: number){
         return this.userRepo.findOneBy({ id })
     }
 
@@ -56,7 +56,7 @@ export class UserService{
         }
     }
 
-    async uploadProfilePhoto(id: string, file: Express.Multer.File){
+    async uploadProfilePhoto(id: number, file: Express.Multer.File){
         try {
             console.log(id, file)
             const result = await this.cloudinarySevice.uploadImage(file)
@@ -73,7 +73,7 @@ export class UserService{
         }
     }
 
-    async getUserOrders(userId: string) {
+    async getUserOrders(userId: number) {
         console.log("Fetching my orders", userId)
         try {
             const orders = await this.orderRepo.find({
@@ -111,7 +111,7 @@ export class UserService{
         }
     }
 
-    async getOrderDetail(userId: string, orderId: string) {
+    async getOrderDetail(userId: number, orderId: string) {
         try {
             // Get the master order
             const masterOrder = await this.orderRepo.findOne({

@@ -169,6 +169,15 @@ const Login = () => {
               Create Account
             </button>
           </p>
+          <p className="mt-4 text-center text-sm text-gray-400">
+              Are you a vendor?{" "}
+            <button
+              onClick={() => navigate("/vendor/login")}
+              className="text-[#4379EE] font-bold hover:underline cursor-pointer"
+            >
+              Login as Vendor
+            </button>
+          </p>
         </div>
       </div>
     </div>

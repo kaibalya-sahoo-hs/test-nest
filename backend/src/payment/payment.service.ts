@@ -89,7 +89,7 @@ export class PaymentService {
     }
     // Create a new Razorpay order
     const options = {
-      amount: Math.round(amount * 100),
+      amount: (amount * 100),
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
     };
@@ -316,6 +316,37 @@ export class PaymentService {
         }
 
         await this.cartService.clearCart(payment.order.user.id);
+      }
+    }else if(payload.event === 'payment.failed'){
+      const rzpOrder = payload.payload.payment.entity;
+      const rzpOrderId = rzpOrder.order_id;
+      const rzpPaymentId = rzpOrder.id;
+
+      const payment = await this.paymentRepo.findOne({
+        where: { razorpayOrderId: rzpOrderId },
+        relations: ['order', 'order.user'],
+      });
+
+      if(payment && payment.status){
+        payment.status = PaymentStatus.FAILED;
+        payment.razorpayPaymentId = rzpPaymentId;
+        await this.paymentRepo.save(payment);
+
+        await this.paymentLogService.createLog(
+          payment.id,
+          PaymentStatus.FAILED,
+        );
+
+        await this.orderRepo.update(payment.order.id, { status: 'pending' });
+
+        const subOrders = await this.orderRepo.find({
+          where: { parentOrder: { id: payment.order.id } },
+          relations: ['vendor'],
+        });
+
+        for (const subOrder of subOrders){
+          await this.orderRepo.update(subOrder.id, { status: 'pending' });
+        }
       }
     }
   }

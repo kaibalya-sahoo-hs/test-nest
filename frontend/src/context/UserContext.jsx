@@ -24,7 +24,7 @@ export function UserProvider({ children }) {
   };
 
   useEffect(() => {
-    console.log('called')
+    console.log(user)
     if(user){
       getBalance();
     }
