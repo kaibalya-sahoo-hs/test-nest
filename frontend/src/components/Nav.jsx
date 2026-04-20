@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import toast from "react-hot-toast";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router";
 import { IoMdNotifications } from "react-icons/io";
@@ -7,6 +7,7 @@ import { LuLogOut } from "react-icons/lu";
 import { FiUser, FiMenu, FiX } from "react-icons/fi";
 import { FaRupeeSign, FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import { useUser } from "../context/UserContext";
 
 function Nav() {
   const navigate = useNavigate();
@@ -16,20 +17,20 @@ function Nav() {
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const { cart, setCart } = useCart();
+  const { balance, setBalance, getBalance } = useUser();
+  const [user, setUser] = useState(null)
+
   // Determine role from localStorage
-  const userData = localStorage.getItem("user");
-  const user = userData ? JSON.parse(userData) : null;
 
   const cartPath = location.pathname !== "/cart";
   const productPaths = location.pathname.startsWith("/products");
-  const otherPaths = location.pathname === "/"
-  const checkoutPath = location.pathname === "/checkout"
-
+  const otherPaths = location.pathname === "/";
+  const checkoutPath = location.pathname === "/checkout";
 
   const isAdmin = user?.role === "admin";
-  const isVendor = user?.role === "vendor"
+  const isVendor = user?.role === "vendor";
 
-  const roleBadge = isAdmin ? "Admin" : (isVendor ? "Vendor" : "User");
+  const roleBadge = isAdmin ? "Admin" : isVendor ? "Vendor" : "User";
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -62,12 +63,19 @@ function Nav() {
   }, [sidebarOpen]);
 
   useEffect(() => {
-    const publicAuthPaths = ["/login", "/register", "/auth/register/complete"]
+    const userData = localStorage.getItem("user");
+    const user = userData ? JSON.parse(userData) : null;
+    setUser(user);
+    getBalance();
+  }, []);
+
+  useEffect(() => {
+    const publicAuthPaths = ["/login", "/register", "/auth/register/complete"];
     if (!user && !publicAuthPaths.includes(location.pathname)) {
-      sessionStorage.setItem('redirectTo', location.pathname)
-      console.log("Path saved to session storage", location.pathname)
+      sessionStorage.setItem("redirectTo", location.pathname);
+      console.log("Path saved to session storage", location.pathname);
     }
-  }, [location.pathname, user])
+  }, [location.pathname, user]);
 
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
@@ -93,9 +101,9 @@ function Nav() {
   }, []);
 
   const handleLogout = () => {
-    console.log("called")
-    localStorage.clear()
+    localStorage.clear();
     toast.success("Logout Successful");
+    setUser(null);
     navigate("/products");
     const emptyCart = {
       items: [],
@@ -104,12 +112,11 @@ function Nav() {
       total: 0,
       appliedCoupon: null,
     };
-    setCart(emptyCart)
+    setCart(emptyCart);
   };
 
   const handleLoginPress = () => {
     if (!user) {
-      console.log("Called");
       navigate("/login");
     }
   };
@@ -126,13 +133,22 @@ function Nav() {
   const publicLinks = [
     { path: "/products", label: "Products" }, // Change icon as needed
   ];
-  const userLinks = [{ path: "/profile", label: "My Profile" }, { path: "/orders", label: "Orders" }, { path: "/address", label: "Address" }];
+  const userLinks = [
+    { path: "/profile", label: "My Profile" },
+    { path: "/orders", label: "Orders" },
+    { path: "/address", label: "Address" },
+  ];
 
-  const vendorLinks = [{ path: "/vendor/dashboard", label: "Dashboard" }, { path: "/vendor/products", label: "Products" }, { path: "/vendor/profile", label: "Profile" }, { path: "/vendor/orders", label: "Orders" }]
+  const vendorLinks = [
+    { path: "/vendor/dashboard", label: "Dashboard" },
+    { path: "/vendor/products", label: "Products" },
+    { path: "/vendor/profile", label: "Profile" },
+    { path: "/vendor/orders", label: "Orders" },
+  ];
 
   let navLinks = [];
   if (user) {
-    navLinks = isAdmin ? adminLinks : (isVendor ? vendorLinks : userLinks);
+    navLinks = isAdmin ? adminLinks : isVendor ? vendorLinks : userLinks;
   }
   return (
     <div className="min-h-screen bg-[#F5F6FA]">
@@ -156,9 +172,7 @@ function Nav() {
           <span
             className="text-2xl font-bold tracking-tight cursor-pointer"
             onClick={() => {
-              navigate(
-                user?.role === "admin" ? "/admin/dashboard" : "/",
-              );
+              navigate(user?.role === "admin" ? "/admin/dashboard" : "/");
             }}
           >
             <span className="text-[#4379EE]">Dash</span>Stack
@@ -174,40 +188,47 @@ function Nav() {
               placeholder="Search"
               className="pl-10 pr-4 py-2 bg-[#F5F6FA] border border-gray-100 rounded-full text-sm w-72 focus:outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all"
             />
-            <span className="relative right-15 text-sm text-slate-300">Enter</span>
+            <span className="relative right-15 text-sm text-slate-300">
+              Enter
+            </span>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Notifications */}
-            {user?.role !== "admin" && user?.role !== "vendor" && <div
-              className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
-              aria-label="cart"
-              onClick={() => navigate("/cart")}
-            >
-              <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-[#4379EE]" />
-              {cart.items && cart.items.length > 0 && (
-                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-[#F93C65] text-white text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-white">
-                  {cart.items.length}
-                </span>
-              )}
-            </div>}
+            {user?.role !== "admin" && user?.role !== "vendor" && (
+              <div
+                className="relative cursor-pointer p-2 rounded-full hover:bg-gray-50"
+                aria-label="cart"
+                onClick={() => navigate("/cart")}
+              >
+                <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-[#4379EE]" />
+                {cart.items && cart.items.length > 0 && (
+                  <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-[#F93C65] text-white text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-white">
+                    {cart.items.length}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Profile Info + Dropdown */}
             {user ? (
               <div className="relative flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100">
-
-                {(
+                {
                   <div
                     className="text-sm flex items-center bg-gray-100 hover:bg-gray-200 rounded-2xl border border-gray-300 px-3 py-1.5 cursor-pointer transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`${user.role == "vendor" ? "vendor/profile/wallet" : "/profile/wallet"}`);
+                      navigate(
+                        `${user.role == "vendor" ? "vendor/profile/wallet" : "/profile/wallet"}`,
+                      );
                     }}
                   >
                     <FaRupeeSign className="mr-1 text-xs" />
-                    <span className="font-bold">{user.balance?.toLocaleString('en-IN')}</span>
+                    <span className="font-bold">
+                      {balance?.toLocaleString("en-IN")}
+                    </span>
                   </div>
-                )}
+                }
 
                 <div
                   className="flex items-center gap-2 cursor-pointer group"
@@ -217,7 +238,7 @@ function Nav() {
                     {user?.profile ? (
                       <img
                         src={user.profile}
-                        alt={'profile'}
+                        alt={"profile"}
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-100"
                       />
                     ) : (
@@ -237,8 +258,9 @@ function Nav() {
                   </div>
 
                   <CiCircleChevDown
-                    className={`hidden sm:block text-gray-400 group-hover:text-[#202224] transition-all duration-200 ${dropdownOpen ? "rotate-180" : ""
-                      }`}
+                    className={`hidden sm:block text-gray-400 group-hover:text-[#202224] transition-all duration-200 ${
+                      dropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
 
@@ -258,7 +280,7 @@ function Nav() {
                     <div className="mx-4 border-t border-gray-100"></div>
                     <button
                       onClick={() => {
-                        handleLogout()
+                        handleLogout();
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-[#F93C65] hover:bg-red-50 transition-colors"
                     >
@@ -278,7 +300,7 @@ function Nav() {
                   Login
                 </button>
                 <button
-                  onClick={() => navigate('/vendor/login')}
+                  onClick={() => navigate("/vendor/login")}
                   className="bg-white text-[#4379EE] border border-[#4379EE] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all"
                 >
                   Seller Login
@@ -328,9 +350,10 @@ function Nav() {
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${isActive
-                        ? "bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100"
-                        : "text-[#202224] hover:bg-gray-100 font-light"
+                      `relative mx-6 mt-2 flex items-center gap-3 px-6 py-3 rounded-lg text-sm transition-all w-full ${
+                        isActive
+                          ? "bg-[#4379EE] text-white font-semibold shadow-md shadow-blue-100"
+                          : "text-[#202224] hover:bg-gray-100 font-light"
                       }`
                     }
                   >

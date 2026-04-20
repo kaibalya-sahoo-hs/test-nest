@@ -1,39 +1,45 @@
-import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "src/users/users.entity";
-import { Repository } from "typeorm";
-import bcrypt from 'bcrypt'
+// src/database/seed.service.ts
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { User } from 'src/users/users.entity';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {
-    constructor(
-        @InjectRepository(User)
-        private readonly userRepo: Repository<User>
-    ) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
 
-        async onApplicationBootstrap() {
-            await this.seedAdmin()
-        }
+  async onApplicationBootstrap() {
+    await this.seedAdmin();
+  }
 
-        async seedAdmin(){
-            const adminEmail = process.env.ADMIN_EMAIL
-            const adminPasssword = process.env.ADMIN_PASSWORD
-            
-            const admin = await this.userRepo.findOne({where: {email: adminEmail}})
-            if(!admin){
-                let hashedPass
-                if(adminPasssword){
-                    hashedPass = await bcrypt.hash(adminPasssword, 10)
-                }
-                const user = this.userRepo.create({
-                    name: "Super Admin",
-                    email: adminEmail,
-                    password: hashedPass,
-                    role: 'admin'
-                })
+  async seedAdmin() {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-                await this.userRepo.save(user)
-                console.log("Admin saved succesfully")
-            }
-        }
+    const adminExists = await this.userRepo.findOne({
+      where: { email: adminEmail },
+    });
+
+    if (!adminExists) {
+      let hashedPassword;
+
+      if (adminPassword) {
+        hashedPassword = await bcrypt.hash(adminPassword, 10);
+      }
+
+      const admin = this.userRepo.create({
+        name: 'Super Admin',
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'admin',
+      });
+
+      await this.userRepo.save(admin);
+      console.log('✅ Default admin created successfully.');
+    }
+  }
 }

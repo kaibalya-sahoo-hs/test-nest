@@ -16,8 +16,8 @@ import { ApiLogsService } from './api-logs/api-logs.service';
 import { ApiLogsModule } from './api-logs/api-logs.module';
 import { ApiLog } from './api-logs/api-logs.entity';
 import { User } from './users/users.entity';
-import { redisStore } from 'cache-manager-redis-yet'
-import { CacheModule } from "@nestjs/cache-manager"
+import { redisStore } from 'cache-manager-redis-yet';
+import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bull';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/product.entity';
@@ -30,13 +30,36 @@ import { VendorModule } from './vendor/vendor.module';
 import { PaymentLogModule } from './payment-log/payment-log.module';
 import { WithdrawModule } from './withdraw/withdraw.module';
 import { SeedService } from './database/seed.service';
-
+import { MailerModule } from 'node_modules/@nestjs-modules/mailer/dist/mailer.module';
+import { join } from 'path';
+import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    BullModule.forRoot({redis: {host: 'localhost', port: 6379}}),
-    BullModule.registerQueue({name: 'user'}),
+     MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.GOOGLE_MAIL?.toString(),
+          pass: process.env.APP_PASSWORD?.toString(),
+        },
+      },
+      defaults: {
+        from: '"No Reply" <noreply@example.com>',
+      },
+      template: {
+        dir: join(process.cwd(), 'dist', 'mail', 'templates'),
+        adapter: new EjsAdapter(),
+        options: {
+          strict: false,
+        },
+      },
+    }),
+    BullModule.forRoot({ redis: { host: 'localhost', port: 6379 } }),
+    BullModule.registerQueue({ name: 'user' }),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
@@ -44,14 +67,14 @@ import { SeedService } from './database/seed.service';
     }),
     CacheModule.registerAsync({
       useFactory: async () => ({
-          isGlobal: true,
-          store: await redisStore({
-              url: 'redis://localhost:6379',
-              ttl: 60000,
-          })
-      })
-  }),
-    TypeOrmModule.forFeature([User ,ApiLog, Product, CartModule, Order]),
+        isGlobal: true,
+        store: await redisStore({
+          url: 'redis://localhost:6379',
+          ttl: 60000,
+        }),
+      }),
+    }),
+    TypeOrmModule.forFeature([User, ApiLog, Product, CartModule, Order]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -62,7 +85,7 @@ import { SeedService } from './database/seed.service';
       autoLoadEntities: true,
       synchronize: true, // dev only
     }),
-    
+
     UsersModule,
     MembersModule,
     AuthModule,

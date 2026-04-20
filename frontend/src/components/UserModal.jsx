@@ -1,16 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { FiCamera, FiX, FiMail, FiEdit2, FiCheck } from 'react-icons/fi';
+import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import { FiCamera, FiX, FiMail, FiEdit2, FiCheck } from "react-icons/fi";
 
-const UserModal = ({ isOpen, onClose, name, email,role, id, password, registartionToken, onUpdate, profile, onUploadSuccess }) => {
+const UserModal = ({
+  isOpen,
+  onClose,
+  name,
+  email,
+  role,
+  id,
+  password,
+  registartionToken,
+  onUpdate,
+  profile,
+  onUploadSuccess,
+}) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState({ name: '', id: '', role: '' });
+  const [formData, setFormData] = useState({ name: "", id: "", role: "" });
   const [isSending, setIsSending] = useState(false);
 
   // Sync internal form data when props change or edit mode opens
   useEffect(() => {
-    setFormData({ name: name || '', id: id || '', role: role || '' });
+    setFormData({ name: name || "", id: id || "", role: role || "" });
   }, [name, id, isOpen]);
 
   if (!isOpen) return null;
@@ -20,19 +32,19 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
 
     const uploadData = new FormData();
-    uploadData.append('id', id);
-    uploadData.append('file', file); // Field name as 'file' per requirements
+    uploadData.append("id", id);
+    uploadData.append("file", file); // Field name as 'file' per requirements
 
     setIsUploading(true);
     try {
-      const response = await fetch('http://localhost:8000/admin/uploadProfile', {
-        method: 'POST',
+      const response = await fetch("/admin/uploadProfile", {
+        method: "POST",
         body: uploadData,
       });
 
@@ -52,22 +64,22 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
 
   // 2. Edit User Feature (Patch Request)
   const handleSave = async () => {
-    console.log('called')
+    console.log("called");
     if (!formData.name) {
       toast.error("Name cannot be empty");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:8000/admin/edit', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/admin/edit", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: id, // Original ID to identify user
           updatedCredentials: {
             name: formData.name,
-            role: formData.role// Updated ID if changed
-          }
+            role: formData.role, // Updated ID if changed
+          },
         }),
       });
 
@@ -86,9 +98,9 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
   const handleSendMail = async () => {
     setIsSending(true);
     try {
-      const response = await fetch('http://localhost:8000/admin/send-mail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/admin/send-mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, registartionToken }),
       });
       if (response.ok) toast.success("Invite sent!");
@@ -103,12 +115,17 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Soft Blur Backdrop */}
-      <div className="absolute inset-0 bg-[#202224]/40 backdrop-blur-[2px]" onClick={onClose}></div>
+      <div
+        className="absolute inset-0 bg-[#202224]/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      ></div>
 
       <div className="relative w-full max-w-md bg-white rounded-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-
         {/* Close Button */}
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-[#F93C65] transition-colors">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-[#F93C65] transition-colors"
+        >
           <FiX size={24} />
         </button>
 
@@ -117,19 +134,35 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
           <div className="relative group">
             <div className="w-28 h-28 rounded-full border-4 border-[#F1F4F9] overflow-hidden bg-[#F5F6FA] flex items-center justify-center shadow-inner">
               {profile ? (
-                <img src={profile} alt={name} className="w-full h-full object-cover" />
+                <img
+                  src={profile}
+                  alt={name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <span className="text-4xl font-bold text-[#4379EE]">{name?.charAt(0).toUpperCase()}</span>
+                <span className="text-4xl font-bold text-[#4379EE]">
+                  {name?.charAt(0).toUpperCase()}
+                </span>
               )}
             </div>
 
             {/* Camera Overlay */}
             <label className="absolute bottom-1 right-1 bg-[#4379EE] text-white p-2 rounded-full cursor-pointer shadow-lg hover:scale-110 transition-transform">
               <FiCamera size={16} />
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} disabled={isUploading} />
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={isUploading}
+              />
             </label>
           </div>
-          {isUploading && <p className="text-[10px] text-[#4379EE] mt-2 font-bold animate-pulse">Uploading...</p>}
+          {isUploading && (
+            <p className="text-[10px] text-[#4379EE] mt-2 font-bold animate-pulse">
+              Uploading...
+            </p>
+          )}
         </div>
 
         {/* Form Content */}
@@ -137,12 +170,16 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
           {isEditMode ? (
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase ml-1">Full Name</label>
+                <label className="text-xs font-bold text-gray-400 uppercase ml-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   className="w-full bg-[#F5F6FA] border border-gray-100 rounded-xl p-3 text-sm font-semibold text-[#202224] focus:ring-2 focus:ring-[#4379EE]/20 outline-none transition-all"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
                 <label className="text-xs font-bold text-gray-400 uppercase ml-1 block mb-1">
                   Role
@@ -150,7 +187,9 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
                 <select
                   className="w-full bg-[#F5F6FA] border border-gray-100 rounded-xl p-3 text-sm font-semibold text-[#202224] focus:ring-2 focus:ring-[#4379EE]/20 outline-none transition-all appearance-none cursor-pointer"
                   value={formData.role} // Changed to .role to match logic
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
                 >
                   <option value="member">Member</option>
                   <option value="guest">Guest</option>
@@ -175,7 +214,9 @@ const UserModal = ({ isOpen, onClose, name, email,role, id, password, registarti
             <div className="text-center">
               <h2 className="text-2xl font-bold text-[#202224] mb-1">{name}</h2>
               <p className="text-sm text-gray-400 mb-6 font-medium">{email}</p>
-              <p className='text-sm text-gray-400 mb-6 font-medium'>Role - <span>{role}</span></p>
+              <p className="text-sm text-gray-400 mb-6 font-medium">
+                Role - <span>{role}</span>
+              </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <button

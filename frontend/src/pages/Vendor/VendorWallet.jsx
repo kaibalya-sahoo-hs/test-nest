@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
 import WithdrawalHistory from './VendorWithdrawals';
+import { useUser } from '../../context/UserContext';
 
 const VendorWallet = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [amount, setAmount] = useState('');
-  const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { balance, setBalance } = useUser();
 
   // Sync state with LocalStorage on mount
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    setBalance(parseFloat(savedUser.balance || 0));
+    setBalance(parseFloat(balance || 0));
   }, []);
 
   const handleWithdrawal = async (e) => {
@@ -43,6 +44,7 @@ const VendorWallet = () => {
         setAmount('');
       }
     } catch (err) {
+      console.log(err)
       alert(err.response?.data?.message || "Transaction failed. Please try again.");
     } finally {
       setLoading(false);

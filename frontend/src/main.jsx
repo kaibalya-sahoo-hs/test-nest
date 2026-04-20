@@ -1,20 +1,19 @@
+import { createRoot } from "react-dom/client";
+import { CartProvider } from "./context/CartContext";
+import "./index.css";
+import AllRoute from "./routes/AllRoute";
+import App from "./App";
+import { BrowserRouter } from "react-router";
+import { Toaster } from "react-hot-toast";
+import { UserProvider } from "./context/UserContext";
 
-import { createRoot } from 'react-dom/client'
-import { CartProvider } from './context/CartContext'
-import './index.css'
-import AllRoute from './routes/AllRoute'
-import App from './App'
-import { BrowserRouter } from 'react-router'
-import { Toaster } from 'react-hot-toast'
-
-createRoot(document.getElementById('root')).render(
-
+createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <CartProvider>
-      <Toaster />
-      <App />
-
+      <UserProvider>
+        <Toaster />
+        <App />
+      </UserProvider>
     </CartProvider>
-
-  </BrowserRouter>
-)
+  </BrowserRouter>,
+);

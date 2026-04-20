@@ -9,15 +9,19 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
-    private cloudinaryService: CloudinaryService
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   // Create a new product
-  async create(productData: Partial<Product>, file: Express.Multer.File): Promise<Product> {
-    const result = await this.cloudinaryService.uploadImage(file)
+  async create(
+    productData: Partial<Product>,
+    file: Express.Multer.File,
+  ): Promise<Product> {
+    console.log(productData)
+    const result = await this.cloudinaryService.uploadImage(file);
     const newProduct = this.productRepo.create(productData);
-    if(result?.url){
-      newProduct.image = result?.url
+    if (result?.url) {
+      newProduct.image = result?.url;
     }
     return await this.productRepo.save(newProduct);
   }
@@ -32,17 +36,20 @@ export class ProductService {
   // Find one by ID
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepo.findOne({ where: { id } });
-    if (!product) throw new NotFoundException(`Product with ID ${id} not found`);
+    if (!product)
+      throw new NotFoundException(`Product with ID ${id} not found`);
     return product;
   }
 
-  async getProductsByName(name: string){
+  async getProductsByName(name: string) {
     try {
-      const products = await this.productRepo.find({where: {name: Like(`%${name}%`)}})
-      return {products, success: true}
+      const products = await this.productRepo.find({
+        where: { name: Like(`%${name}%`) },
+      });
+      return { products, success: true };
     } catch (error) {
-      console.log("Error while searching ", error)
-      return {message: "Error while searching", success: false}
+      console.log('Error while searching ', error);
+      return { message: 'Error while searching', success: false };
     }
   }
 

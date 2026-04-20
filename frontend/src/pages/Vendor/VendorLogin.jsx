@@ -25,17 +25,19 @@ function VendorLogin() {
     if (!formData.email || !formData.password) {
       return toast.error("Please fill in all fields");
     }
-    console.log("Called")
     setLoading(true);
     try {
       const response = await api.post('/vendor/login', formData);
       
-      if (response.data.accessToken) {
+      if (response.data.success && response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+
         toast.success("Welcome to your dashboard!");
         navigate('/vendor/dashboard');
+      }else{
+        toast.error(response.data.message || "Login failed. Please check your credentials.");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");

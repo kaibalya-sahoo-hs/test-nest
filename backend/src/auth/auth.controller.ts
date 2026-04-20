@@ -12,6 +12,7 @@ export class AuthController {
 
     @Post('completeRegistration')
     async completeRegister(@Body() body: {token: string, password: string} ){
+        console.log(body)
         const {message, success} = await this.authService.completeRegistartion({token: body.token, password: body.password})
         if(!success){
             return {message: "Error while setting your password", success: false}

@@ -1,6 +1,14 @@
 import { User } from 'src/users/users.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+} from 'typeorm';
 
 @Entity('products')
 export class Product {
@@ -33,7 +41,9 @@ export class Product {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => Vendor, (vendor) => vendor.products)
-  vendor!: Vendor
+  @ManyToOne(() => User, (vendor) => vendor.products)
+  vendor!: User;
 
+  @Column({ nullable: true })
+  category: string; 
 }
