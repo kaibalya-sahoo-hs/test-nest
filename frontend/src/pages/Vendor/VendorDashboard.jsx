@@ -12,6 +12,7 @@ function VendorDashboard() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [vendorStatus, setVendorStatus] = useState(localStorage.getItem('vendorStatus'));
   const user = JSON.parse(localStorage.getItem('user'));
 
   const fetchDashboardData = async () => {
@@ -34,8 +35,22 @@ function VendorDashboard() {
     }
   };
 
+  async function fetchVendorStatus() {
+    try {
+      const { data } = await api.get('/vendor/vendorStatus');
+      localStorage.setItem('vendorStatus', JSON.stringify(data.vendorStatus));
+      setVendorStatus(data.vendorStatus);
+    } catch (error) {
+      console.error('Failed to fetch vendor status', error);
+    }
+  }
+
   useEffect(() => {
-    if (user?.vendorStatus === 'approved') {
+    fetchVendorStatus()
+  }, [])
+
+  useEffect(() => {
+    if (vendorStatus === 'approved') {
       fetchDashboardData();
     } else {
       setLoading(false);
@@ -54,7 +69,7 @@ function VendorDashboard() {
   };
 
   // Status banner for non-approved vendors
-  if (user?.vendorStatus !== 'approved') {
+  if (vendorStatus !== 'approved') {
     const statusMessages = {
       'pending': {
         icon: <FaClock className="text-amber-500" size={24} />,
@@ -79,7 +94,7 @@ function VendorDashboard() {
       },
     };
 
-    const statusInfo = statusMessages[user?.vendorStatus] || statusMessages['pending'];
+    const statusInfo = statusMessages[vendorStatus] || statusMessages['pending'];
 
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -87,7 +102,7 @@ function VendorDashboard() {
           <div className="flex justify-center mb-4">{statusInfo.icon}</div>
           <h2 className={`text-xl font-black ${statusInfo.color} mb-2`}>{statusInfo.title}</h2>
           <p className={`text-sm ${statusInfo.color} opacity-80`}>{statusInfo.message}</p>
-          {user?.vendorStatus === 'rejected' && (
+          {vendorStatus === 'rejected' && (
             <button
               onClick={() => { localStorage.clear(); navigate('/vendor/register'); }}
               className="mt-6 px-6 py-3 bg-[#4379EE] text-white font-bold rounded-xl hover:bg-[#3768D1] transition-all"

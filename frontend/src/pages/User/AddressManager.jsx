@@ -50,6 +50,11 @@ const AddressManager = () => {
         return;
       }
 
+      if(formData.fullName.trim() === "" || formData.phoneNumber.trim() === "" || formData.streetAddress.trim() === "" || formData.city.trim() === "" || formData.state.trim() === "" || formData.postalCode.toString().trim() === ""){
+        toast.error("Please fill all required fields");
+        return;
+      }
+
       // checkfor valid postal code
       if(formData.postalCode.toString().length < 4 || formData.postalCode.toString().length > 10){
         toast.error("Please enter a valid postal code");

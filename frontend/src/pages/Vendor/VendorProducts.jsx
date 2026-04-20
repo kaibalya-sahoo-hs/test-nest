@@ -12,6 +12,7 @@ function VendorProducts() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const user = JSON.parse(localStorage.getItem("user"));
+  const [vendorStatus, setVendorStatus] = useState(null);
 
   const fetchVendorProducts = async () => {
     try {
@@ -27,8 +28,18 @@ function VendorProducts() {
     }
   };
 
+  const fetchVendorStatus = async () => {
+    try {
+      const response = await api.get("/vendor/vendorStatus");
+      setVendorStatus(response.data.vendorStatus);
+    } catch (err) {
+      toast.error("Failed to load vendor status");
+    }
+  };
+
   useEffect(() => {
     fetchVendorProducts();
+    fetchVendorStatus();
   }, []);
 
   const handleDelete = async (id) => {
@@ -61,7 +72,7 @@ function VendorProducts() {
             Manage your store inventory and pricing
           </p>
         </div>
-        {user?.vendorStatus === "approved" && (
+        {vendorStatus === "approved" && (
           <button
             aria-label="add product"
             onClick={() => {
