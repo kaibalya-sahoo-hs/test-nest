@@ -66,15 +66,18 @@ export class AdminController {
     return this.adminService.deletUser(body.id);
   }
 
-  @Post('member')
-  async addMember(
-    @Body() body: { name: string; email: string; password: string },
+  @Post('user')
+  async addUser(
+    @Body() body,
   ) {
-    return await this.memberService.createMember(
-      body.name,
-      body.email,
-      body.password,
-    );
+    return await this.adminService.createUser(body);
+  }
+
+  @Post('vendor')
+  async addVendor(
+    @Body() body,
+  ) {
+    return await this.adminService.createVendor(body);
   }
 
   @Patch('edit')

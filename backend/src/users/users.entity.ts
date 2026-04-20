@@ -50,10 +50,10 @@ export class User {
   @Column({ nullable: true })
   storeDescription!: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 'pending' })
   vendorStatus!: 'pending' | 'approved' | 'rejected' | 'suspended';
 
-  @Column({ type: 'decimal', nullable: true })
+  @Column({ type: 'decimal', nullable: true, default: 0.10 })
   commisionRate!: number;
 
   @OneToMany(() => Product, (product) => product.vendor)

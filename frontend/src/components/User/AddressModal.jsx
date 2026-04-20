@@ -2,7 +2,6 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 const AddressModal = ({ onClose, onSave, initialData }) => {
-  console.log("Address modal called");
   const [formData, setFormData] = useState(
     initialData || {
       fullName: "",

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Razorpay from 'razorpay';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { Order } from './order.entity';
 import { Payment, PaymentStatus } from './payment.entity';
 import { CartService } from '../cart/cart.service';
@@ -64,17 +64,20 @@ export class PaymentService {
     if (!address) {
       return { message: 'Address is required', success: false };
     }
+    
 
     const existingPendingOrder = await this.orderRepo.findOne({
       where: {
         user: { id: userID },
-        status: 'pending',
+        status: In(['payment_failed', 'pending', 'awaiting_payment']),
         parentOrder: null as any,
       },
       relations: ['payments'],
     });
 
+
     if (existingPendingOrder) {
+      console.log('exisiting pending order')
       // Delete old sub-orders and payments, recreate fresh
       const oldSubOrders = await this.orderRepo.find({
         where: { parentOrder: { id: existingPendingOrder.id } },
@@ -82,10 +85,7 @@ export class PaymentService {
       for (const sub of oldSubOrders) {
         await this.orderRepo.remove(sub);
       }
-      for (const payment of existingPendingOrder.payments) {
-        await this.paymentRepo.remove(payment);
-      }
-      await this.orderRepo.remove(existingPendingOrder);
+      await this.orderRepo.delete({id: existingPendingOrder.id});
     }
     // Create a new Razorpay order
     const options = {
@@ -188,6 +188,7 @@ export class PaymentService {
     const newPayment = this.paymentRepo.create(paymentData);
     const saevdPayment = await this.paymentRepo.save(newPayment);
 
+    console.log('created log for pending')
     await this.paymentLogService.createLog(
       saevdPayment.id,
       PaymentStatus.PENDING,
@@ -236,6 +237,7 @@ export class PaymentService {
         await this.paymentRepo.save(payment);
 
         // creating a new Payment log for the payment
+        console.log('payment complteted')
         await this.paymentLogService.createLog(
           payment.id,
           PaymentStatus.COMPLETED,
@@ -332,13 +334,14 @@ export class PaymentService {
         payment.razorpayPaymentId = rzpPaymentId;
         await this.paymentRepo.save(payment);
 
+        console.log('payment failed')
+        
         await this.paymentLogService.createLog(
           payment.id,
           PaymentStatus.FAILED,
         );
 
-        await this.orderRepo.update(payment.order.id, { status: 'pending' });
-
+        await this.orderRepo.update(payment.order.id, { status: 'payment_failed' });
         const subOrders = await this.orderRepo.find({
           where: { parentOrder: { id: payment.order.id } },
           relations: ['vendor'],

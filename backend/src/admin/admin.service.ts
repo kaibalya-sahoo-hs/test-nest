@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { User } from 'src/users/users.entity';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
@@ -22,13 +22,78 @@ export class AdminService {
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     private cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   deletUser(id: number) {
     const user = this.userRepo.delete(id);
     return user;
   }
 
+  async createUser(userDetails) {
+    const existingUser = await this.userRepo.findOne({ where: { email: userDetails.email } })
+
+    if (existingUser) {
+      return { return: 'user already exist', success: false }
+    }
+
+    const hasedPass = await bcrypt.hash(userDetails.password, 10)
+    const newUser = await this.userRepo.create({
+      email: userDetails.email,
+      name: userDetails.name,
+      password: hasedPass,
+      role: userDetails.role,
+    })
+
+    const savedUser = await this.userRepo.save(newUser)
+    return { 
+      message: 'new user created',
+      success: true, 
+      user: { 
+        id: savedUser.id,
+        email: savedUser.email, 
+        name: savedUser.name, 
+        role: savedUser.role 
+      }}
+  }
+
+  async createVendor(userDetails){
+    const existingUser = await this.userRepo.findOne({ where: { email: userDetails.email, role: 'vendor' } })
+
+    if (existingUser) {
+      return { message: 'vendor already exist', success: false }
+    }
+
+    const hasedPass = await bcrypt.hash(userDetails.password, 10)
+    const newUser = await this.userRepo.create({
+      email: userDetails.email,
+      name: userDetails.name,
+      password: hasedPass,
+      role: userDetails.role,
+      storeName: userDetails.storeName,
+      storeDescription: userDetails.storeDescription
+    })
+
+    const savedUser = await this.userRepo.save(newUser)
+
+    const orderCount = await this.orderRepo.count({where: {vendor: {id: savedUser.id}, parentOrder: {id: Not(IsNull())}}})
+    const productCount = await this.productRepo.count({where: {vendor: {id: savedUser.id}}})
+
+    return { 
+      message: 'new user created',
+      success: true, 
+      vendor: { 
+        id: savedUser.id,
+        email: savedUser.email, 
+        name: savedUser.name, 
+        role: savedUser.role,
+        storeName: savedUser.storeName,
+        profile: savedUser.profile,
+        commisionRate: savedUser.commisionRate,
+        vendorStatus: savedUser.vendorStatus,
+        orderCount,
+        productCount
+      }}
+  }
   findAllUsers() {
     return this.userRepo.find();
   }
@@ -148,7 +213,7 @@ export class AdminService {
         where.vendorStatus = status;
       }
       const vendors = await this.userRepo.find({
-        where: { role: 'vendor' },
+        where: { role: 'vendor', ...where },
         order: { id: 'DESC' },
       });
 

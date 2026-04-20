@@ -73,7 +73,7 @@ function Nav() {
 
   useEffect(() => {
     const publicAuthPaths = ["/login", "/register", "/auth/register/complete"];
-    if (!user && !publicAuthPaths.includes(location.pathname)) {
+    if (!user && !publicAuthPaths.includes(location.pathname) && !location.pathname.startsWith("/vendor") && location.pathname.startsWith('/admin')) {
       sessionStorage.setItem("redirectTo", location.pathname);
       console.log("Path saved to session storage", location.pathname);
     }

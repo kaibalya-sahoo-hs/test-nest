@@ -126,7 +126,7 @@ export class AuthService {
             role: existingUser.role
         };
 
-        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '10min' });
+        const accessToken = await this.JwtService.signAsync(payload, { expiresIn: '10m' });
         const refreshToken = await this.JwtService.signAsync({ ...payload, type: 'refresh' }, { expiresIn: '30m' });
 
         return {

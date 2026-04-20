@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiCheck, FiX, FiPause, FiChevronDown, FiChevronUp, FiEdit2 } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiX, FiPause, FiChevronDown, FiChevronUp, FiEdit2, FiUserPlus } from 'react-icons/fi';
 import { LuUsers, LuShieldCheck, LuShieldAlert, LuClock } from 'react-icons/lu';
 import { FaStore } from 'react-icons/fa6';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import CreateVendorForm from '../components/Admin/CreateVendorFrom';
 
 function VendorManagement() {
   const [vendors, setVendors] = useState([]);
@@ -13,6 +14,7 @@ function VendorManagement() {
   const [expandedId, setExpandedId] = useState(null);
   const [editingCommission, setEditingCommission] = useState(null);
   const [commissionInput, setCommissionInput] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const fetchVendors = async () => {
     try {
@@ -28,6 +30,11 @@ function VendorManagement() {
       setLoading(false);
     }
   };
+
+
+  const createVendor = () => {
+      setShowAddForm(true);
+  }
 
   useEffect(() => { fetchVendors(); }, [filter]);
 
@@ -124,11 +131,17 @@ function VendorManagement() {
     <div className="bg-[#F5F6FA] min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-[#202224]">Vendor Management</h1>
-            <p className="text-gray-400 text-sm mt-1">Manage vendor applications and settings</p>
-          </div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-[#202224]">Vendor Management</h1>
+              <p className="text-gray-400 text-sm mt-1">Manage vendor applications and settings</p>
+            </div>
+            <button
+              onClick={createVendor}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-all"
+            >
+              <FiUserPlus size={16} /> Create Vendor
+            </button>
         </div>
 
         {/* Stats */}
@@ -158,7 +171,7 @@ function VendorManagement() {
           <div className="bg-white rounded-xl p-5 border border-gray-50">
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-sm text-[#202224] font-semibold opacity-70">Active</span>
+                <span className="text-sm text-[#202224] font-semibold opacity-70">Approved</span>
                 <p className="text-2xl font-bold text-[#202224]">{stats.approved}</p>
               </div>
               <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-600">
@@ -360,6 +373,10 @@ function VendorManagement() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        <div>
+          {showAddForm && <CreateVendorForm setShowAddForm={setShowAddForm} setVendors={setVendors} />}
         </div>
       </div>
     </div>

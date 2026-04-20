@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Papa from "papaparse";
-import { FiFilter, FiPlus, FiX, FiChevronDown } from "react-icons/fi";
+import { FiFilter, FiPlus, FiX, FiChevronDown, FiUserPlus, FiUser, FiLock, FiShield, FiMail } from "react-icons/fi";
 import { LuRotateCcw } from "react-icons/lu";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -223,11 +223,10 @@ const Users = () => {
                         setRoleFilter(opt);
                         setRoleDropOpen(false);
                       }}
-                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${
-                        roleFilter === opt
-                          ? "bg-[#4379EE] text-white font-bold"
-                          : "text-[#202224] hover:bg-gray-50 font-medium"
-                      }`}
+                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${roleFilter === opt
+                        ? "bg-[#4379EE] text-white font-bold"
+                        : "text-[#202224] hover:bg-gray-50 font-medium"
+                        }`}
                     >
                       {opt === "All"
                         ? "All Roles"
@@ -263,11 +262,10 @@ const Users = () => {
                         setSortOrder(opt);
                         setSortDropOpen(false);
                       }}
-                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${
-                        sortOrder === opt
-                          ? "bg-[#4379EE] text-white font-bold"
-                          : "text-[#202224] hover:bg-gray-50 font-medium"
-                      }`}
+                      className={`block w-full text-left px-5 py-3 text-sm transition-colors ${sortOrder === opt
+                        ? "bg-[#4379EE] text-white font-bold"
+                        : "text-[#202224] hover:bg-gray-50 font-medium"
+                        }`}
                     >
                       {opt}
                     </button>
@@ -287,16 +285,23 @@ const Users = () => {
             </button>
           </div>
         </div>
-        <div>
-          <label className="bg-[#4379EE] text-white px-4 py-4 text-sm font-bold rounded-lg cursor-pointer shadow-lg hover:scale-110 transition-transform">
-            Import from a CSV
-            <input
-              type="file"
-              className="hidden"
-              accept=".csv"
-              onChange={handleImport}
-            />
-          </label>
+        <div className="flex justify-center items-center">
+          <div>
+            <button className="bg-[#4379EE] text-white px-4 py-4 text-sm font-bold rounded-lg cursor-pointer shadow-lg hover:scale-110 transition-transform mr-4" onClick={() => setShowAddForm(true)}>
+              Add user
+            </button>
+          </div>
+          <div>
+            <label className="bg-[#4379EE] text-white px-4 py-4 text-sm font-bold rounded-lg cursor-pointer shadow-lg hover:scale-110 transition-transform">
+              Import from a CSV
+              <input
+                type="file"
+                className="hidden"
+                accept=".csv"
+                onChange={handleImport}
+              />
+            </label>
+          </div>
         </div>
       </div>
 
@@ -396,8 +401,151 @@ const Users = () => {
           </table>
         </div>
       </div>
+      {showAddForm && (
+        <div>
+          <CreateUserForm setShowAddForm={setShowAddForm} setUsers={setUsers} />
+        </div>
+      )}
     </div>
   );
 };
 
 export default Users;
+
+
+
+const CreateUserForm = ({ setShowAddForm, setUsers }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'guest'
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if(!formData.name || !formData.email || !formData.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if(formData.name.trim() === '' || formData.email.trim() === '' || formData.password.trim() === '') {
+      toast.error("Fields cannot be empty");
+      return;
+    }
+    const { data } = await api.post('/admin/user', formData);
+    if (data.success) {
+      toast.success(`User ${formData.name} created as ${formData.role}`);
+      setShowAddForm(false);
+      setUsers((prevUsers) => [...prevUsers, data.user]);
+    } else {
+      toast.error(data.message || "Failed to create user");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-20 ">
+
+      <div className="max-w-md bg-white mx-auto rounded-2xl shadow-xl p-8 border border-gray-100 md:mt-20">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-blue-100 p-3 rounded-lg text-blue-600">
+            <FiUserPlus size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">Create New User</h2>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Full Name Field */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+            <div className="relative">
+              <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                name="email"
+                required
+                placeholder="john.doe@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Role Selection Field */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Role</label>
+            <div className="relative">
+              <FiShield className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all cursor-pointer"
+              >
+                <option value="admin">Admin</option>
+                <option value="vendor">Vendor</option>
+                <option value="guest">Guest</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold py-4 rounded-xl transition-all transform active:scale-[0.98]"
+              onClick={() => setShowAddForm(false)}
+            >
+              Close Form
+            </button>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all transform active:scale-[0.98]"
+            >
+              Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
