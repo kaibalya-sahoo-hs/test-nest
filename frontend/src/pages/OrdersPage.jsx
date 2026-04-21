@@ -29,6 +29,7 @@ function OrdersPage() {
     setDetailLoading(true);
     try {
       const { data } = await api.get(`/users/my-orders/${orderId}`);
+      console.log(data)
       if (data.success) {
         setOrderDetail(data.order);
       }

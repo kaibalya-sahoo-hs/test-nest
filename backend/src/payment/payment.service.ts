@@ -70,12 +70,14 @@ export class PaymentService {
       where: {
         user: { id: userID },
         status: In(['payment_failed', 'pending', 'awaiting_payment']),
-        parentOrder: null as any,
+        parentOrder: {id: IsNull()},
       },
       relations: ['payments'],
     });
 
-    console.log("Pending order:", existingPendingOrder);
+    console.log(existingPendingOrder?.id)
+
+
 
     // Create a new Razorpay order
     const options = {
@@ -124,6 +126,7 @@ export class PaymentService {
     let masterOrder: Order;
     if (existingPendingOrder) {
       masterOrder = existingPendingOrder;
+      console.log("eexsting order id: ", existingPendingOrder.id)
       await this.orderRepo.update(masterOrder.id, {
         status: 'pending',
         items: cartItems,
@@ -133,6 +136,8 @@ export class PaymentService {
         couponType: coupon?.creatorType || undefined,
       });
       
+      console.log("after updated", masterOrder.id)
+
       // Delete old sub-orders for retry
       await this.orderRepo.delete({ parentOrder: { id: masterOrder.id } });
       
@@ -152,7 +157,7 @@ export class PaymentService {
         );
       }
     } else {
-      // Create master order
+      console.log('new order')
       const masterOrderData: Partial<Order> = {
         user: { id: userID } as any,
         items: cartItems,
@@ -165,6 +170,7 @@ export class PaymentService {
       masterOrder = await this.orderRepo.save(
         this.orderRepo.create(masterOrderData),
       );
+      console.log("New order id", masterOrder.id)
     }
 
     // Create new payment record for the new Razorpay order
@@ -269,10 +275,7 @@ export class PaymentService {
           payment.id,
           PaymentStatus.COMPLETED,
         );
-
-        console.log('payment complteted')
-
-        // Updating the order status
+        console.log(payment.order.id)
         await this.orderRepo.update(payment.order.id, { status: 'paid' });
 
         const subOrders = await this.orderRepo.find({
