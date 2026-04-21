@@ -18,7 +18,7 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Order, { nullable: true })
+  @ManyToOne(() => Order, { nullable: true, onDelete: "CASCADE"})
   parentOrder: Order;
 
   @OneToMany(() => Order, (order) => order.parentOrder)

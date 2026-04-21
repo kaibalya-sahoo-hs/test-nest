@@ -149,7 +149,6 @@ export class AuthService {
         try {
             const payload = await this.JwtService.verifyAsync(refreshToken);
 
-            console.log("Trigred ", payload)
 
             if (payload.type !== 'refresh') {
                 return { message: "Invalid token type", success: false };

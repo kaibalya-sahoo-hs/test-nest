@@ -64,7 +64,7 @@ export class PaymentService {
     if (!address) {
       return { message: 'Address is required', success: false };
     }
-    
+
 
     const existingPendingOrder = await this.orderRepo.findOne({
       where: {
@@ -75,18 +75,8 @@ export class PaymentService {
       relations: ['payments'],
     });
 
+    console.log("Pending order:", existingPendingOrder);
 
-    if (existingPendingOrder) {
-      console.log('exisiting pending order')
-      // Delete old sub-orders and payments, recreate fresh
-      const oldSubOrders = await this.orderRepo.find({
-        where: { parentOrder: { id: existingPendingOrder.id } },
-      });
-      for (const sub of oldSubOrders) {
-        await this.orderRepo.remove(sub);
-      }
-      await this.orderRepo.delete({id: existingPendingOrder.id});
-    }
     // Create a new Razorpay order
     const options = {
       amount: (amount * 100),
@@ -94,6 +84,7 @@ export class PaymentService {
       receipt: `receipt_${Date.now()}`,
     };
     const rzpOrder = await this.razorpay.orders.create(options);
+
     // Group cart items by vendor
     const vendorGroups = new Map();
     for (const item of cartItems) {
@@ -130,21 +121,69 @@ export class PaymentService {
     );
     totalDiscount = totalBeforeDiscount - amount; // difference is the discount applied
 
-    // Create master order
-    const masterOrderData: Partial<Order> = {
-      user: { id: userID } as any,
-      items: cartItems,
-      totalAmount: amount,
-      status: 'pending',
-      couponCode: coupon?.code || undefined,
-      discount: totalDiscount,
-      couponType: coupon?.creatorType || undefined,
-    };
-    const masterOrder = await this.orderRepo.save(
-      this.orderRepo.create(masterOrderData),
-    );
-    // Get delivery address
+    let masterOrder: Order;
+    if (existingPendingOrder) {
+      masterOrder = existingPendingOrder;
+      await this.orderRepo.update(masterOrder.id, {
+        status: 'pending',
+        items: cartItems,
+        totalAmount: amount,
+        couponCode: coupon?.code || undefined,
+        discount: totalDiscount,
+        couponType: coupon?.creatorType || undefined,
+      });
+      
+      // Delete old sub-orders for retry
+      await this.orderRepo.delete({ parentOrder: { id: masterOrder.id } });
+      
+      // Mark old payments as FAILED instead of deleting (to preserve payment logs)
+      const oldPayments = await this.paymentRepo.find({
+        where: { order: { id: masterOrder.id } },
+      });
+      
+      for (const oldPayment of oldPayments) {
+        oldPayment.status = PaymentStatus.FAILED;
+        await this.paymentRepo.save(oldPayment);
+        
+        // Create log for the failed payment
+        await this.paymentLogService.createLog(
+          oldPayment.id,
+          PaymentStatus.FAILED,
+        );
+      }
+    } else {
+      // Create master order
+      const masterOrderData: Partial<Order> = {
+        user: { id: userID } as any,
+        items: cartItems,
+        totalAmount: amount,
+        status: 'pending',
+        couponCode: coupon?.code || undefined,
+        discount: totalDiscount,
+        couponType: coupon?.creatorType || undefined,
+      };
+      masterOrder = await this.orderRepo.save(
+        this.orderRepo.create(masterOrderData),
+      );
+    }
 
+    // Create new payment record for the new Razorpay order
+    const paymentData: Partial<Payment> = {
+      razorpayOrderId: rzpOrder.id,
+      status: PaymentStatus.PENDING,
+      order: masterOrder as Order,
+      amount,
+    };
+    const newPayment = this.paymentRepo.create(paymentData);
+    await this.paymentRepo.save(newPayment);
+
+    await this.paymentLogService.createLog(
+      newPayment.id,
+      PaymentStatus.PENDING,
+    );
+
+    // Create sub-orders per vendor with proportional coupon splitting
+    
     // Create sub-orders per vendor with proportional coupon splitting
     for (const [vendorId, items] of vendorGroups) {
       const subTotal = items.reduce(
@@ -163,7 +202,7 @@ export class PaymentService {
         subCouponCode = coupon.code;
         subCouponType = coupon.creatorType;
       }
-
+      
       const subOrderEntity = this.orderRepo.create({
         parentOrder: masterOrder,
         vendor: { id: vendorId } as any,
@@ -178,21 +217,6 @@ export class PaymentService {
       } as any);
       await this.orderRepo.save(subOrderEntity);
     }
-    // Create payment record
-    const paymentData: Partial<Payment> = {
-      razorpayOrderId: rzpOrder.id,
-      status: PaymentStatus.PENDING,
-      order: masterOrder as Order,
-      amount,
-    };
-    const newPayment = this.paymentRepo.create(paymentData);
-    const saevdPayment = await this.paymentRepo.save(newPayment);
-
-    console.log('created log for pending')
-    await this.paymentLogService.createLog(
-      saevdPayment.id,
-      PaymentStatus.PENDING,
-    );
     return rzpOrder;
   }
 
@@ -212,6 +236,7 @@ export class PaymentService {
   }
 
   async updatePaymentToDB(payload: any, signature: string) {
+    console.log('webhook triggered')
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 
     const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -223,25 +248,29 @@ export class PaymentService {
     }
 
     if (payload.event === 'payment.captured') {
+      console.log('Payment captured')
       const rzpOrder = payload.payload.payment.entity;
       const rzpOrderId = rzpOrder.order_id;
       const rzpPaymentId = rzpOrder.id;
-
       const payment = await this.paymentRepo.findOne({
         where: { razorpayOrderId: rzpOrderId },
         relations: ['order', 'order.user'],
       });
-      if (payment && payment.status !== PaymentStatus.COMPLETED) {
+
+      console.log(payment)
+
+      if (payment) {
         payment.status = PaymentStatus.COMPLETED;
         payment.razorpayPaymentId = rzpPaymentId;
         await this.paymentRepo.save(payment);
 
         // creating a new Payment log for the payment
-        console.log('payment complteted')
         await this.paymentLogService.createLog(
           payment.id,
           PaymentStatus.COMPLETED,
         );
+
+        console.log('payment complteted')
 
         // Updating the order status
         await this.orderRepo.update(payment.order.id, { status: 'paid' });
@@ -319,7 +348,7 @@ export class PaymentService {
 
         await this.cartService.clearCart(payment.order.user.id);
       }
-    }else if(payload.event === 'payment.failed'){
+    } else if (payload.event === 'payment.failed') {
       const rzpOrder = payload.payload.payment.entity;
       const rzpOrderId = rzpOrder.order_id;
       const rzpPaymentId = rzpOrder.id;
@@ -329,13 +358,13 @@ export class PaymentService {
         relations: ['order', 'order.user'],
       });
 
-      if(payment && payment.status){
+      if (payment && payment.status) {
         payment.status = PaymentStatus.FAILED;
         payment.razorpayPaymentId = rzpPaymentId;
         await this.paymentRepo.save(payment);
 
         console.log('payment failed')
-        
+
         await this.paymentLogService.createLog(
           payment.id,
           PaymentStatus.FAILED,
@@ -347,11 +376,11 @@ export class PaymentService {
           relations: ['vendor'],
         });
 
-        for (const subOrder of subOrders){
+        for (const subOrder of subOrders) {
           await this.orderRepo.update(subOrder.id, { status: 'pending' });
         }
       }
-    }
+    } 
   }
 
   verifySignature(

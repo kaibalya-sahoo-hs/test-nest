@@ -52,10 +52,9 @@ function CheckoutPage() {
           cartItems: cart.items,
         });
         const order = response.data;
-        console.log(order);
         const options = {
           key: import.meta.env.VITE_RAZORPAY_TEST_KEY, // Your Public Key ID
-          amount: order.discountedAmount,
+          amount: order.amount,
           currency: order.currency,
           name: "DashStack Store",
           description: "Random Description",
