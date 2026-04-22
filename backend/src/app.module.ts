@@ -33,6 +33,7 @@ import { SeedService } from './database/seed.service';
 import { MailerModule } from 'node_modules/@nestjs-modules/mailer/dist/mailer.module';
 import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
+import { EmbeddingModule } from './embedding/embedding.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
     VendorModule,
     PaymentLogModule,
     WithdrawModule,
+    EmbeddingModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService, SeedService],

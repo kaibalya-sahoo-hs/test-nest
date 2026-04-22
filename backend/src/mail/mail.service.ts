@@ -45,7 +45,7 @@ export class MailService {
         }
     }
 
-    async sendOrderConfirmationMail(email, orderDetails) {
+    async sendOrderConfirmationMail(email, orderDetails, pdfBuffer) {
 
         await this.mailerService.sendMail({
             to: email,
@@ -63,6 +63,12 @@ export class MailService {
             <p style="color: #444; line-height: 1.6;">Your order is being processed and will be shipped soon. You can track your order status in your dashboard.</p>
         </div>
             `,
+            attachments: [
+                {
+                    filename: `order_${orderDetails.id}_confirmation.pdf`,
+                    content: pdfBuffer,
+                },
+            ],
         })
 
     }

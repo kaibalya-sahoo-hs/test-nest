@@ -3,23 +3,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { Like, Repository } from 'typeorm';
 import { Product } from './product.entity';
+import { EmbeddingService } from 'src/embedding/embedding.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    private embeddingService: EmbeddingService,
     private cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   // Create a new product
   async create(
     productData: Partial<Product>,
     file: Express.Multer.File,
   ): Promise<Product> {
-    console.log(productData)
     const result = await this.cloudinaryService.uploadImage(file);
     const newProduct = this.productRepo.create(productData);
+
     if (result?.url) {
       newProduct.image = result?.url;
     }
@@ -73,4 +75,27 @@ export class ProductService {
     await this.productRepo.remove(product);
     return { deleted: true };
   }
+
+  async getSimilarSuggestions(productId: string) {
+    const product = await this.productRepo.findOne({ where: { id: productId }, relations: ['tags'] })
+
+    let keyWords = product?.tags
+      .map(tag => tag.name.trim().toLowerCase())
+      .filter(Boolean)
+      .join(' | ');
+
+
+    const products = await this.productRepo.query(`
+          SELECT DISTINCT p.*
+          FROM products p
+          JOIN product_tags pt ON pt."productsId" = p.id
+          JOIN tags t ON t.id = pt."tagsId"
+          WHERE to_tsvector(t.name)
+          @@ to_tsquery($1)
+          AND p.id != $2
+      `, [keyWords, productId])
+
+    return { success: true, products }
+  }
+
 }

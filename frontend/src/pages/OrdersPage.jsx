@@ -29,7 +29,6 @@ function OrdersPage() {
     setDetailLoading(true);
     try {
       const { data } = await api.get(`/users/my-orders/${orderId}`);
-      console.log(data)
       if (data.success) {
         setOrderDetail(data.order);
       }
@@ -109,7 +108,7 @@ function OrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-2xl border border-gray-50 shadow-sm overflow-hidden hover:border-blue-100 transition-all"
+              className="bg-white rounded-md border border-gray-50 shadow-sm overflow-hidden hover:border-blue-100 transition-all"
             >
               {/* Order Card Header */}
               <div className="p-6">
@@ -133,17 +132,9 @@ function OrdersPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400 font-medium">
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                          day: '2-digit', month: 'long', year: 'numeric'
-                        })}
-                      </p>
-                      <p className="text-xs text-gray-300 font-mono mt-0.5">
-                        #{order.id.slice(0, 12).toUpperCase()}
-                      </p>
-                      <div className="flex flex-wrap gap-1 mt-2">
+                       <div className="flex flex-wrap gap-1 mt-2">
                         {order.items.slice(0, 2).map((item, idx) => (
-                          <span key={idx} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                          <span key={idx} className="text-lg text-black">
                             {item.productName}
                           </span>
                         ))}
@@ -153,6 +144,15 @@ function OrdersPage() {
                           </span>
                         )}
                       </div>
+                      <p className="text-sm text-gray-400 font-medium">
+                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                          day: '2-digit', month: 'long', year: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-xs text-gray-300 font-mono mt-0.5">
+                        #{order.id.slice(0, 12).toUpperCase()}
+                      </p>
+                     
                     </div>
                   </div>
 

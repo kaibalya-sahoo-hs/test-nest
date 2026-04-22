@@ -18,8 +18,13 @@ function ProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [suggestedProducts, setSuggestedProducts] = useState([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
+
   const { cart, addToCart, updateQuantity, removeItem } = useCart();
   const user = localStorage.getItem("user");
+
+
   const cartItem =
     cart?.items &&
     product &&
@@ -43,6 +48,15 @@ function ProductPage() {
     }
   };
 
+  const fetchRecomendedProducts = async () => {
+    const { data } = await api.get(`/products/suggest/${id}`)
+    if (!data && !data.success) {
+      toast.error('error while fetching')
+    }
+    setSuggestedProducts(data.products)
+    setLoadingProducts(false)
+  }
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -59,6 +73,7 @@ function ProductPage() {
       }
     };
     fetchProduct();
+    fetchRecomendedProducts()
   }, [id, cart]);
 
   if (loading)
@@ -89,7 +104,7 @@ function ProductPage() {
 
       <div className="flex flex-col md:flex-row">
         {/* Left Side: Sticky Image Container */}
-        <div className="md:w-1/2 bg-[#F9FAFB] md:h-fit md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
+        <div className="md:w-1/2 bg-gray-200 md:h-fit md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
           <img
             src={
               product.image ||
@@ -101,37 +116,14 @@ function ProductPage() {
         </div>
 
         {/* Right Side: Scrollable Details */}
-        <div className="md:w-1/2 h-fit p-8 sm:p-12">
+        <div className="md:w-1/2 h-fit pl-8">
           <div className="max-w-xl mx-auto md:mx-0">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <span className="text-[#4379EE] text-sm font-bold uppercase tracking-wider">
-                  New Arrival
-                </span>
                 <h1 className="text-4xl font-bold text-[#202224] mt-1">
                   {product.name}
                 </h1>
               </div>
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-6">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
-                    key={star}
-                    size={18}
-                    className={
-                      star <= Math.round(product.rating || 0)
-                        ? "text-[#FFAD33]"
-                        : "text-gray-200"
-                    }
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-400 font-medium">
-                ({product.rating || 0} reviews)
-              </span>
             </div>
 
             {/* Price */}
@@ -204,6 +196,53 @@ function ProductPage() {
             ) : null}
             <div className="sticky bottom-8 md:static"></div>
           </div>
+        </div>
+      </div>
+      <div className="mt-6">
+        <h1 className="text-xl font-semibold mb-4">Recommended</h1>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {suggestedProducts.length === 0 ? (
+            <p className="col-span-full text-gray-500">Loading...</p>
+          ) : (
+            suggestedProducts.map((product) => (
+              <div
+                key={product.id}
+                className="flex flex-col justify-between bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition duration-300"
+              >
+                <div className="h-48 w-full overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <h2 className="text-lg font-semibold line-clamp-1">
+                    {product.name}
+                  </h2>
+
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-lg font-bold text-blue-600">
+                      ₹{product.price}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Stock: {product.stock}
+                    </span>
+                  </div>
+
+                  <button className="w-full mt-3 bg-blue-500 text-white py-2 rounded-xl hover:bg-blue-600 transition" onClick={() => navigate(`/products/${product.id}`)}>
+                    View Product
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

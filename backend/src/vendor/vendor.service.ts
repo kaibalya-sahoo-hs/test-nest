@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/product.entity';
 import { CloudinaryService } from 'src/upload/upload.service';
-import { Like, Repository, IsNull, Not } from 'typeorm';
+import { Like, Repository, IsNull, Not, In } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { Order } from 'src/payment/order.entity';
 import { Vendor } from './vendor.entity';
@@ -16,6 +16,8 @@ import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
 import { User } from 'src/users/users.entity';
 import { retry } from 'rxjs';
+import { CreateProductDto } from 'src/product/product.dto';
+import { Tag } from 'src/product/tag.entity';
 
 @Injectable()
 export class VendorService {
@@ -31,6 +33,8 @@ export class VendorService {
     private withdrawRepo: Repository<Withdraw>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(Tag)
+    private tagRepo: Repository<Tag>,
     private cloudinaryService: CloudinaryService,
 
     private jwtService: JwtService,
@@ -148,10 +152,39 @@ export class VendorService {
 
   // Create a new product
   async createProduct(
-    productData: Partial<Product>,
+    productData: CreateProductDto,
     file: Express.Multer.File,
     userID,
   ) {
+  // 1️⃣ Normalize tags (trim, lowercase, filter empty)
+  const normalizedTags = productData.tags
+    .split(',')
+    .map(tag => tag.trim().toLowerCase())
+    .filter(tag => tag.length > 0);
+
+  // 2️⃣ Find existing tags
+  const existingTags = normalizedTags.length > 0
+    ? await this.tagRepo.find({
+        where: {
+          name: In(normalizedTags),
+        },
+      })
+    : [];
+
+  const existingNames = existingTags.map(t => t.name);
+
+  const newTagNames = normalizedTags.filter(
+    tag => !existingNames.includes(tag)
+  );
+
+  const newTags = newTagNames.map(name =>
+    this.tagRepo.create({ name })
+  );
+
+  const savedNewTags = await this.tagRepo.save(newTags);
+
+  const allTags = [...existingTags, ...savedNewTags];
+
     if (!file) {
       return { message: 'Photo is required', success: false };
     }
@@ -159,6 +192,7 @@ export class VendorService {
     const newProduct = this.productRepo.create({
       ...productData,
       vendor: { id: userID },
+      tags: allTags
     });
     if (result?.url) {
       newProduct.image = result?.url;
@@ -296,7 +330,9 @@ export class VendorService {
     const products = await this.productRepo.find({
       where: { vendor: { id: userId } },
       order: { createdAt: 'DESC' },
+      relations: ['tags']
     });
+
     return products;
   }
 
@@ -322,9 +358,35 @@ export class VendorService {
     }
   }
 
-  // Edit / Update product
   async updateProduct(id: string, updateData: any, file) {
-    const product = await this.productRepo.findOneBy({ id });
+    const normalizedTags = updateData.tags
+      .split(',')
+      .map(tag => tag.trim().toLowerCase())
+      .filter(tag => tag.length > 0);
+
+    const existingTags = normalizedTags.length > 0
+      ? await this.tagRepo.find({
+          where: {
+            name: In(normalizedTags),
+          },
+        })
+      : [];
+
+    const existingNames = existingTags.map(t => t.name);
+
+    const newTagNames = normalizedTags.filter(
+      tag => !existingNames.includes(tag)
+    );
+
+    const newTags = newTagNames.map(name =>
+      this.tagRepo.create({ name })
+    );
+
+    const savedNewTags = await this.tagRepo.save(newTags);
+
+    const allTags = [...existingTags, ...savedNewTags];
+
+    const product = await this.productRepo.findOne({where: {id: id}, relations: ['tags'] },);
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
@@ -332,8 +394,14 @@ export class VendorService {
       const upload = await this.cloudinaryService.uploadImage(file);
       updateData.image = upload?.secure_url;
     }
+    // Replace tags completely with the new list (removes old tags)
+    product.tags = allTags;
+    // Remove tags from updateData to avoid TypeORM errors
+    delete updateData.tags;
     Object.assign(product, updateData);
-    return await this.productRepo.save(product);
+    const updatedProduct = await this.productRepo.save(product);
+    console.log(updatedProduct)
+    return updatedProduct
   }
 
   // Delete product

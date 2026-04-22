@@ -41,4 +41,9 @@ export class ProductController {
     async getPoductByName(@Param('name') name: string){
         return this.productService.getProductsByName(name)
     }
+
+    @Get('suggest/:productId')
+    async getProductSuggestion(@Param('productId') productId: string){
+        return this.productService.getSimilarSuggestions(productId)
+    }
 }

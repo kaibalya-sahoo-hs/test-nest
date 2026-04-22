@@ -3,7 +3,7 @@ import api from "../../utils/api";
 import toast from "react-hot-toast";
 import { CiEdit } from "react-icons/ci";
 import { FiEdit, FiTrash2, FiUploadCloud } from "react-icons/fi";
-import { FaPlus } from "react-icons/fa6";
+import { FaCross, FaPlus } from "react-icons/fa6";
 
 // Main Component remains mostly the same, ensuring fetchVendorProducts is passed correctly
 function VendorProducts() {
@@ -18,6 +18,7 @@ function VendorProducts() {
     try {
       setLoading(true);
       const response = await api.get("/vendor/products");
+      console.log(response.data)
       if (response.data.success) {
         setProducts(response.data.data);
       }
@@ -36,6 +37,8 @@ function VendorProducts() {
       toast.error("Failed to load vendor status");
     }
   };
+
+
 
   useEffect(() => {
     fetchVendorProducts();
@@ -188,7 +191,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.image || null);
   const [uploading, setUploading] = useState(false);
-
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     price: initialData?.price || "",
@@ -197,12 +199,43 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     description: initialData?.description || "",
   });
 
+  const [tagInput, setTagInput] = useState('')
+  const [tags, setTags] = useState(
+    initialData?.tags && Array.isArray(initialData.tags) && initialData.tags.length > 0
+      ? initialData.tags.map(tag => ({ id: tag.id, name: tag.name }))
+      : []
+  )
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile)); // Create a temporary preview URL
     }
+  };
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+
+    const value = tagInput.trim().toLowerCase();
+    if (!value) {
+      toast.error("Empty fields are not allowed");
+      return;
+    }
+
+    if (tags.some(tag => tag.name === value)) {
+      toast.error("Tag already exists");
+      return;
+    }
+
+    setTags((prev) => [...prev, {id: null, name: value}]);
+    setTagInput("");
+  };
+
+  const handleRemove = (e, tagToRemove) => {
+    e.preventDefault();
+
+    setTags((prev) => prev.filter(tag => tag.name !== tagToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -216,18 +249,21 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
       return;
     }
 
-    if(formData.name.trim() === "" || formData.description.trim() === "" || formData.price <= 0 || formData.stock < 0) {  
+    if (formData.name.trim() === "" || formData.description.trim() === "" || formData.price <= 0 || formData.stock < 0) {
       toast.error("Please provide valid product details");
       setUploading(false);
       return;
     }
 
     const data = new FormData();
+
+    const formattedtags = tags.map((tag) => tag.name).join(',')
     // Append text fields
     data.append("name", formData.name);
     data.append("price", formData.price);
     data.append("stock", formData.stock);
     data.append("description", formData.description);
+    data.append("tags", formattedtags);
 
     // Append file if selected
     if (file) {
@@ -236,9 +272,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
     try {
       if (initialData) {
-        // If editing, you might use PATCH.
-        // Note: Multi-part form data usually works better with POST/PUT in some NestJS setups
-
         await api.patch(`vendor/products/${initialData.id}`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -342,6 +375,45 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                   setFormData({ ...formData, stock: e.target.value })
                 }
               />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                Tags
+              </label>
+
+              <div className="flex gap-2 relative items-center">
+                <input
+                  placeholder="Add tag (e.g. bluetooth)"
+                  value={tagInput}
+                  className="flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none"
+                  onChange={(e) => setTagInput(e.target.value)}
+                />
+
+                <button
+                  onClick={handleButtonClick}
+                  className="bg-blue-500 text-white px-4 rounded-lg hover:bg-blue-600 absolute right-2 p-2"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Tag list */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm"
+                  >
+                    <span>{tag.name}</span>
+                    <button
+                      onClick={(e) => handleRemove(e, tag.name)}
+                      className="text-gray-600 hover:text-red-500"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="space-y-1 col-span-2">
               <label className="text-xs font-bold text-gray-500 uppercase ml-1">

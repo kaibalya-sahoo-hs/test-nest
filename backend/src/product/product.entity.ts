@@ -8,7 +8,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Tag } from './tag.entity';
 
 @Entity('products')
 export class Product {
@@ -45,5 +49,11 @@ export class Product {
   vendor!: User;
 
   @Column({ nullable: true })
-  category: string; 
+  category: string;
+
+  @ManyToMany(() => Tag, (tag) => tag.products, {onDelete: "CASCADE"})
+  @JoinTable({
+    name: 'product_tags',
+  })
+  tags: Tag[]
 }

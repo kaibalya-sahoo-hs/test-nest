@@ -133,10 +133,10 @@ export class PaymentService {
         totalAmount: amount,
         couponCode: coupon?.code || undefined,
         discount: totalDiscount,
+        deliveryAddress: address || null,
         couponType: coupon?.creatorType || undefined,
       });
       
-      console.log("after updated", masterOrder.id)
 
       // Delete old sub-orders for retry
       await this.orderRepo.delete({ parentOrder: { id: masterOrder.id } });
@@ -164,6 +164,7 @@ export class PaymentService {
         totalAmount: amount,
         status: 'pending',
         couponCode: coupon?.code || undefined,
+        deliveryAddress: address || null,
         discount: totalDiscount,
         couponType: coupon?.creatorType || undefined,
       };
@@ -242,7 +243,6 @@ export class PaymentService {
   }
 
   async updatePaymentToDB(payload: any, signature: string) {
-    console.log('webhook triggered')
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 
     const shasum = crypto.createHmac('sha256', webhookSecret);
@@ -323,7 +323,7 @@ export class PaymentService {
         }
         const masterOrder = await this.orderRepo.findOne({
           where: { id: payment.order.id },
-          relations: ['user'],
+          relations: ['user', 'deliveryAddress'],
         });
         await this.mailQueue.add('admin-mail', {
           adminMail: 'admin@gmail.com',
@@ -334,7 +334,7 @@ export class PaymentService {
           },
         });
         await this.mailQueue.add('user-mail', {
-          user: { email: masterOrder?.user.email },
+          user: { email: masterOrder?.user.email, name: masterOrder?.user.name },
           orderDetails: masterOrder,
         });
 
