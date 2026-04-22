@@ -254,4 +254,9 @@ export class AdminController {
   async getPayments(@Param('orderId') orderId: string) {
     return this.adminService.getPayments(orderId);
   }
+
+  @Get('orders/:orderId')
+  async getOrderById(@Param('orderId') orderId: string) {
+    return this.adminService.getOrderById(orderId);
+  }
 }

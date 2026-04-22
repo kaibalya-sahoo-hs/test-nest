@@ -36,6 +36,7 @@ import Payments from "../pages/Admin/Payments";
 import VendorWallet from "../pages/Vendor/VendorWallet";
 import VendorOutlet from "../pages/Vendor/VendorOutlet";
 import AccessDenied from "../pages/Public/AccessDenied";
+import OrderInfo from "../pages/Admin/OrderInfo";
 
 function AllRoute() {
   return (
@@ -48,7 +49,7 @@ function AllRoute() {
       />
       <Route path="/vendor/register" element={<VendorRegistration />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
-      <Route path="/access/denied" element={<AccessDenied/>}/>
+      <Route path="/access/denied" element={<AccessDenied />} />
 
       <Route element={<Nav />}>
         <Route path="/" element={<Index />} />
@@ -142,10 +143,19 @@ function AllRoute() {
           }
         />
         <Route
-          path="/admin/orders/:orderId"
+          path="/admin/orders/payments/:orderId"
           element={
             <AdminRoute>
               <Payments />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/orders/view/:orderId"
+          element={
+            <AdminRoute>
+              <OrderInfo />
             </AdminRoute>
           }
         />

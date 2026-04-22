@@ -52,14 +52,17 @@ function AdminOrdersPage() {
                   No orders found.
                 </td>
               </tr>
-            </tbody> :<tbody className="divide-y divide-gray-200">
+            </tbody> : <tbody className="divide-y divide-gray-200">
               {orders.map((order) => (
                 <tr
                   key={order.id}
                   className="hover:bg-gray-50 transition-colors"
                 >
                   {/* Order Info */}
-                  <td className="p-4 align-top">
+                  <td className="p-4 align-top cursor-pointer"
+                  onClick={(e) =>{e.stopPropagation(); navigate(`/admin/orders/view/${order.id}`)}}
+                  
+                  >
                     <div className="font-mono text-xs text-blue-600 font-bold mb-1">
                       #{order.id.slice(0, 8)}
                     </div>
@@ -110,12 +113,12 @@ function AdminOrdersPage() {
 
                   {/* Payment Logs Column */}
                   <td className="p-4 align-top">
-                    <div
-                      className="space-y-2 py-2 px-4 rounded-xl bg-blue-500 text-white w-fit"
-                      onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    <button
+                      className="space-y-2 py-2 px-4 rounded-xl bg-blue-500 text-white w-fit cursor-pointer"
+                      onClick={() => navigate(`/admin/orders/payments/${order.id}`)}
                     >
                       View Payment Logs
-                    </div>
+                    </button>
                   </td>
 
                   {/* Status */}
@@ -130,7 +133,7 @@ function AdminOrdersPage() {
                 </tr>
               ))}
             </tbody>}
-            
+
           </table>
         </div>
       </div>

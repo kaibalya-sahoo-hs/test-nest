@@ -360,4 +360,21 @@ export class AdminService {
     });
     return { payments: order?.payments };
   }
+
+  async getOrderById(orderId) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId, parentOrder: IsNull() },
+      relations: ['vendor', 'user'],
+    });
+
+    const subOrders = await this.orderRepo.find({
+      where: { parentOrder: { id: orderId } },
+      relations: ['vendor'],
+    });
+
+    const payments = await this.paymentRepo.find({
+      where: { order: { id: orderId } },
+    });
+    return { order, subOrders, payments };
+  }
 }

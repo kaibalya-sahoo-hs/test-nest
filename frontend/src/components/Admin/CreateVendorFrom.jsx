@@ -88,6 +88,23 @@ const CreateVendorForm = ({setShowAddForm, setVendors}) => {
         </div>
 
         <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+          <div className="relative">
+            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="password"
+              name="password"
+              required
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            />
+          </div>
+        </div>
+
+
+        <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Store Name</label>
           <div className="relative">
             <FaShop className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -121,22 +138,7 @@ const CreateVendorForm = ({setShowAddForm, setVendors}) => {
         </div>
 
         {/* Password Field */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-          <div className="relative">
-            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="password"
-              name="password"
-              required
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-            />
-          </div>
-        </div>
-
+        
         {/* Submit Button */}
         <div className="flex gap-2">
           <button

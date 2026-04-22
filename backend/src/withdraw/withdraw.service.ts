@@ -117,7 +117,7 @@ export class WithdrawService {
 
     switch (event) {
       case 'payout.processed':
-        withdrawal.status = WithdrawalStatus.PROCESSING;
+        withdrawal.status = WithdrawalStatus.COMPLETED;
         break;
 
       case 'payout.reversed':
