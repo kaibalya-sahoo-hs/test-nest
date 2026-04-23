@@ -223,7 +223,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     if (!formData.description.trim()) newErrors.description = "Description is required";
 
 
-    if(tags.length !== 5) newErrors.tags = "minimum 5 taqgs are required"
+    if(tags.length <= 5) newErrors.tags = "minimum 5 tags are required"
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

@@ -37,6 +37,7 @@ import VendorWallet from "../pages/Vendor/VendorWallet";
 import VendorOutlet from "../pages/Vendor/VendorOutlet";
 import AccessDenied from "../pages/Public/AccessDenied";
 import OrderInfo from "../pages/Admin/OrderInfo";
+import CouponManagementPage from "../pages/Vendor/CouponManagementPage";
 
 function AllRoute() {
   return (
@@ -167,6 +168,7 @@ function AllRoute() {
           <Route path="/vendor/products" element={<VendorProducts />} />
           <Route path="/vendor/orders" element={<VendorOrders />} />
           <Route path="/vendor/profile/wallet" element={<VendorWallet />} />
+          <Route path="/vendor/coupons" element={<CouponManagementPage/>} />
         </Route>
       </Route>
       <Route path="*" element={<NotFound />} />

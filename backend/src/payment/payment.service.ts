@@ -75,9 +75,6 @@ export class PaymentService {
       relations: ['payments'],
     });
 
-    console.log(existingPendingOrder?.id)
-
-
 
     // Create a new Razorpay order
     const options = {
@@ -112,7 +109,7 @@ export class PaymentService {
     if (couponCode) {
       coupon = await this.couponRepo.findOne({
         where: { code: couponCode.toUpperCase() },
-        relations: ['vendor'],
+        relations: ['vendor', 'product'],
       });
     }
 
@@ -134,7 +131,6 @@ export class PaymentService {
         couponCode: coupon?.code || undefined,
         discount: totalDiscount,
         deliveryAddress: address || null,
-        couponType: coupon?.creatorType || undefined,
       });
       
 
@@ -198,33 +194,54 @@ export class PaymentService {
         0,
       );
 
+      const productId = coupon?.product.id
       // Calculate proportional discount for this vendor's sub-order
       let subDiscount = 0;
       let subCouponCode: string | null = null;
       let subCouponType: 'platform' | 'vendor' | null = null;
 
       if (coupon && totalDiscount > 0) {
+
         const proportion = subTotal / totalBeforeDiscount;
         subDiscount = Math.round(totalDiscount * proportion * 100) / 100;
         subCouponCode = coupon.code;
         subCouponType = coupon.creatorType;
       }
+
+      for(const itm of items){
+        let subOrderEntity;
+        if(itm.product.id === productId){
+          subOrderEntity = this.orderRepo.create({
+            parentOrder: masterOrder,
+            vendor: { id: vendorId } as any,
+            user: { id: userID } as any,
+            items,
+            totalAmount: subTotal - totalDiscount,
+            status: 'pending',
+            deliveryAddress: address || null,
+            couponCode: coupon?.code,
+            discount: totalDiscount,
+            couponType: coupon?.creatorType,
+          } as any);
+        }else{
+          subOrderEntity = this.orderRepo.create({
+            parentOrder: masterOrder,
+            vendor: { id: vendorId } as any,
+            user: { id: userID } as any,
+            items,
+            totalAmount: subTotal,
+            status: 'pending',
+            deliveryAddress: address || null,
+            couponCode: null,
+            discount: 0,
+          } as any);
+        }
+        await this.orderRepo.save(subOrderEntity);
+        return rzpOrder;
+          
+        }
+      }
       
-      const subOrderEntity = this.orderRepo.create({
-        parentOrder: masterOrder,
-        vendor: { id: vendorId } as any,
-        user: { id: userID } as any,
-        items,
-        totalAmount: subTotal - subDiscount,
-        status: 'pending',
-        deliveryAddress: address || null,
-        couponCode: subCouponCode,
-        discount: subDiscount,
-        couponType: subCouponType,
-      } as any);
-      await this.orderRepo.save(subOrderEntity);
-    }
-    return rzpOrder;
   }
 
   async verifyPayment(payload) {
@@ -296,8 +313,7 @@ export class PaymentService {
 
           if (subOrder.couponType === 'vendor') {
             // Vendor-created coupon: vendor bears the discount
-            vendorEarning =
-              subTotal - platformFee - Number(subOrder.discount || 0);
+            vendorEarning = subTotal - platformFee - Number(subOrder.discount || 0);
           } else if (subOrder.couponType === 'platform') {
             // Platform coupon: platform (admin) bears the discount, vendor gets full share minus commission
             vendorEarning = subTotal - platformFee;

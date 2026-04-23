@@ -146,6 +146,7 @@ function Nav() {
     { path: "/vendor/products", label: "Products" },
     { path: "/vendor/profile", label: "Profile" },
     { path: "/vendor/orders", label: "Orders" },
+    { path: "/vendor/coupons", label: "Coupons" }
   ];
 
   let navLinks = [];

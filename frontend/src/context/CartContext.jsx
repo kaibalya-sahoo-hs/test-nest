@@ -106,6 +106,7 @@ export const CartProvider = ({ children }) => {
         const res = await api.patch(`/cart/${productId}`, {
           quantity: newQuantity,
         });
+        console.log(res.data.cart)
         setCart(res.data.cart);
       } catch (err) {
         toast.error("Update failed");

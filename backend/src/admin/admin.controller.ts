@@ -197,11 +197,6 @@ export class AdminController {
     return await this.productService.update(id, updateData, file);
   }
 
-  @Post('coupon')
-  async create(@Body() coupon) {
-    return await this.couponsService.create(coupon);
-  }
-
   @Get('coupons')
   async getAllCoupons() {
     return await this.couponsService.findAllCoupons();

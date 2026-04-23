@@ -29,6 +29,14 @@ export class VendorController {
     private couponsService: CouponsService,
   ) {}
 
+
+  @Get('coupons')
+  @UseGuards(VendorGuard)
+  async getVendorCoupons(@Req() req) {
+    return this.couponsService.getCoupons(req.user.id);
+  }
+
+  
   @Post('register')
   registerVendor(@Body() body: any) {
     return this.vendorService.registerVendor(body);
@@ -156,17 +164,12 @@ export class VendorController {
   }
 
   // Vendor coupon management
-  @Post('coupons')
+  @Post('coupon')
   @UseGuards(VendorGuard)
   async createVendorCoupon(@Req() req, @Body() body: any) {
-    return this.couponsService.createVendorCoupon(body, req.user.id);
+    return this.couponsService.create(req.user.id, body.productId, body.coupon);
   }
 
-  @Get('coupons')
-  @UseGuards(VendorGuard)
-  async getVendorCoupons(@Req() req) {
-    return this.couponsService.findVendorCoupons(req.user.id);
-  }
 
   @Post('withdraw')
   @UseGuards(VendorGuard)

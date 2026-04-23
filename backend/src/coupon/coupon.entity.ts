@@ -1,4 +1,5 @@
 // src/coupons/entities/coupon.entity.ts
+import { Product } from 'src/product/product.entity';
 import { User } from 'src/users/users.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import {
@@ -16,6 +17,12 @@ export class Coupon {
 
   @Column({ unique: true })
   code: string; // e.g., 'SAVE50'
+
+  @Column()
+  displayName: string
+
+  @Column()
+  description: string
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   discountValue: number;
@@ -42,6 +49,10 @@ export class Coupon {
   @Column({ type: 'enum', enum: ['platform', 'vendor'], default: 'platform' })
   creatorType: 'platform' | 'vendor';
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
   vendor: User;
+
+  @ManyToOne(() => Product)
+  product: Product
+
 }

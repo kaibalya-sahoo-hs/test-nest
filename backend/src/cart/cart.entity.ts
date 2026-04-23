@@ -16,7 +16,7 @@ export class Cart {
     cartItems: CartItem[]
 
     @ManyToOne(() => Coupon)
-    coupon: Coupon
+    coupon: Coupon | null
 
     @Column({default: 0})
     totalAmount: number

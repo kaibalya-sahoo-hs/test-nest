@@ -13,6 +13,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Tag } from './tag.entity';
+import { Coupon } from 'src/coupon/coupon.entity';
 
 @Entity('products')
 export class Product {
@@ -56,4 +57,7 @@ export class Product {
     name: 'product_tags',
   })
   tags: Tag[]
+
+  @OneToMany(() => Coupon, (coupon) => coupon.product)
+  coupons: Coupon[]
 }
