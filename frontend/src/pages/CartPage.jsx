@@ -7,6 +7,7 @@ import {
   FiMinus,
   FiShoppingBag,
   FiTag,
+  FiX,
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -15,13 +16,13 @@ import { FaRupeeSign } from "react-icons/fa";
 import api from "../utils/api";
 
 const CartPage = () => {
-  const { cart, fetchCart, updateQuantity, removeItem } = useCart();
+  const { cart, fetchCart, updateQuantity, removeItem, removeCoupon } = useCart();
   const [couponInput, setCouponInput] = useState("");
   const [isApplying, setIsApplying] = useState(false);
+  const [couponError, setCouponError] = useState("");
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
  
-  console.log("Called cart page")
   const handleCheckout = () => {
     if(!user){
       toast.error("Please login before checkout")
@@ -34,24 +35,31 @@ const CartPage = () => {
 
   const handleApplyCoupon = async () => {
     if (couponInput.trim() === "") {
-      toast.error("Please enter a coupon code");
+      setCouponError("Please enter a coupon code");
       return;
     }
+    setCouponError("");
     setIsApplying(true);
     try {
       const {data} = await api.post(`/users/applycoupon?coupon=${couponInput}`, {cartId: cart.id})
     
-      if (data) {
-        toast.success(`Coupon "${data.savedCart.coupon.code}" applied!`);
+      if (data.success) {
+        toast.success(`Coupon applied successfully!`);
         fetchCart()
       } else {
-        toast.error("Invalid or expired coupon");
+        setCouponError(data.message || "Invalid or expired coupon");
       }
     } catch (err) {
-      toast.error("Error applying coupon");
+      setCouponError(err.response?.data?.message || "Error applying coupon");
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const handleRemoveCoupon = async () => {
+    await removeCoupon();
+    setCouponInput("");
+    setCouponError("");
   };
 
 
@@ -65,7 +73,7 @@ const CartPage = () => {
 
   useEffect(() => {
     if(cart.coupon){
-      setCouponInput(cart.coupon.code)
+      setCouponInput(cart.coupon.displayName || cart.coupon.code || "")
     }
   }, [cart])
 
@@ -203,25 +211,49 @@ const CartPage = () => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
                   Promo Code
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    placeholder="e.g. SUMMER20"
-                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#4379EE] outline-none uppercase font-bold text-[#202224]"
-                  />
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={isApplying}
-                    className="bg-[#202224] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-black disabled:opacity-50 transition-all uppercase tracking-tight"
-                  >
-                    {isApplying ? "..." : "Apply"}
-                  </button>
-                </div>
-                {cart.coupon && (
-                  <div className="bg-green-50 text-green-700 text-[11px] font-bold mt-3 p-2 rounded-lg flex items-center gap-2 border border-green-100">
-                    <FiTag /> {cart.coupon.code} APPLIED SUCCESSFULLY
+                {cart.coupon ? (
+                  <div className="space-y-2">
+                    <div className="bg-green-50 text-green-700 text-sm font-bold p-3 rounded-xl flex items-center justify-between border border-green-100">
+                      <div className="flex items-center gap-2">
+                        <FiTag />
+                        <span>{cart.coupon.displayName || cart.coupon.code}</span>
+                        <span className="text-[10px] bg-green-100 px-2 py-0.5 rounded-full font-bold">
+                          {cart.coupon.type === 'percentage' ? `${cart.coupon.discountValue}% OFF` : `₹${cart.coupon.discountValue} OFF`}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="p-1 hover:bg-green-100 rounded-lg transition-all"
+                        title="Remove coupon"
+                      >
+                        <FiX size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => {
+                          setCouponInput(e.target.value);
+                          if (couponError) setCouponError("");
+                        }}
+                        placeholder="e.g. SUMMER20"
+                        className={`flex-1 bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 focus:border-[#4379EE] outline-none uppercase font-bold text-[#202224] ${couponError ? 'border-red-300' : 'border-gray-200'}`}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isApplying}
+                        className="bg-[#202224] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-black disabled:opacity-50 transition-all uppercase tracking-tight"
+                      >
+                        {isApplying ? "..." : "Apply"}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-500 text-[11px] font-bold ml-1">{couponError}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -232,12 +264,12 @@ const CartPage = () => {
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Subtotal</span>
                 <span className="text-[#202224] font-bold flex items-center">
-                  <FaRupeeSign className="text-sm" />{cart.subTotal.toLocaleString('en-IN')}
+                  <FaRupeeSign className="text-sm" />{cart.subTotal?.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Discount</span>
-                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount && cart.discount.toLocaleString('en-IN')}</span>
+                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount ? cart.discount.toLocaleString('en-IN') : '0'}</span>
               </div>
               <div className="flex justify-between text-gray-500 font-medium text-sm">
                 <span>Estimated Shipping</span>

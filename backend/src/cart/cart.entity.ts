@@ -21,10 +21,10 @@ export class Cart {
     @Column({default: 0})
     totalAmount: number
 
-    @Column({default: 0})
+    @Column({default: 0, type: 'decimal'})
     discountedAmount: number
 
-    @Column({default: 0})
+    @Column({default: 0, type: 'decimal'})
     discount: number
     
     @Column({default: 'active'})

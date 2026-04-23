@@ -81,78 +81,114 @@ export class ProductService {
     const product = await this.productRepo.findOne({ where: { id: productId }, relations: ['tags'] })
 
     if (!product) {
-      throw new NotFoundException('Prodcut not found')
+      throw new NotFoundException('Product not found')
     }
     let keyWords = product?.tags
       .map(tag => tag.name.trim().toLowerCase())
       .filter(Boolean)
       .join(' | ');
 
+    const resultMap = new Map<string, any>();
+    const limit = 8;
 
-    let products: any[] = []
+    // 1. PRIMARY: Tag-based matching via full-text search
+    if (keyWords) {
+      try {
+        const tagMatches = await this.productRepo.query(`
+          SELECT DISTINCT p.*
+          FROM products p
+          JOIN product_tags pt ON pt."productsId" = p.id
+          JOIN tags t ON t.id = pt."tagsId"
+          WHERE to_tsvector(t.name)
+          @@ to_tsquery($1)
+          AND p.id != $2
+          LIMIT $3
+        `, [keyWords, productId, limit]);
 
-    products = await this.productRepo.query(`
-           SELECT DISTINCT p.*
-           FROM products p
-           JOIN product_tags pt ON pt."productsId" = p.id
-           JOIN tags t ON t.id = pt."tagsId"
-           WHERE to_tsvector(t.name)
-           @@ to_tsquery($1)
-           AND p.id != $2
-       `, [keyWords, productId])
+        tagMatches.forEach(p => resultMap.set(p.id, p));
+      } catch (e) {
+        console.error('Tag matching error:', e);
+      }
+    }
 
+    // 2. SECONDARY: Description-based keyword matching
+    if (resultMap.size < limit && product.description) {
+      const stopWords = ['the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'was', 'been', 'will', 'have', 'has', 'can', 'our', 'your'];
+      const descKeywords = product.description
+        .replace(/[^\w\s]/gi, '')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word.toLowerCase()))
+        .slice(0, 6); // Use top 6 meaningful words
 
-       const results = await this.getRelatedProducts(product)
-       if (results.length > 0) {
-         const map = new Map();
- 
-         // add existing
-         products.forEach(p => map.set(p.id, p));
- 
-         // add new (avoid duplicates)
-         results.forEach(p => map.set(p.id, p));
- 
-         products = Array.from(map.values());
-       }
-    return { success: true, products }
+      if (descKeywords.length > 0) {
+        const existingIds = [productId, ...Array.from(resultMap.keys())];
+        try {
+          const descMatches = await this.productRepo.createQueryBuilder('product')
+            .where('product.id NOT IN (:...ids)', { ids: existingIds })
+            .andWhere(new Brackets(qb => {
+              descKeywords.forEach((word, index) => {
+                const param = `desc_${index}`;
+                qb.orWhere(`product.description ILIKE :${param}`, { [param]: `%${word}%` });
+              });
+            }))
+            .take(limit - resultMap.size)
+            .getMany();
+
+          descMatches.forEach(p => resultMap.set(p.id, p));
+        } catch (e) {
+          console.error('Description matching error:', e);
+        }
+      }
+    }
+
+    // 3. TERTIARY: Name-based keyword matching
+    if (resultMap.size < limit) {
+      const results = await this.getRelatedProducts(product, Array.from(resultMap.keys()), limit - resultMap.size);
+      results.forEach(p => resultMap.set(p.id, p));
+    }
+
+    return { success: true, products: Array.from(resultMap.values()).slice(0, limit) }
   }
 
-  async getRelatedProducts(product: Product) {
-    const limit = 4; // Total products we want to show
+  async getRelatedProducts(product: Product, excludeIds: string[] = [], limit: number = 4) {
+    // 1. CLEAN KEYWORDS
+    const cleanName = product.name.replace(/[^\w\s]/gi, '');
+    const stopWords = ['the', 'and', 'for', 'with', 'from', 'this', 'that', 'with'];
+    const keywords = cleanName
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.includes(word.toLowerCase()));
 
-  // 1. CLEAN KEYWORDS
-  const cleanName = product.name.replace(/[^\w\s]/gi, '');
-  const stopWords = ['the', 'and', 'for', 'with', 'from', 'this', 'that', 'with'];
-  const keywords = cleanName
-    .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.includes(word.toLowerCase()));
+    const allExcludeIds = [product.id, ...excludeIds];
 
-  // 2. PRIMARY SEARCH (Keyword Match)
-  let related = await this.productRepo.createQueryBuilder('product')
-    .where('product.id != :id', { id: product.id })
-    .andWhere(new Brackets(qb => {
-      keywords.forEach((word, index) => {
-        const param = `word_${index}`;
-        qb.orWhere(`product.name ILIKE :${param}`, { [param]: `%${word}%` });
-      });
-    }))
-    .take(limit)
-    .getMany();
+    // 2. PRIMARY SEARCH (Keyword Match)
+    let related: Product[] = [];
+    if (keywords.length > 0) {
+      related = await this.productRepo.createQueryBuilder('product')
+        .where('product.id NOT IN (:...ids)', { ids: allExcludeIds })
+        .andWhere(new Brackets(qb => {
+          keywords.forEach((word, index) => {
+            const param = `word_${index}`;
+            qb.orWhere(`product.name ILIKE :${param}`, { [param]: `%${word}%` });
+          });
+        }))
+        .take(limit)
+        .getMany();
+    }
 
-  // 3. FALLBACK (If count < 2, fill with random products)
-  if (related.length < 4) {
-    const existingIds = [product.id, ...related.map(p => p.id)];
-    
-    const additionalProducts = await this.productRepo.createQueryBuilder('product')
-      .where('product.id NOT IN (:...ids)', { ids: existingIds })
-      .orderBy('RANDOM()') 
-      .take(limit - related.length)
-      .getMany();
+    // 3. FALLBACK (fill with random products)
+    if (related.length < limit) {
+      const existingIds = [...allExcludeIds, ...related.map(p => p.id)];
+      
+      const additionalProducts = await this.productRepo.createQueryBuilder('product')
+        .where('product.id NOT IN (:...ids)', { ids: existingIds })
+        .orderBy('RANDOM()') 
+        .take(limit - related.length)
+        .getMany();
 
-    related = [...related, ...additionalProducts];
-  }
+      related = [...related, ...additionalProducts];
+    }
 
-  return related;
+    return related;
   }
 
 }

@@ -1,10 +1,11 @@
 // src/coupons/coupons.service.ts
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { Coupon } from './coupon.entity';
 import { Cart } from 'src/cart/cart.entity';
 import { Product } from 'src/product/product.entity';
+import { CLIENT_RENEG_LIMIT } from 'node:tls';
 
 @Injectable()
 export class CouponsService {
@@ -21,7 +22,7 @@ export class CouponsService {
         try {
             const cart = await this.cartRepo.findOne({ where: { id: cartId }, relations: ['cartItems', 'cartItems.product'] })
             if (!cart) {
-                return { message: 'inavlid cart id', success: false }
+                return { message: 'Invalid cart id', success: false }
             }
             const result = await this.validateCoupon(couponCode, cart)
 
@@ -31,16 +32,44 @@ export class CouponsService {
 
             const savedCart = await this.cartRepo.save(cart)
 
-            return { succes: true, message: 'Coupon applied successfully', savedCart }
+            return { success: true, message: 'Coupon applied successfully', savedCart }
         } catch (error) {
-            console.log("Error hwile applying coupon", error)
-            return { message: "Error while applying coupon", success: false }
+            console.log("Error while applying coupon", error)
+            const msg = error?.response?.message || error?.message || 'Error while applying coupon';
+            return { message: msg, success: false }
         }
     }
 
-    async validateCoupon(code: string, cart: any) {
-        const coupon = await this.couponRepo.findOne({ where: { displayName: code, isActive: true }, relations: ['vendor', 'product'] });
+    async removeCouponFromCart(userId: number) {
+        const cart = await this.cartRepo.findOne({
+            where: { user: { id: userId } },
+            relations: ['cartItems', 'cartItems.product', 'coupon'],
+        });
 
+        if (!cart) {
+            throw new NotFoundException('Cart not found');
+        }
+
+        cart.coupon = null;
+        cart.discount = 0;
+
+        const subTotal = cart.cartItems.reduce((sum, item) => {
+            return sum + item.product.price * item.quantity;
+        }, 0);
+        cart.totalAmount = subTotal;
+        cart.discountedAmount = subTotal;
+
+        await this.cartRepo.save(cart);
+
+        return { success: true, message: 'Coupon removed successfully' };
+    }
+
+    async validateCoupon(code: string, cart: any) {
+        console.log(code);
+        
+        const coupon = await this.couponRepo.findOne({ where: { displayName: code.toLowerCase(), isActive: true }, relations: ['vendor', 'product'] });
+
+        console.log(coupon)
         if (!coupon) {
             throw new NotFoundException('Coupon code is not available');
         }
@@ -51,7 +80,7 @@ export class CouponsService {
         }
 
         const possibleCoupons = await this.couponRepo.find({
-            where: { displayName: coupon.displayName },
+            where: { displayName: coupon.displayName, isActive: true },
             relations: ['product']
         });
 
@@ -61,7 +90,7 @@ export class CouponsService {
         )
 
         if (!isValidCoupon) {
-            throw new BadRequestException('This is not a valid coupon')
+            throw new BadRequestException('This coupon is not valid for any product in your cart')
         }
 
         // Check Usage Limit
@@ -82,7 +111,7 @@ export class CouponsService {
         if (coupon.type === 'percentage') {
             discountAmount = (productPrice * Number(coupon.discountValue)) / 100;
         } else {
-            discountAmount = productPrice - Number(coupon.discountValue);
+            discountAmount = Number(coupon.discountValue);
         }
 
 
@@ -97,7 +126,7 @@ export class CouponsService {
         };
     }
 
-    // Platform coupon (created by admin)
+    // Create coupon for a vendor's product
     async create(vendorId, productId, coupon) {
         const uniqueCode = `V-${vendorId}-${coupon.code}`
 
@@ -106,24 +135,94 @@ export class CouponsService {
         });
 
         if (existing) {
-            throw new BadRequestException('This coupon code is already exists');
+            throw new BadRequestException('This coupon code already exists');
         }
 
         const newCoupon = this.couponRepo.create({
             code: uniqueCode.toUpperCase(),
             product: { id: productId },
             vendor: { id: vendorId },
-            displayName: coupon.code,
+            displayName: coupon.code.toLowerCase(),
             description: coupon.description,
             discountValue: coupon.discount,
             creatorType: 'vendor',
-            expiryDate: coupon?.expiry,
-            isActive: coupon.isActive,
+            expiryDate: coupon?.expiry || null,
+            isActive: coupon.isActive ?? true,
             usageLimit: coupon.usageLimit,
-            type: coupon.type
+            type: coupon.type || 'percentage',
         });
 
         return await this.couponRepo.save(newCoupon);
+    }
+
+    // Update coupon (vendor-scoped)
+    async updateCoupon(couponId: number, vendorId: number, updateData: any) {
+        const coupon = await this.couponRepo.findOne({
+            where: { id: couponId },
+            relations: ['vendor'],
+        });
+
+        if (!coupon) {
+            throw new NotFoundException('Coupon not found');
+        }
+
+        if (coupon.vendor?.id !== vendorId) {
+            throw new ForbiddenException('You do not own this coupon');
+        }
+
+        // Update allowed fields
+        if (updateData.description !== undefined) coupon.description = updateData.description;
+        if (updateData.discount !== undefined) coupon.discountValue = updateData.discount;
+        if (updateData.type !== undefined) coupon.type = updateData.type;
+        if (updateData.expiry !== undefined) coupon.expiryDate = updateData.expiry || null;
+        if (updateData.usageLimit !== undefined) coupon.usageLimit = updateData.usageLimit;
+        if (updateData.productId !== undefined) coupon.product = { id: updateData.productId } as any;
+        if (updateData.code !== undefined) {
+            const newUniqueCode = `V-${vendorId}-${updateData.code}`;
+            coupon.code = newUniqueCode.toUpperCase();
+            coupon.displayName = updateData.code;
+        }
+
+        return await this.couponRepo.save(coupon);
+    }
+
+    // Delete coupon (vendor-scoped)
+    async deleteCoupon(couponId: number, vendorId: number) {
+        const coupon = await this.couponRepo.findOne({
+            where: { id: couponId },
+            relations: ['vendor'],
+        });
+
+        if (!coupon) {
+            throw new NotFoundException('Coupon not found');
+        }
+
+        if (coupon.vendor?.id !== vendorId) {
+            throw new ForbiddenException('You do not own this coupon');
+        }
+
+        await this.couponRepo.remove(coupon);
+        return { success: true, message: 'Coupon deleted successfully' };
+    }
+
+    // Toggle coupon active state (vendor-scoped)
+    async toggleCouponActive(couponId: number, vendorId: number) {
+        const coupon = await this.couponRepo.findOne({
+            where: { id: couponId },
+            relations: ['vendor'],
+        });
+
+        if (!coupon) {
+            throw new NotFoundException('Coupon not found');
+        }
+
+        if (coupon.vendor?.id !== vendorId) {
+            throw new ForbiddenException('You do not own this coupon');
+        }
+
+        coupon.isActive = !coupon.isActive;
+        const saved = await this.couponRepo.save(coupon);
+        return { success: true, isActive: saved.isActive, message: `Coupon ${saved.isActive ? 'activated' : 'deactivated'}` };
     }
 
     // Vendor coupon (created by vendor)
@@ -149,13 +248,22 @@ export class CouponsService {
 
     // Get all coupons (for admin)
     async findAllCoupons() {
-        return await this.couponRepo.find({ relations: ['vendor'], order: { id: 'DESC' } });
+        return await this.couponRepo.find({ relations: ['vendor', 'product'], order: { id: 'DESC' } });
     }
     
     
     async getCoupons(vendorId: number) {
         const coupons = await this.couponRepo.find({ where: { vendor: {id: vendorId}},relations: ['product'], order: { id: 'DESC' } });
         return {success: true, coupons}
+    }
+
+    // Get coupons for a specific product (vendor-scoped)
+    async getCouponsByProduct(productId: string, vendorId: number) {
+        const coupons = await this.couponRepo.find({
+            where: { product: { id: productId }, vendor: { id: vendorId } },
+            order: { id: 'DESC' },
+        });
+        return { success: true, coupons };
     }
 
     // Increment usage count after successful payment

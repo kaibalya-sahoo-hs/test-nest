@@ -289,6 +289,30 @@ export class CartService {
     return this.getMyCart(userId);
   }
 
+  async removeCoupon(userId: number) {
+    const cart = await this.cartRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['cartItems', 'cartItems.product', 'coupon'],
+    });
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
+    }
+
+    cart.coupon = null;
+    cart.discount = 0;
+
+    const subTotal = cart.cartItems.reduce((sum, item) => {
+      return sum + item.product.price * item.quantity;
+    }, 0);
+    cart.totalAmount = subTotal;
+    cart.discountedAmount = subTotal;
+
+    await this.cartRepo.save(cart);
+
+    return this.getMyCart(userId);
+  }
+
   async clearCart(userId: number) {
     await this.cartRepo.delete({ user: { id: userId } });
     return { message: 'Cart cleared successfully' };

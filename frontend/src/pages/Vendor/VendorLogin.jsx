@@ -14,17 +14,31 @@ function VendorLogin() {
     email: '',
     password: '',
   });
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     
-    if (!formData.email || !formData.password) {
-      return toast.error("Please fill in all fields");
-    }
     setLoading(true);
     try {
       const response = await api.post('/vendor/login', formData);
@@ -71,11 +85,12 @@ function VendorLogin() {
                 type="email"
                 name="email"
                 placeholder="name@store.com"
-                className="w-full pl-12 pr-4 py-4 bg-[#F1F4F9] border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#4379EE] outline-none transition-all text-[#202224] font-semibold"
+                className={`w-full pl-12 pr-4 py-4 bg-[#F1F4F9] border-2 rounded-2xl focus:bg-white focus:border-[#4379EE] outline-none transition-all text-[#202224] font-semibold ${errors.email ? 'border-red-400' : 'border-transparent'}`}
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
+            {errors.email && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.email}</p>}
           </div>
 
           {/* Password Input */}
@@ -91,7 +106,7 @@ function VendorLogin() {
                 type={hidePass ? "password" : "text"}
                 name="password"
                 placeholder="••••••••"
-                className="w-full pl-12 pr-12 py-4 bg-[#F1F4F9] border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#4379EE] outline-none transition-all text-[#202224] font-semibold"
+                className={`w-full pl-12 pr-12 py-4 bg-[#F1F4F9] border-2 rounded-2xl focus:bg-white focus:border-[#4379EE] outline-none transition-all text-[#202224] font-semibold ${errors.password ? 'border-red-400' : 'border-transparent'}`}
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -103,6 +118,7 @@ function VendorLogin() {
                 {hidePass ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-xs font-medium mt-1.5 ml-1">{errors.password}</p>}
           </div>
 
           {/* Login Button */}

@@ -42,8 +42,14 @@ function ManageProducts() {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.price) {
-      toast.error("Fields cannot be empty");
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.price || Number(formData.price) <= 0) newErrors.price = "Price must be greater than 0";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!selectedFile) newErrors.file = "Product image is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      Object.values(newErrors).forEach(msg => toast.error(msg));
       return;
     }
 

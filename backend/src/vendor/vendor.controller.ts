@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { VendorService } from './vendor.service';
 import { VendorGuard } from 'src/common/guards/auth.vendor';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CouponsService } from 'src/coupon/coupon.service';
 import { File } from 'node:buffer';
 
@@ -104,14 +104,16 @@ export class VendorController {
 
   @Patch('products/:id')
   @UseGuards(VendorGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 5))
   async updateProduct(
     @Param('id') id: string,
     @Req() req,
     @Body() body: any,
     @UploadedFile() file: File,
   ) {
-    return await this.vendorService.updateProduct(id, body, file);
+    // Support both single file (legacy) and multiple files
+    const files = (req as any).files || (file ? [file] : []);
+    return await this.vendorService.updateProduct(id, body, files);
   }
 
   @Patch('orders/:id/status')
@@ -136,10 +138,12 @@ export class VendorController {
 
   @Post('product')
   @UseGuards(VendorGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 5))
   createProduct(@Body() body: any, @Req() req, @UploadedFile() file) {
     const userID = req.user.id;
-    return this.vendorService.createProduct(body, file, userID);
+    // Support both single file (legacy) and multiple files
+    const files = (req as any).files || (file ? [file] : []);
+    return this.vendorService.createProduct(body, files, userID);
   }
 
   @Get('products/:id')
@@ -168,6 +172,24 @@ export class VendorController {
   @UseGuards(VendorGuard)
   async createVendorCoupon(@Req() req, @Body() body: any) {
     return this.couponsService.create(req.user.id, body.productId, body.coupon);
+  }
+
+  @Patch('coupon/:id')
+  @UseGuards(VendorGuard)
+  async updateVendorCoupon(@Req() req, @Param('id') id: number, @Body() body: any) {
+    return this.couponsService.updateCoupon(id, req.user.id, body);
+  }
+
+  @Delete('coupon/:id')
+  @UseGuards(VendorGuard)
+  async deleteVendorCoupon(@Req() req, @Param('id') id: number) {
+    return this.couponsService.deleteCoupon(id, req.user.id);
+  }
+
+  @Patch('coupon/:id/toggle')
+  @UseGuards(VendorGuard)
+  async toggleVendorCoupon(@Req() req, @Param('id') id: number) {
+    return this.couponsService.toggleCouponActive(id, req.user.id);
   }
 
 

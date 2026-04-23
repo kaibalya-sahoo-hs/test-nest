@@ -153,7 +153,7 @@ export class VendorService {
   // Create a new product
   async createProduct(
     productData: CreateProductDto,
-    file: Express.Multer.File,
+    files: Express.Multer.File[],
     userID,
   ) {
   // 1️⃣ Normalize tags (trim, lowercase, filter empty)
@@ -185,18 +185,27 @@ export class VendorService {
 
   const allTags = [...existingTags, ...savedNewTags];
 
-    if (!file) {
-      return { message: 'Photo is required', success: false };
+    if (!files || files.length === 0) {
+      return { message: 'At least one product image is required', success: false };
     }
-    const result = await this.cloudinaryService.uploadImage(file);
+
+    // Upload all images to Cloudinary
+    const imageUrls: string[] = [];
+    for (const file of files) {
+      const result = await this.cloudinaryService.uploadImage(file);
+      if (result?.url) {
+        imageUrls.push(result.url);
+      }
+    }
+
     const newProduct = this.productRepo.create({
       ...productData,
       vendor: { id: userID },
-      tags: allTags
+      tags: allTags,
+      image: imageUrls[0] || '', // First image as thumbnail
+      images: imageUrls,
     });
-    if (result?.url) {
-      newProduct.image = result?.url;
-    }
+
     return await this.productRepo.save(newProduct);
   }
 
@@ -330,7 +339,7 @@ export class VendorService {
     const products = await this.productRepo.find({
       where: { vendor: { id: userId } },
       order: { createdAt: 'DESC' },
-      relations: ['tags']
+      relations: ['tags', 'coupons']
     });
 
     return products;
@@ -358,7 +367,7 @@ export class VendorService {
     }
   }
 
-  async updateProduct(id: string, updateData: any, file) {
+  async updateProduct(id: string, updateData: any, files: Express.Multer.File[]) {
     const normalizedTags = updateData.tags
       .split(',')
       .map(tag => tag.trim().toLowerCase())
@@ -390,10 +399,39 @@ export class VendorService {
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-    if (file) {
-      const upload = await this.cloudinaryService.uploadImage(file);
-      updateData.image = upload?.secure_url;
+
+    // Handle multi-image upload
+    if (files && files.length > 0) {
+      const imageUrls: string[] = [];
+      for (const file of files) {
+        const upload = await this.cloudinaryService.uploadImage(file);
+        if (upload?.url || upload?.secure_url) {
+          imageUrls.push(upload.secure_url || upload.url);
+        }
+      }
+      if (imageUrls.length > 0) {
+        updateData.image = imageUrls[0];
+        updateData.images = imageUrls;
+      }
     }
+
+    // If existingImages are passed (frontend sends kept images), merge with new uploads
+    if (updateData.existingImages) {
+      try {
+        const existing = typeof updateData.existingImages === 'string'
+          ? JSON.parse(updateData.existingImages)
+          : updateData.existingImages;
+        const newImages = updateData.images || [];
+        updateData.images = [...existing, ...newImages];
+        if (updateData.images.length > 0) {
+          updateData.image = updateData.images[0];
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+      delete updateData.existingImages;
+    }
+
     // Replace tags completely with the new list (removes old tags)
     product.tags = allTags;
     // Remove tags from updateData to avoid TypeORM errors

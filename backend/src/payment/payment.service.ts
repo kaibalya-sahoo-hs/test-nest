@@ -187,60 +187,46 @@ export class PaymentService {
 
     // Create sub-orders per vendor with proportional coupon splitting
     
-    // Create sub-orders per vendor with proportional coupon splitting
+    // Create sub-orders per vendor with proper coupon splitting
     for (const [vendorId, items] of vendorGroups) {
       const subTotal = items.reduce(
         (sum, i) => sum + i.product.price * i.quantity,
         0,
       );
 
-      const productId = coupon?.product.id
-      // Calculate proportional discount for this vendor's sub-order
+      // Check if any item in this vendor group has the coupon applied
       let subDiscount = 0;
       let subCouponCode: string | null = null;
       let subCouponType: 'platform' | 'vendor' | null = null;
 
       if (coupon && totalDiscount > 0) {
+        const hasCouponProduct = items.some(
+          (itm) => itm.product.id === coupon.product?.id,
+        );
 
-        const proportion = subTotal / totalBeforeDiscount;
-        subDiscount = Math.round(totalDiscount * proportion * 100) / 100;
-        subCouponCode = coupon.code;
-        subCouponType = coupon.creatorType;
-      }
-
-      for(const itm of items){
-        let subOrderEntity;
-        if(itm.product.id === productId){
-          subOrderEntity = this.orderRepo.create({
-            parentOrder: masterOrder,
-            vendor: { id: vendorId } as any,
-            user: { id: userID } as any,
-            items,
-            totalAmount: subTotal - totalDiscount,
-            status: 'pending',
-            deliveryAddress: address || null,
-            couponCode: coupon?.code,
-            discount: totalDiscount,
-            couponType: coupon?.creatorType,
-          } as any);
-        }else{
-          subOrderEntity = this.orderRepo.create({
-            parentOrder: masterOrder,
-            vendor: { id: vendorId } as any,
-            user: { id: userID } as any,
-            items,
-            totalAmount: subTotal,
-            status: 'pending',
-            deliveryAddress: address || null,
-            couponCode: null,
-            discount: 0,
-          } as any);
-        }
-        await this.orderRepo.save(subOrderEntity);
-        return rzpOrder;
-          
+        if (hasCouponProduct) {
+          subDiscount = totalDiscount;
+          subCouponCode = coupon.code;
+          subCouponType = coupon.creatorType;
         }
       }
+
+      const subOrderEntity = this.orderRepo.create({
+        parentOrder: masterOrder,
+        vendor: { id: vendorId } as any,
+        user: { id: userID } as any,
+        items,
+        totalAmount: subTotal - subDiscount,
+        status: 'pending',
+        deliveryAddress: address || null,
+        couponCode: subCouponCode,
+        discount: subDiscount,
+        couponType: subCouponType,
+      } as any);
+      await this.orderRepo.save(subOrderEntity);
+    }
+
+    return rzpOrder;
       
   }
 

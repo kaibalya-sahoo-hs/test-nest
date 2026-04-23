@@ -19,18 +19,38 @@ function VendorRegistration() {
     storeDescription: ''
   });
   const [hidePass, setHidePass] = useState(true)
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.fullname.trim()) newErrors.fullname = "Full name is required";
+    else if (formData.fullname.trim().length < 2) newErrors.fullname = "Name must be at least 2 characters";
+
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Enter a valid email address";
+
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
+    else if (!/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.password)) newErrors.password = "Password must contain letters and numbers";
+
+    if (!formData.storeName.trim()) newErrors.storeName = "Store name is required";
+    else if (formData.storeName.trim().length < 3) newErrors.storeName = "Store name must be at least 3 characters";
+
+    if (!formData.storeDescription.trim()) newErrors.storeDescription = "Store description is required";
+    else if (formData.storeDescription.trim().length < 20) newErrors.storeDescription = "Description must be at least 20 characters";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const isAnyEmpty = Object.values(formData).some(val => val.trim() === "");
-    if (isAnyEmpty) {
-      return toast.error("All fields are required");
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
@@ -72,11 +92,12 @@ function VendorRegistration() {
                 type="text"
                 name="fullname"
                 placeholder="Enter your name"
-                className="w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224]"
+                className={`w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] ${errors.fullname ? 'ring-2 ring-red-400' : ''}`}
                 value={formData.fullname}
                 onChange={handleChange}
               />
             </div>
+            {errors.fullname && <p className="text-red-500 text-xs font-medium mt-1 ml-1">{errors.fullname}</p>}
           </div>
 
           {/* Email */}
@@ -88,11 +109,12 @@ function VendorRegistration() {
                 type="email"
                 name="email"
                 placeholder="email@store.com"
-                className="w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224]"
+                className={`w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] ${errors.email ? 'ring-2 ring-red-400' : ''}`}
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
+            {errors.email && <p className="text-red-500 text-xs font-medium mt-1 ml-1">{errors.email}</p>}
           </div>
 
           <div className="space-y-1">
@@ -110,7 +132,7 @@ function VendorRegistration() {
                 type={hidePass ? "password" : "text"}
                 name="password"
                 placeholder="••••••••"
-                className="w-full pl-12 pr-12 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] placeholder:text-gray-300"
+                className={`w-full pl-12 pr-12 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] placeholder:text-gray-300 ${errors.password ? 'ring-2 ring-red-400' : ''}`}
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -124,6 +146,7 @@ function VendorRegistration() {
                 {hidePass ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-xs font-medium mt-1 ml-1">{errors.password}</p>}
           </div>
 
           {/* Store Name */}
@@ -135,11 +158,12 @@ function VendorRegistration() {
                 type="text"
                 name="storeName"
                 placeholder="What is your store called?"
-                className="w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224]"
+                className={`w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] ${errors.storeName ? 'ring-2 ring-red-400' : ''}`}
                 value={formData.storeName}
                 onChange={handleChange}
               />
             </div>
+            {errors.storeName && <p className="text-red-500 text-xs font-medium mt-1 ml-1">{errors.storeName}</p>}
           </div>
 
           {/* Store Description */}
@@ -150,12 +174,13 @@ function VendorRegistration() {
               <textarea
                 name="storeDescription"
                 rows="3"
-                placeholder="Briefly describe what you sell..."
-                className="w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] resize-none"
+                placeholder="Briefly describe what you sell (min 20 chars)..."
+                className={`w-full pl-12 pr-4 py-3 bg-[#F1F4F9] border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-[#202224] resize-none ${errors.storeDescription ? 'ring-2 ring-red-400' : ''}`}
                 value={formData.storeDescription}
                 onChange={handleChange}
               />
             </div>
+            {errors.storeDescription && <p className="text-red-500 text-xs font-medium mt-1 ml-1">{errors.storeDescription}</p>}
           </div>
 
           {/* Submit Button */}

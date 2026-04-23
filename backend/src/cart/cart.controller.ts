@@ -34,6 +34,15 @@ export class CartController {
     console.log(userId);
     return await this.cartService.addToCart(userId, productId, quantity || 1);
   }
+
+  @Delete('coupon')
+  @UseGuards(AuthGuard)
+  async removeCoupon(@Req() req) {
+    const userId = req.user.id;
+    return await this.cartService.removeCoupon(userId);
+  }
+
+  
   @Delete(':id')
   @UseGuards(AuthGuard)
   async removeItem(@Req() req, @Param('id') cartItemId: string) {
@@ -57,6 +66,8 @@ export class CartController {
       quantity,
     );
   }
+
+  
 
   @Post('sync')
   @UseGuards(AuthGuard) // Ensure user is logged in

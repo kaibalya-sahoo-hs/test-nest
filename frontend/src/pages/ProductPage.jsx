@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
-  FaAngleLeft,
   FaStar,
   FaShoppingCart,
   FaArrowLeft,
   FaRupeeSign,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
-import { CiHeart } from "react-icons/ci";
 import api from "../utils/api";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
@@ -18,12 +18,20 @@ function ProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [suggestedProducts, setSuggestedProducts] = useState([])
-  const [loadingProducts, setLoadingProducts] = useState(true)
+  const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const suggestRef = useRef(null);
 
   const { cart, addToCart, updateQuantity, removeItem } = useCart();
   const user = localStorage.getItem("user");
 
+  // Get all images (use images array if available, fallback to single image)
+  const getImages = () => {
+    if (product?.images && product.images.length > 0) return product.images;
+    if (product?.image) return [product.image];
+    return ["https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"];
+  };
 
   const cartItem =
     cart?.items &&
@@ -49,22 +57,36 @@ function ProductPage() {
   };
 
   const fetchRecomendedProducts = async () => {
-    const { data } = await api.get(`/products/suggest/${id}`)
-    if (!data && !data.success) {
-      toast.error('error while fetching')
+    try {
+      const { data } = await api.get(`/products/suggest/${id}`);
+      if (data && data.success) {
+        setSuggestedProducts(data.products);
+      }
+    } catch (err) {
+      console.error("Error fetching suggestions:", err);
+    } finally {
+      setLoadingProducts(false);
     }
-    setSuggestedProducts(data.products)
-    setLoadingProducts(false)
-  }
+  };
+
+  const scrollSuggestions = (direction) => {
+    if (suggestRef.current) {
+      const scrollAmount = 300;
+      suggestRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
         const response = await api.get(`/products/${id}`);
-        console.log(response.data);
         if (response.data.success) {
           setProduct(response.data.product);
+          setSelectedImageIndex(0);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -73,13 +95,16 @@ function ProductPage() {
       }
     };
     fetchProduct();
-    fetchRecomendedProducts()
-  }, [id, cart]);
+    fetchRecomendedProducts();
+  }, [id]);
 
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[#4379EE] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Loading product...</p>
+        </div>
       </div>
     );
   if (!product)
@@ -88,6 +113,8 @@ function ProductPage() {
         Product not found.
       </div>
     );
+
+  const images = getImages();
 
   return (
     <div className="bg-[#F5F6FA] min-h-fit font-sans p-4 sm:p-8">
@@ -103,20 +130,62 @@ function ProductPage() {
       </div>
 
       <div className="flex flex-col md:flex-row">
-        {/* Left Side: Sticky Image Container */}
-        <div className="md:w-1/2 bg-gray-200 md:h-fit md:top-0 flex items-center justify-center p-8 border-r border-gray-50">
-          <img
-            src={
-              product.image ||
-              "https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"
-            }
-            alt={"Product image"}
-            className="w-full max-w-[400px] rounded-2xl h-auto object-contain mix-blend-multiply"
-          />
+        {/* Left Side: Image Carousel */}
+        <div className="md:w-1/2 md:h-fit md:top-0 flex flex-col items-center p-4 sm:p-8">
+          {/* Main Image */}
+          <div className="relative w-full max-w-[500px] bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+            <img
+              src={images[selectedImageIndex]}
+              alt={product.name}
+              className="w-full h-[350px] sm:h-[450px] object-contain mix-blend-multiply p-4 transition-all duration-300"
+            />
+            {/* Navigation arrows on main image */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2.5 rounded-full shadow-lg text-gray-600 hover:text-[#4379EE] transition-all"
+                >
+                  <FaChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2.5 rounded-full shadow-lg text-gray-600 hover:text-[#4379EE] transition-all"
+                >
+                  <FaChevronRight size={14} />
+                </button>
+              </>
+            )}
+            {/* Image counter badge */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full">
+                {selectedImageIndex + 1} / {images.length}
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnail Strip */}
+          {images.length > 1 && (
+            <div className="flex gap-3 mt-4 overflow-x-auto max-w-[500px] pb-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                    selectedImageIndex === idx
+                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Side: Scrollable Details */}
-        <div className="md:w-1/2 h-fit pl-8">
+        <div className="md:w-1/2 h-fit pl-4 sm:pl-8">
           <div className="max-w-xl mx-auto md:mx-0">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -150,7 +219,7 @@ function ProductPage() {
               </h3>
               <p className="text-gray-500 leading-relaxed text-lg">
                 {product.description ||
-                  "No description provided for this product. Here is some filler text to ensure the content is long enough to demonstrate the scrolling effect on the right side while the image stays fixed."}
+                  "No description provided for this product."}
               </p>
             </div>
             {product && product.stock > 0 ? cartItem ? (
@@ -198,52 +267,68 @@ function ProductPage() {
           </div>
         </div>
       </div>
-      <div className="mt-6">
-        <h1 className="text-xl font-semibold mb-4">Recommended</h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {suggestedProducts.length === 0 ? (
-            <p className="col-span-full text-gray-500">Loading...</p>
-          ) : (
-            suggestedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="flex flex-col justify-between bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition duration-300"
-              >
-                <div className="h-48 w-full overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <h2 className="text-lg font-semibold line-clamp-1">
-                    {product.name}
-                  </h2>
-
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-lg font-bold text-blue-600">
-                      ₹{product.price}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      Stock: {product.stock}
-                    </span>
-                  </div>
-
-                  <button className="w-full mt-3 bg-blue-500 text-white py-2 rounded-xl hover:bg-blue-600 transition" onClick={() => navigate(`/products/${product.id}`)}>
-                    View Product
-                  </button>
-                </div>
-              </div>
-            ))
+      {/* Recommended Products - Horizontal Scrollable */}
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-[#202224]">You May Also Like</h2>
+          {suggestedProducts.length > 4 && (
+            <div className="flex gap-2">
+              <button onClick={() => scrollSuggestions('left')} className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all">
+                <FaChevronLeft size={14} className="text-gray-600" />
+              </button>
+              <button onClick={() => scrollSuggestions('right')} className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all">
+                <FaChevronRight size={14} className="text-gray-600" />
+              </button>
+            </div>
           )}
         </div>
+
+        {loadingProducts ? (
+          <div className="flex gap-6 overflow-hidden">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="flex-shrink-0 w-[260px] bg-white rounded-2xl p-4 animate-pulse">
+                <div className="h-40 bg-gray-100 rounded-xl mb-3"></div>
+                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : suggestedProducts.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">No recommendations available</p>
+        ) : (
+          <div ref={suggestRef} className="flex gap-5 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {suggestedProducts.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => navigate(`/products/${item.id}`)}
+                className="flex-shrink-0 w-[240px] bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-blue-100 transition-all duration-300 cursor-pointer group"
+              >
+                <div className="h-44 w-full overflow-hidden bg-gray-50">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-[#202224] line-clamp-1 mb-1">{item.name}</h3>
+                  <p className="text-xs text-gray-400 line-clamp-2 mb-3">{item.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-[#4379EE] flex items-center">
+                      <FaRupeeSign className="text-sm" />{Number(item.price).toLocaleString('en-IN')}
+                    </span>
+                    {item.stock > 0 ? (
+                      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">In Stock</span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Out of Stock</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

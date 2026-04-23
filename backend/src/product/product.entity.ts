@@ -23,7 +23,7 @@ export class Product {
   @Column()
   name!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description!: string;
 
   // Use 'decimal' for currency to avoid floating-point math errors
@@ -36,6 +36,9 @@ export class Product {
   // Storing the URL or Cloudinary ID of the image
   @Column({ nullable: true })
   image!: string;
+
+  @Column({ type: 'simple-json', nullable: true, default: '[]' })
+  images: string[];
 
   @Column({ default: 0 })
   stock!: number;

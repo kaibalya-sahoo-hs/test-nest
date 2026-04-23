@@ -171,6 +171,21 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // 6. REMOVE COUPON
+  const removeCoupon = async () => {
+    const user = getUser();
+    if (!user) return;
+    try {
+      const { data } = await api.delete("/cart/coupon");
+      if (data.success) {
+        setCart(data.cart);
+        toast.success("Coupon removed");
+      }
+    } catch (err) {
+      toast.error("Failed to remove coupon");
+    }
+  };
+
   // Initialize: Load from DB if logged in, or LocalStorage if guest
   useEffect(() => {
     const user = getUser();
@@ -195,6 +210,7 @@ export const CartProvider = ({ children }) => {
         removeItem,
         syncCartWithServer,
         fetchCart,
+        removeCoupon,
       }}
     >
       {children}

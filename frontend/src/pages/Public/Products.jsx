@@ -15,6 +15,7 @@ function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [imageIndices, setImageIndices] = useState({});
 
   // 1. Add Filter State
   const [filters, setFilters] = useState({
@@ -73,6 +74,27 @@ function Products() {
     setFilters({ category: "", sort: "desc", rating: "" });
   };
 
+  const getProductImages = (item) => {
+    if (item.images && item.images.length > 0) return item.images;
+    if (item.image) return [item.image];
+    return ["https://via.placeholder.com/200"];
+  };
+
+  const cycleImage = (e, productId, direction, images) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImageIndices(prev => {
+      const current = prev[productId] || 0;
+      let next;
+      if (direction === 'left') {
+        next = current === 0 ? images.length - 1 : current - 1;
+      } else {
+        next = current === images.length - 1 ? 0 : current + 1;
+      }
+      return { ...prev, [productId]: next };
+    });
+  };
+
   if (loading)
     return <div className="text-center py-20 font-bold">Loading Store...</div>;
 
@@ -100,52 +122,63 @@ function Products() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
-            {filteredProducts.map((item) => (
-              <Link key={item.id} to={`/products/${item.id}`}>
-                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
-                  <div className="relative flex justify-center items-center mb-6">
-                    <button className="absolute left-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <FaAngleLeft size={16} />
-                    </button>
+            {filteredProducts.map((item) => {
+              const images = getProductImages(item);
+              const currentIndex = imageIndices[item.id] || 0;
 
-                    <img
-                      src={item.image || "https://via.placeholder.com/200"}
-                      alt={"Product image"}
-                      className="w-48 h-48 object-contain cursor-pointer"
-                    />
+              return (
+                <Link key={item.id} to={`/products/${item.id}`}>
+                  <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
+                    <div className="relative flex justify-center items-center mb-6">
+                      {images.length > 1 && (
+                        <button
+                          onClick={(e) => cycleImage(e, item.id, 'left', images)}
+                          className="absolute left-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                        >
+                          <FaAngleLeft size={14} />
+                        </button>
+                      )}
 
-                    <button className="absolute right-0 p-1 bg-gray-100 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <FaAngleRight size={16} />
-                    </button>
-                  </div>
+                      <img
+                        src={images[currentIndex]}
+                        alt={item.name}
+                        className="w-48 h-48 object-contain cursor-pointer transition-all duration-200"
+                      />
 
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-[#202224] truncate max-w-[150px]">
-                        {item.name}
-                      </h3>
-                      <p className="text-[#4379EE] font-bold flex items-center">
-                        <FaIndianRupeeSign />
-                        {Number(item.price).toLocaleString("en-IN")}
-                      </p>
+                      {images.length > 1 && (
+                        <button
+                          onClick={(e) => cycleImage(e, item.id, 'right', images)}
+                          className="absolute right-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                        >
+                          <FaAngleRight size={14} />
+                        </button>
+                      )}
+
+                      {/* Image dots indicator */}
+                      {images.length > 1 && (
+                        <div className="absolute bottom-0 flex gap-1 justify-center">
+                          {images.map((_, idx) => (
+                            <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-[#4379EE] w-3' : 'bg-gray-300'}`} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="text-lg font-bold text-[#202224] truncate max-w-[150px]">
+                          {item.name}
+                        </h3>
+                        <p className="text-[#4379EE] font-bold flex items-center">
+                          <FaIndianRupeeSign />
+                          {Number(item.price).toLocaleString("en-IN")}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  {/* <div className="flex items-center gap-1 mb-6">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <FaStar
-                                            key={star}
-                                            size={14}
-                                            className={star <= Math.round(item.rating) ? "fill-[#FFAD33] text-[#FFAD33]" : "text-gray-300"}
-                                        />
-                                    ))}
-                                    <span className="text-xs text-gray-400 ml-1">
-                                        ({item.rating})
-                                    </span>
-                                </div> */}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
