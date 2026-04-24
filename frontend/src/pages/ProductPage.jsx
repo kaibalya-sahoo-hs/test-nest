@@ -85,6 +85,7 @@ function ProductPage() {
         setLoading(true);
         const response = await api.get(`/products/${id}`);
         if (response.data.success) {
+          console.log(response.data)
           setProduct(response.data.product);
           setSelectedImageIndex(0);
         }
@@ -129,9 +130,9 @@ function ProductPage() {
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row">
+      <div className="grid grid-cols-2 ">
         {/* Left Side: Image Carousel */}
-        <div className="md:w-1/2 md:h-fit md:top-0 flex flex-col items-center p-4 sm:p-8">
+        <div className="md:h-fit w-full md:top-0 flex flex-col items-center col-span-1">
           {/* Main Image */}
           <div className="relative w-full max-w-[500px] bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
             <img
@@ -164,28 +165,11 @@ function ProductPage() {
             )}
           </div>
 
-          {/* Thumbnail Strip */}
-          {images.length > 1 && (
-            <div className="flex gap-3 mt-4 overflow-x-auto max-w-[500px] pb-2">
-              {images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
-                    selectedImageIndex === idx
-                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
-                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+
         </div>
 
         {/* Right Side: Scrollable Details */}
-        <div className="md:w-1/2 h-fit pl-4 sm:pl-8">
+        <div className=" h-fit pl-4 sm:pl-8 col-span-1">
           <div className="max-w-xl mx-auto md:mx-0">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -213,7 +197,7 @@ function ProductPage() {
             </div>
 
             {/* Description */}
-            <div className="mb-10">
+            <div className="mb-4">
               <h3 className="text-sm font-bold text-[#202224] uppercase mb-2">
                 Description
               </h3>
@@ -222,6 +206,51 @@ function ProductPage() {
                   "No description provided for this product."}
               </p>
             </div>
+
+            <div className="flex items-center gap-3 border-b-gray-100">
+              {/* Avatar Section */}
+              {product.vendor.profile ? 
+              <img
+                src={product.vendor.profile}
+                alt="vendorimage"
+                className="w-12 h-12 rounded-full object-cover border-2 border-gray-50 shadow-inner"
+              />
+
+              :
+              <div className="w-12 flex justify-center items-center bg-blue-500 font-bold h-12 rounded-full object-cover border-2 border-gray-50 shadow-inner text-white">
+                <div>
+                  {product.vendor.name.charAt(0)}
+                </div>
+              </div>
+              }
+              
+              {/* Text Section */}
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-gray-900 leading-tight">
+                  {product.vendor.name}
+                </span>
+                <span className="text-xs font-medium text-gray-500 hover:text-rose-500 transition-colors cursor-pointer">
+                  {product.vendor.storeName}
+                </span>
+              </div>
+            </div>
+            {/* Thumbnail Strip */}
+            {images.length > 1 && (
+              <div className="flex gap-3 mt-4 overflow-x-auto max-w-[500px] pb-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
+                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
             {product && product.stock > 0 ? cartItem ? (
               /* IF IT IS IN THE CART: Show Quantity Controls */
               <div className="flex items-center gap-4">
@@ -263,7 +292,7 @@ function ProductPage() {
                 Add to cart
               </button>
             ) : null}
-            <div className="sticky bottom-8 md:static"></div>
+            
           </div>
         </div>
       </div>
@@ -286,7 +315,7 @@ function ProductPage() {
 
         {loadingProducts ? (
           <div className="flex gap-6 overflow-hidden">
-            {[1,2,3,4].map(i => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className="flex-shrink-0 w-[260px] bg-white rounded-2xl p-4 animate-pulse">
                 <div className="h-40 bg-gray-100 rounded-xl mb-3"></div>
                 <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>

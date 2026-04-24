@@ -153,168 +153,177 @@ export class CartService {
 
     cartItem.quantity = quantity;
 
-    if (
-      cart.coupon &&
-      cart.coupon.product &&
-      cart.coupon.product.id === productId
-    ) {
-      const discountValue = cart.coupon.discountValue
-      const discountType = cart.coupon.type
-      const productPrice = cart.coupon.product.price
+    if (cart.coupon) {
+      const coupon = cart.coupon;
 
-      const productTotal = cartItem.quantity * Number(productPrice);
-      if (discountType === 'percentage') {
-        const discount = (productTotal * discountValue) / 100;
+      const totalAmount = cart.cartItems.reduce((acc, item) => {
+        return acc + item.quantity * item.product.price
+      }, 0)
+
+      const validItems = cart.cartItems.filter(item =>
+        coupon.products.some(p => p.id === item.product.id)
+      );
+
+
+      if (validItems.length > 0) {
+        let discount = 0;
+
+        for (const item of validItems) {
+          const itemTotal =
+            item.quantity * Number(item.product.price);
+
+          if (coupon.type === 'percentage') {
+            discount += (itemTotal * Number(coupon.discountValue)) / 100;
+          }
+        }
+
+        if (coupon.type === 'fixed') {
+          discount = Number(coupon.discountValue);
+        }
 
         cart.discount = discount;
         cart.discountedAmount = cart.totalAmount - discount;
 
-      } else {
-        const discount = discountValue * cartItem.quantity; // optional depending on logic
-
-        cart.discount = discount;
-        cart.discountedAmount = cart.totalAmount - discount;
+        await this.cartRepo.save(cart)
       }
-      await this.cartRepo.save(cart);
-    }
 
-    await this.productRepo.save(product);
-    await this.cartItemsRepo.save(cartItem);
-    return this.getMyCart(userId);
-  }
-
-  async removeItemByProduct(userId: number, productId: string) {
-    const cart = await this.cartRepo.findOne({
-      where: { user: { id: userId } }, relations: ['coupon', 'coupon.product'],
-    });
-
-    if (!cart) {
-      throw new Error("Cart not found");
-    }
-
-    if (
-      cart.coupon &&
-      cart.coupon.product &&
-      cart.coupon.product.id === productId
-    ) {
-      cart.coupon = null;
-      cart.discount = 0;
-      cart.discountedAmount = cart.totalAmount - cart.discount
-      await this.cartRepo.save(cart);
-    }
-
-    const cartItem = await this.cartItemsRepo.findOne({
-      where: { cart: { id: cart?.id }, product: { id: productId } },
-    });
-    if (!cartItem) {
-      throw new NotFoundException('Cartitems not found');
-    }
-
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
-    let updatedStock = cartItem.quantity + product.stock;
-    product.stock = updatedStock;
-    await this.productRepo.save(product);
-
-    const result = await this.cartItemsRepo.delete({
-      product: productId as any,
-      cart: cart?.id as any,
-    });
-    if (result.affected === 0) {
-      throw new NotFoundException('Item not found in cart');
-    }
-
-    return this.getMyCart(userId);
-  }
-
-  async mergeCarts(userId: number, guestItems: any[]) {
-    if (!guestItems || guestItems.length === 0) {
+      await this.productRepo.save(product);
+      await this.cartItemsRepo.save(cartItem);
       return this.getMyCart(userId);
     }
-
-    let cart = await this.cartRepo.findOne({ where: { user: { id: userId } } });
-
-    if (!cart) {
-      const newcart = await this.cartRepo.create({ user: { id: userId } });
-      cart = await this.cartRepo.save(newcart);
-    }
-
-    for (const guestItem of guestItems) {
-      const existingItem = await this.cartItemsRepo.findOne({
-        where: {
-          cart: { id: cart?.id },
-          product: { id: guestItem.id },
-        },
+  }
+  async removeItemByProduct(userId: number, productId: string) {
+      const cart = await this.cartRepo.findOne({
+        where: { user: { id: userId } }, relations: ['coupon', 'coupon.product'],
       });
+
+      if (!cart) {
+        throw new Error("Cart not found");
+      }
+
+      if (
+        cart.coupon &&
+        cart.coupon.product &&
+        cart.coupon.product.id === productId
+      ) {
+        cart.coupon = null;
+        cart.discount = 0;
+        cart.discountedAmount = cart.totalAmount - cart.discount
+        await this.cartRepo.save(cart);
+      }
+
+      const cartItem = await this.cartItemsRepo.findOne({
+        where: { cart: { id: cart?.id }, product: { id: productId } },
+      });
+      if (!cartItem) {
+        throw new NotFoundException('Cartitems not found');
+      }
+
       const product = await this.productRepo.findOne({
-        where: { id: guestItem.id },
+        where: { id: productId },
       });
-
       if (!product) {
         throw new NotFoundException('Product not found');
       }
 
-      if (product)
-        if (existingItem) {
-          console.log(existingItem.quantity, guestItem.quantity)
-          existingItem.quantity += guestItem.quantity;
+      let updatedStock = cartItem.quantity + product.stock;
+      product.stock = updatedStock;
+      await this.productRepo.save(product);
 
-          product.stock -= guestItem.quantity;
-          await this.productRepo.save(product);
-          console.log(existingItem.quantity)
-          await this.cartItemsRepo.save(existingItem);
-        } else {
-          // Create new entry
-          if (product.stock < guestItem.quantity) {
-            guestItem.quantity = product.stock;
-            product.stock = 0;
-          } else {
-            product.stock -= guestItem.quantity;
-          }
-          await this.productRepo.save(product);
-          const newItem = this.cartItemsRepo.create({
+      const result = await this.cartItemsRepo.delete({
+        product: productId as any,
+        cart: cart?.id as any,
+      });
+      if (result.affected === 0) {
+        throw new NotFoundException('Item not found in cart');
+      }
+
+      return this.getMyCart(userId);
+    }
+
+  async mergeCarts(userId: number, guestItems: any[]) {
+      if (!guestItems || guestItems.length === 0) {
+        return this.getMyCart(userId);
+      }
+
+      let cart = await this.cartRepo.findOne({ where: { user: { id: userId } } });
+
+      if (!cart) {
+        const newcart = await this.cartRepo.create({ user: { id: userId } });
+        cart = await this.cartRepo.save(newcart);
+      }
+
+      for (const guestItem of guestItems) {
+        const existingItem = await this.cartItemsRepo.findOne({
+          where: {
             cart: { id: cart?.id },
             product: { id: guestItem.id },
-            quantity: guestItem.quantity,
-          });
-          await this.cartItemsRepo.save(newItem);
-        }
-    }
+          },
+        });
+        const product = await this.productRepo.findOne({
+          where: { id: guestItem.id },
+        });
 
-    return this.getMyCart(userId);
-  }
+        if (!product) {
+          throw new NotFoundException('Product not found');
+        }
+
+        if (product)
+          if (existingItem) {
+            console.log(existingItem.quantity, guestItem.quantity)
+            existingItem.quantity += guestItem.quantity;
+
+            product.stock -= guestItem.quantity;
+            await this.productRepo.save(product);
+            console.log(existingItem.quantity)
+            await this.cartItemsRepo.save(existingItem);
+          } else {
+            // Create new entry
+            if (product.stock < guestItem.quantity) {
+              guestItem.quantity = product.stock;
+              product.stock = 0;
+            } else {
+              product.stock -= guestItem.quantity;
+            }
+            await this.productRepo.save(product);
+            const newItem = this.cartItemsRepo.create({
+              cart: { id: cart?.id },
+              product: { id: guestItem.id },
+              quantity: guestItem.quantity,
+            });
+            await this.cartItemsRepo.save(newItem);
+          }
+      }
+
+      return this.getMyCart(userId);
+    }
 
   async removeCoupon(userId: number) {
-    const cart = await this.cartRepo.findOne({
-      where: { user: { id: userId } },
-      relations: ['cartItems', 'cartItems.product', 'coupon'],
-    });
+      const cart = await this.cartRepo.findOne({
+        where: { user: { id: userId } },
+        relations: ['cartItems', 'cartItems.product', 'coupon'],
+      });
 
-    if (!cart) {
-      throw new NotFoundException('Cart not found');
+      if (!cart) {
+        throw new NotFoundException('Cart not found');
+      }
+
+      cart.coupon = null;
+      cart.discount = 0;
+
+      const subTotal = cart.cartItems.reduce((sum, item) => {
+        return sum + item.product.price * item.quantity;
+      }, 0);
+      cart.totalAmount = subTotal;
+      cart.discountedAmount = subTotal;
+
+      await this.cartRepo.save(cart);
+
+      return this.getMyCart(userId);
     }
 
-    cart.coupon = null;
-    cart.discount = 0;
-
-    const subTotal = cart.cartItems.reduce((sum, item) => {
-      return sum + item.product.price * item.quantity;
-    }, 0);
-    cart.totalAmount = subTotal;
-    cart.discountedAmount = subTotal;
-
-    await this.cartRepo.save(cart);
-
-    return this.getMyCart(userId);
-  }
-
   async clearCart(userId: number) {
-    await this.cartRepo.delete({ user: { id: userId } });
-    return { message: 'Cart cleared successfully' };
+      await this.cartRepo.delete({ user: { id: userId } });
+      return { message: 'Cart cleared successfully' };
+    }
   }
-}

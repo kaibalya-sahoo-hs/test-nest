@@ -5,6 +5,7 @@ import { LuPackage, LuTrendingUp, LuShieldAlert } from 'react-icons/lu';
 import { IoMdTrendingUp } from 'react-icons/io';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useUser } from '../../context/UserContext';
 
 function VendorDashboard() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ function VendorDashboard() {
   const [loading, setLoading] = useState(true);
   const [vendorStatus, setVendorStatus] = useState(localStorage.getItem('vendorStatus'));
   const user = JSON.parse(localStorage.getItem('user'));
+  const {balance} = useUser()
 
   const fetchDashboardData = async () => {
     try {
@@ -55,7 +57,7 @@ function VendorDashboard() {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [vendorStatus]);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -147,7 +149,7 @@ function VendorDashboard() {
               <div>
                 <span className="text-sm text-[#202224] font-semibold opacity-70">Total Earnings</span>
                 <p className="text-2xl font-black text-[#202224] flex items-center mt-1">
-                  <FaRupeeSign className="text-lg" />{(user?.balance || 0).toLocaleString('en-IN')}
+                  <FaRupeeSign className="text-lg" />{(balance || 0).toLocaleString('en-IN')}
                 </p>
               </div>
               <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-600">

@@ -201,7 +201,7 @@ export class PaymentService {
 
       if (coupon && totalDiscount > 0) {
         const hasCouponProduct = items.some(
-          (itm) => itm.product.id === coupon.product?.id,
+          (itm) => coupon.products.some(product => product.id == itm.product.id),
         );
 
         if (hasCouponProduct) {

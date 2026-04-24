@@ -379,9 +379,9 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                   <button
                     type="button"
                     onClick={() => removeExistingImage(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs group-hover:opacity-100 transition-opacity"
                   >✕</button>
-                  {idx === 0 && <span className="absolute bottom-1 left-1 bg-[#4379EE] text-white text-[8px] px-1.5 py-0.5 rounded-md font-bold">MAIN</span>}
+                  {idx === 0 && <span className="absolute w-full bottom-0 left-0 bg-[#4379EE] text-white text-[13px] px-1.5 py-0.5 ">Thumbnail</span>}
                 </div>
               ))}
 

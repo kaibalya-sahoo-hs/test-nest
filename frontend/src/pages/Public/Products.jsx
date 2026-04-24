@@ -133,7 +133,7 @@ function Products() {
                       {images.length > 1 && (
                         <button
                           onClick={(e) => cycleImage(e, item.id, 'left', images)}
-                          className="absolute left-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                          className="absolute left-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
                         >
                           <FaAngleLeft size={14} />
                         </button>
@@ -148,7 +148,7 @@ function Products() {
                       {images.length > 1 && (
                         <button
                           onClick={(e) => cycleImage(e, item.id, 'right', images)}
-                          className="absolute right-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                          className="absolute right-0 z-10 p-1.5 bg-white/90 rounded-full text-gray-500 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
                         >
                           <FaAngleRight size={14} />
                         </button>

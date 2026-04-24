@@ -171,7 +171,7 @@ export class VendorController {
   @Post('coupon')
   @UseGuards(VendorGuard)
   async createVendorCoupon(@Req() req, @Body() body: any) {
-    return this.couponsService.create(req.user.id, body.productId, body.coupon);
+    return this.couponsService.create(req.user.id, body.productIds, body.coupon);
   }
 
   @Patch('coupon/:id')

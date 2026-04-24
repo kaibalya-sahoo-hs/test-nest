@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from "../utils/api";
-import { FaRupeeSign, FaCheckCircle, FaClock, FaTruck, FaCog, FaBox, FaTag } from 'react-icons/fa';
+import { FaRupeeSign, FaCheckCircle, FaClock, FaTruck, FaCog, FaBox, FaTag, FaChevronRight } from 'react-icons/fa';
 import { FiPackage, FiX, FiChevronRight, FiMapPin, FiCreditCard } from 'react-icons/fi';
 
 function OrdersPage() {
@@ -104,92 +104,107 @@ function OrdersPage() {
           <p className="text-gray-400">When you place an order, it will appear here.</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white rounded-md border border-gray-50 shadow-sm overflow-hidden hover:border-blue-100 transition-all"
-            >
-              {/* Order Card Header */}
-              <div className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  {/* Left: Order info */}
-                  <div className="flex items-start gap-4">
-                    {/* Product thumbnails */}
-                    <div className="flex -space-x-3 flex-shrink-0">
-                      {order.items.slice(0, 3).map((item, index) => (
-                        <img
-                          key={index}
-                          className="w-14 h-14 rounded-xl border-2 border-white object-cover shadow-sm bg-gray-100"
-                          src={item.productImage}
-                          alt={item.productName}
-                        />
-                      ))}
-                      {order.items.length > 3 && (
-                        <div className="w-14 h-14 rounded-xl border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 shadow-sm">
-                          +{order.items.length - 3}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                       <div className="flex flex-wrap gap-1 mt-2">
-                        {order.items.slice(0, 2).map((item, idx) => (
-                          <span key={idx} className="text-lg text-black">
-                            {item.productName}
-                          </span>
-                        ))}
-                        {order.items.length > 2 && (
-                          <span className="text-xs text-gray-400 px-2 py-0.5">
-                            +{order.items.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-400 font-medium">
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                          day: '2-digit', month: 'long', year: 'numeric'
-                        })}
-                      </p>
-                      <p className="text-xs text-gray-300 font-mono mt-0.5">
-                        #{order.id.slice(0, 12).toUpperCase()}
-                      </p>
-                     
-                    </div>
-                  </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  <div className="overflow-x-auto">
+    <table className="w-full text-left border-collapse">
+      {/* Table Header */}
+      <thead className="bg-gray-50/50 border-b border-gray-100">
+        <tr className="text-[12px] uppercase tracking-wider text-gray-500 font-bold">
+          <th className="px-6 py-4">Order Details</th>
+          <th className="px-6 py-4">Products</th>
+          <th className="px-6 py-4">Date</th>
+          <th className="px-6 py-4">Amount</th>
+          <th className="px-6 py-4">Status</th>
+          <th className="px-6 py-4 text-right">Action</th>
+        </tr>
+      </thead>
 
-                  {/* Right: Price, Status, Action */}
-                  <div className="flex items-center gap-4 md:gap-6">
-                    {/* Price */}
-                    <div className="text-right">
-                      <span className="text-xl font-black text-[#202224] flex items-center">
-                        <FaRupeeSign className="text-sm" />
-                        {parseFloat(order.totalAmount).toLocaleString('en-IN')}
-                      </span>
-                      {order.discount > 0 && (
-                        <p className="text-xs text-emerald-500 font-bold flex items-center gap-1 justify-end mt-0.5">
-                          <FaTag size={10} /> Saved ₹{Number(order.discount).toLocaleString('en-IN')}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Status */}
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-wide ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      {order.status}
-                    </div>
-
-                    {/* View Details */}
-                    <button
-                      onClick={() => handleViewDetails(order)}
-                      className="flex items-center gap-1 px-4 py-2 bg-[#F5F6FA] text-[#202224] rounded-xl text-sm font-bold hover:bg-[#4379EE] hover:text-white transition-all"
-                    >
-                      Details <FiChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
+      {/* Table Body */}
+      <tbody className="divide-y divide-gray-50">
+        {orders.map((order) => (
+          <tr 
+            key={order.id} 
+            className="group hover:bg-blue-50/30 transition-colors cursor-pointer"
+            onClick={() => handleViewDetails(order)}
+          >
+            {/* ID Column */}
+            <td className="px-6 py-5">
+              <div className="flex flex-col">
+                <span className="text-xs font-mono font-bold text-gray-400">
+                  #{order.id.slice(0, 8).toUpperCase()}
+                </span>
+                <span className="text-sm font-semibold text-gray-900 mt-1">
+                  {order.items[0]?.productName}
+                  {order.items.length > 1 && (
+                    <span className="text-gray-400 font-normal"> +{order.items.length - 1} more</span>
+                  )}
+                </span>
               </div>
-            </div>
-          ))}
-        </div>
+            </td>
+
+            {/* Product Thumbnails Column */}
+            <td className="px-6 py-5">
+              <div className="flex -space-x-2">
+                {order.items.slice(0, 3).map((item, index) => (
+                  <img
+                    key={index}
+                    className="w-10 h-10 rounded-lg border-2 border-white object-cover shadow-sm bg-gray-50"
+                    src={item.productImage}
+                    alt={item.productName}
+                  />
+                ))}
+                {order.items.length > 3 && (
+                  <div className="w-10 h-10 rounded-lg border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-500 shadow-sm">
+                    +{order.items.length - 3}
+                  </div>
+                )}
+              </div>
+            </td>
+
+            {/* Date Column */}
+            <td className="px-6 py-5">
+              <span className="text-sm text-gray-600 font-medium">
+                {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                  day: '2-digit', month: 'short', year: 'numeric'
+                })}
+              </span>
+            </td>
+
+            {/* Price Column */}
+            <td className="px-6 py-5">
+              <div className="flex flex-col">
+                <span className="text-base font-black text-gray-900 flex items-center">
+                  <FaRupeeSign className="text-xs mr-0.5" />
+                  {parseFloat(order.totalAmount).toLocaleString('en-IN')}
+                </span>
+                {order.discount > 0 && (
+                  <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-0.5">
+                    <FaTag size={8} /> -₹{order.discount}
+                  </span>
+                )}
+              </div>
+            </td>
+
+            {/* Status Column */}
+            <td className="px-6 py-5">
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-tight ${getStatusColor(order.status)}`}>
+                {getStatusIcon(order.status)}
+                {order.status}
+              </div>
+            </td>
+
+            {/* Action Column */}
+            <td className="px-6 py-5 text-right">
+              <button className="text-gray-400 group-hover:text-blue-600 transition-colors">
+                <FaChevronRight size={14} />
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
       )}
 
       {/* Order Detail Modal */}

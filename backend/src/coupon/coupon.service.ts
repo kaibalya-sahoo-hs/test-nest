@@ -65,69 +65,56 @@ export class CouponsService {
     }
 
     async validateCoupon(code: string, cart: any) {
-        console.log(code);
-        
-        const coupon = await this.couponRepo.findOne({ where: { displayName: code.toLowerCase(), isActive: true }, relations: ['vendor', 'product'] });
+
+        const coupon = await this.couponRepo.findOne({ where: { displayName: code.toLowerCase(), isActive: true }, relations: ['vendor', 'products'] });
 
         console.log(coupon)
         if (!coupon) {
             throw new NotFoundException('Coupon code is not available');
         }
 
-        // Check Expiry
+        if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+            throw new BadRequestException('This coupon has reached its usage limit');
+        }
+
         if (coupon.expiryDate && coupon.expiryDate < new Date()) {
             throw new BadRequestException('This coupon has expired');
         }
 
-        const possibleCoupons = await this.couponRepo.find({
-            where: { displayName: coupon.displayName, isActive: true },
-            relations: ['product']
-        });
+        const validCartItems = cart.cartItems.filter(item => {
+            coupon.products.some(p => p.id === item.product.id)
+        })
 
-
-        const isValidCoupon = possibleCoupons.find(coupon =>
-            cart.cartItems.some(item => item.product.id === coupon.product.id)
-        )
-
-        if (!isValidCoupon) {
-            throw new BadRequestException('This coupon is not valid for any product in your cart')
-        }
-
-        // Check Usage Limit
-        if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
-            throw new BadRequestException('This coupon has reached its usage limit');
+        if (validCartItems.length === 0) {
+            throw new BadRequestException("Couon is valid for specific items")
         }
 
         // Calculate Discount
         let discountAmount = 0;
 
-        const product = await this.productRepo.findOne({ where: { id: coupon.product.id } })
-        const productPrice = product?.price
-        
-        if (!productPrice) {
-            throw new NotFoundException('Product not found')
+        for (const item of validCartItems) {
+            const total = item.prodoct.price * item.quanity
+            if (coupon.type === 'percentage') {
+                discountAmount += (total * Number(coupon.discountValue)) / 100;
+            } else {
+                discountAmount += Number(coupon.discountValue);
+            }
         }
 
-        if (coupon.type === 'percentage') {
-            discountAmount = (productPrice * Number(coupon.discountValue)) / 100;
-        } else {
-            discountAmount = Number(coupon.discountValue);
-        }
+        discountAmount = Math.min(discountAmount, cart.totalAmount)
 
-
-        // Ensure discount doesn't exceed total
         return {
             code: coupon,
-            discountAmount: Math.min(discountAmount, cart.totalAmount),
+            discountAmount,
             type: coupon.type,
             value: coupon.discountValue,
             creatorType: coupon.creatorType,
-            vendorId: coupon.vendor?.id || null
+            vendorId: coupon.vendor?.id || null,
         };
     }
 
     // Create coupon for a vendor's product
-    async create(vendorId, productId, coupon) {
+    async create(vendorId, productIds = [], coupon) {
         const uniqueCode = `V-${vendorId}-${coupon.code}`
 
         const existing = await this.couponRepo.findOne({
@@ -138,20 +125,37 @@ export class CouponsService {
             throw new BadRequestException('This coupon code already exists');
         }
 
-        const newCoupon = this.couponRepo.create({
+        let newCoupon = {}
+        let products: Product[] = []
+
+        if (coupon.scope === "vendor") {
+            products = await this.productRepo.find({ where: { vendor: { id: vendorId } } })
+        } else if (coupon.scope === "product") {
+            for (const productid of productIds) {
+                const product = await this.productRepo.findOne({ where: { id: productid } })
+                if (product) {
+                    products.push(product)
+                }
+            }
+        } else {
+            products = await this.productRepo.find()
+        }
+        newCoupon = this.couponRepo.create({
             code: uniqueCode.toUpperCase(),
-            product: { id: productId },
             vendor: { id: vendorId },
-            displayName: coupon.code.toLowerCase(),
+            products,
             description: coupon.description,
+            displayName: coupon.code.toLowerCase(),
             discountValue: coupon.discount,
             creatorType: 'vendor',
-            expiryDate: coupon?.expiry || null,
-            isActive: coupon.isActive ?? true,
+            expiryDate: coupon?.expiry,
+            isActive: coupon.isActive,
             usageLimit: coupon.usageLimit,
-            type: coupon.type || 'percentage',
-        });
-
+            minimumAmount: coupon.minAmount,
+            maxDiscountAmount: coupon.maxDiscount,
+            scope: 'vendor',
+            type: coupon.type
+        })
         return await this.couponRepo.save(newCoupon);
     }
 
@@ -176,7 +180,15 @@ export class CouponsService {
         if (updateData.type !== undefined) coupon.type = updateData.type;
         if (updateData.expiry !== undefined) coupon.expiryDate = updateData.expiry || null;
         if (updateData.usageLimit !== undefined) coupon.usageLimit = updateData.usageLimit;
-        if (updateData.productId !== undefined) coupon.product = { id: updateData.productId } as any;
+        if (updateData.productIds.length > 0) {
+            const newProducts: Product[] = []
+            for (const productId of updateData.productIds) {
+                const product = await this.productRepo.findOne({ where: { id: productId } })
+                if (product) {
+                    newProducts.push(product)
+                }
+            }
+        }
         if (updateData.code !== undefined) {
             const newUniqueCode = `V-${vendorId}-${updateData.code}`;
             coupon.code = newUniqueCode.toUpperCase();
@@ -250,20 +262,24 @@ export class CouponsService {
     async findAllCoupons() {
         return await this.couponRepo.find({ relations: ['vendor', 'product'], order: { id: 'DESC' } });
     }
-    
-    
+
+
     async getCoupons(vendorId: number) {
-        const coupons = await this.couponRepo.find({ where: { vendor: {id: vendorId}},relations: ['product'], order: { id: 'DESC' } });
-        return {success: true, coupons}
+        const coupons = await this.couponRepo.find({ where: { vendor: { id: vendorId } }, relations: ['product'], order: { id: 'DESC' } });
+        return { success: true, coupons }
     }
 
     // Get coupons for a specific product (vendor-scoped)
     async getCouponsByProduct(productId: string, vendorId: number) {
+        
         const coupons = await this.couponRepo.find({
-            where: { product: { id: productId }, vendor: { id: vendorId } },
+            where: { vendor: { id: vendorId }, isActive: true },
             order: { id: 'DESC' },
+            relations: ['product']
         });
-        return { success: true, coupons };
+
+        const filtered =  coupons.filter(coupon => coupon.products.some(p => p.id ===  productId))
+        return { success: true, coupons: filtered };
     }
 
     // Increment usage count after successful payment

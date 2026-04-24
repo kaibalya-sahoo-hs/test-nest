@@ -46,13 +46,21 @@ export class Coupon {
   @Column({ nullable: true })
   usageLimit: number;
 
+  @Column({nullable: true})
+  minimumAmount: number
+
+  @Column({nullable: true})
+  maxDiscountAmount: number
+
   @Column({ type: 'enum', enum: ['platform', 'vendor'], default: 'platform' })
   creatorType: 'platform' | 'vendor';
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
   vendor: User;
 
-  @ManyToOne(() => Product)
-  product: Product
+  @Column()
+  scope: 'global' | 'vendor' | 'product'
 
+  @ManyToOne(() => Product)
+  products: Product[]
 }
