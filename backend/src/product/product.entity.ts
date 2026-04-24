@@ -61,6 +61,6 @@ export class Product {
   })
   tags: Tag[]
 
-  @OneToMany(() => Coupon, (coupon) => coupon.product)
+  @OneToMany(() => Coupon, (coupon) => coupon.product, {onDelete: 'CASCADE'})
   coupons: Coupon[]
 }

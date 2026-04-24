@@ -34,6 +34,7 @@ import { MailerModule } from 'node_modules/@nestjs-modules/mailer/dist/mailer.mo
 import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
 import { EmbeddingModule } from './embedding/embedding.module';
+import { Tag } from './product/tag.entity';
 
 @Module({
   imports: [
@@ -75,7 +76,7 @@ import { EmbeddingModule } from './embedding/embedding.module';
         }),
       }),
     }),
-    TypeOrmModule.forFeature([User, ApiLog, Product, CartModule, Order]),
+    TypeOrmModule.forFeature([User, ApiLog, Product, CartModule, Order, Tag]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',

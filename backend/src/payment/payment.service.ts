@@ -266,7 +266,6 @@ export class PaymentService {
         relations: ['order', 'order.user'],
       });
 
-      console.log(payment)
 
       if (payment) {
         payment.status = PaymentStatus.COMPLETED;
@@ -299,6 +298,7 @@ export class PaymentService {
 
           if (subOrder.couponType === 'vendor') {
             // Vendor-created coupon: vendor bears the discount
+            console.log(subTotal, platformFee, subOrder.discount)
             vendorEarning = subTotal - platformFee - Number(subOrder.discount || 0);
           } else if (subOrder.couponType === 'platform') {
             // Platform coupon: platform (admin) bears the discount, vendor gets full share minus commission

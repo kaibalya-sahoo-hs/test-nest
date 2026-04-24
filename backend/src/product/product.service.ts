@@ -38,7 +38,7 @@ export class ProductService {
 
   // Find one by ID
   async findOne(id: string): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { id } });
+    const product = await this.productRepo.findOne({ where: { id }, relations: ['vendor'] });
     if (!product)
       throw new NotFoundException(`Product with ID ${id} not found`);
     return product;
@@ -100,7 +100,7 @@ export class ProductService {
           JOIN product_tags pt ON pt."productsId" = p.id
           JOIN tags t ON t.id = pt."tagsId"
           WHERE to_tsvector(t.name)
-          @@ to_tsquery($1)
+          @@ plainto_tsquery($1)
           AND p.id != $2
           LIMIT $3
         `, [keyWords, productId, limit]);
