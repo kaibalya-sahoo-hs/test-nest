@@ -1,11 +1,10 @@
 // src/coupons/coupons.service.ts
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Coupon } from './coupon.entity';
 import { Cart } from 'src/cart/cart.entity';
 import { Product } from 'src/product/product.entity';
-import { CLIENT_RENEG_LIMIT } from 'node:tls';
 
 @Injectable()
 export class CouponsService {
@@ -20,15 +19,15 @@ export class CouponsService {
 
     async applyCoupon(couponCode, cartId) {
         try {
-            const cart = await this.cartRepo.findOne({ where: { id: cartId }, relations: ['cartItems', 'cartItems.product'] })
+            const cart = await this.cartRepo.findOne({ where: { id: cartId }, relations: ['cartItems', 'cartItems.product', 'cartItems.product.vendor'] })
             if (!cart) {
                 return { message: 'Invalid cart id', success: false }
             }
             const result = await this.validateCoupon(couponCode, cart)
 
-            cart.coupon = result.code
-            cart.discount = result.discountAmount
-            cart.discountedAmount = cart.totalAmount - result.discountAmount
+            cart.coupon = result.coupon as any;
+            cart.discount = result.discountAmount;
+            cart.discountedAmount = cart.totalAmount - result.discountAmount;
 
             const savedCart = await this.cartRepo.save(cart)
 
@@ -64,11 +63,19 @@ export class CouponsService {
         return { success: true, message: 'Coupon removed successfully' };
     }
 
+    /**
+     * Validate a coupon and calculate discount based on scope:
+     * - 'global': applies to all cart items
+     * - 'vendor': applies to cart items from the coupon's vendor
+     * - 'product': applies only to cart items in coupon.products
+     */
     async validateCoupon(code: string, cart: any) {
 
-        const coupon = await this.couponRepo.findOne({ where: { displayName: code.toLowerCase(), isActive: true }, relations: ['vendor', 'products'] });
+        const coupon = await this.couponRepo.findOne({
+            where: { displayName: code.toLowerCase(), isActive: true },
+            relations: ['vendor', 'products']
+        });
 
-        console.log(coupon)
         if (!coupon) {
             throw new NotFoundException('Coupon code is not available');
         }
@@ -81,41 +88,75 @@ export class CouponsService {
             throw new BadRequestException('This coupon has expired');
         }
 
-        const validCartItems = cart.cartItems.filter(item => {
-            coupon.products.some(p => p.id === item.product.id)
-        })
+        // Filter cart items based on coupon scope
+        let validCartItems: any[] = [];
+
+        if (coupon.scope === 'global') {
+            // Global coupons apply to all items
+            validCartItems = cart.cartItems;
+        } else if (coupon.scope === 'vendor') {
+            // Vendor coupons apply to items from the coupon's vendor
+            if (!coupon.vendor) {
+                throw new BadRequestException('Vendor coupon is misconfigured');
+            }
+            validCartItems = cart.cartItems.filter(item =>
+                item.product.vendor && item.product.vendor.id === coupon.vendor.id
+            );
+        } else if (coupon.scope === 'product') {
+            // Product coupons apply to specific products
+            const couponProductIds = (coupon.products || []).map(p => p.id);
+            validCartItems = cart.cartItems.filter(item =>
+                couponProductIds.includes(item.product.id)
+            );
+        }
 
         if (validCartItems.length === 0) {
-            throw new BadRequestException("Couon is valid for specific items")
+            throw new BadRequestException('This coupon is not applicable to any items in your cart');
         }
 
-        // Calculate Discount
+        // Calculate the eligible subtotal (items the coupon applies to)
+        const eligibleSubtotal = validCartItems.reduce((sum, item) => {
+            return sum + Number(item.product.price) * item.quantity;
+        }, 0);
+
+        // Check minimum amount requirement
+        if (coupon.minimumAmount && eligibleSubtotal < coupon.minimumAmount) {
+            throw new BadRequestException(`Minimum order amount of ₹${coupon.minimumAmount} required for this coupon`);
+        }
+
+        // Calculate discount
         let discountAmount = 0;
 
-        for (const item of validCartItems) {
-            const total = item.prodoct.price * item.quanity
-            if (coupon.type === 'percentage') {
-                discountAmount += (total * Number(coupon.discountValue)) / 100;
-            } else {
-                discountAmount += Number(coupon.discountValue);
-            }
+        if (coupon.type === 'percentage') {
+            discountAmount = (eligibleSubtotal * Number(coupon.discountValue)) / 100;
+        } else {
+            // Fixed discount
+            discountAmount = Number(coupon.discountValue);
         }
 
-        discountAmount = Math.min(discountAmount, cart.totalAmount)
+        // Cap discount at max discount amount if set
+        if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+            discountAmount = coupon.maxDiscountAmount;
+        }
+
+        // Discount cannot exceed the cart total
+        discountAmount = Math.min(discountAmount, cart.totalAmount);
 
         return {
-            code: coupon,
+            coupon,
+            code: coupon.code,
             discountAmount,
             type: coupon.type,
             value: coupon.discountValue,
             creatorType: coupon.creatorType,
             vendorId: coupon.vendor?.id || null,
+            scope: coupon.scope,
         };
     }
 
-    // Create coupon for a vendor's product
-    async create(vendorId, productIds = [], coupon) {
-        const uniqueCode = `V-${vendorId}-${coupon.code}`
+    // Create coupon for a vendor
+    async create(vendorId, productIds = [], couponData) {
+        const uniqueCode = `V-${vendorId}-${couponData.code}`
 
         const existing = await this.couponRepo.findOne({
             where: { code: uniqueCode.toUpperCase() }
@@ -125,36 +166,41 @@ export class CouponsService {
             throw new BadRequestException('This coupon code already exists');
         }
 
-        let newCoupon = {}
         let products: Product[] = []
+        const scope = couponData.scope || 'product';
 
-        if (coupon.scope === "vendor") {
+        if (scope === 'vendor') {
+            // Auto-assign all vendor products (at time of creation)
             products = await this.productRepo.find({ where: { vendor: { id: vendorId } } })
-        } else if (coupon.scope === "product") {
-            for (const productid of productIds) {
-                const product = await this.productRepo.findOne({ where: { id: productid } })
+        } else if (scope === 'product') {
+            // Assign specific products
+            for (const productId of productIds) {
+                const product = await this.productRepo.findOne({ where: { id: productId } })
                 if (product) {
                     products.push(product)
                 }
             }
-        } else {
-            products = await this.productRepo.find()
+            if (products.length === 0) {
+                throw new BadRequestException('At least one valid product is required for product-scope coupons');
+            }
         }
-        newCoupon = this.couponRepo.create({
+        // For 'global' scope, products remains empty — validated against all items at apply time
+
+        const newCoupon = this.couponRepo.create({
             code: uniqueCode.toUpperCase(),
             vendor: { id: vendorId },
             products,
-            description: coupon.description,
-            displayName: coupon.code.toLowerCase(),
-            discountValue: coupon.discount,
+            description: couponData.description,
+            displayName: couponData.code.toLowerCase(),
+            discountValue: couponData.discount,
             creatorType: 'vendor',
-            expiryDate: coupon?.expiry,
-            isActive: coupon.isActive,
-            usageLimit: coupon.usageLimit,
-            minimumAmount: coupon.minAmount,
-            maxDiscountAmount: coupon.maxDiscount,
-            scope: 'vendor',
-            type: coupon.type
+            expiryDate: couponData.expiry,
+            isActive: couponData.isActive !== undefined ? couponData.isActive : true,
+            usageLimit: couponData.usageLimit,
+            minimumAmount: couponData.minAmount || null,
+            maxDiscountAmount: couponData.maxDiscount || null,
+            scope,
+            type: couponData.type
         })
         return await this.couponRepo.save(newCoupon);
     }
@@ -163,7 +209,7 @@ export class CouponsService {
     async updateCoupon(couponId: number, vendorId: number, updateData: any) {
         const coupon = await this.couponRepo.findOne({
             where: { id: couponId },
-            relations: ['vendor'],
+            relations: ['vendor', 'products'],
         });
 
         if (!coupon) {
@@ -180,19 +226,34 @@ export class CouponsService {
         if (updateData.type !== undefined) coupon.type = updateData.type;
         if (updateData.expiry !== undefined) coupon.expiryDate = updateData.expiry || null;
         if (updateData.usageLimit !== undefined) coupon.usageLimit = updateData.usageLimit;
-        if (updateData.productIds.length > 0) {
-            const newProducts: Product[] = []
+        if (updateData.minAmount !== undefined) coupon.minimumAmount = updateData.minAmount || null;
+        if (updateData.maxDiscount !== undefined) coupon.maxDiscountAmount = updateData.maxDiscount || null;
+
+        // Handle scope change
+        if (updateData.scope !== undefined) {
+            coupon.scope = updateData.scope;
+        }
+
+        // Update products based on scope
+        if (coupon.scope === 'vendor') {
+            coupon.products = await this.productRepo.find({ where: { vendor: { id: vendorId } } });
+        } else if (coupon.scope === 'product' && updateData.productIds && updateData.productIds.length > 0) {
+            const newProducts: Product[] = [];
             for (const productId of updateData.productIds) {
-                const product = await this.productRepo.findOne({ where: { id: productId } })
+                const product = await this.productRepo.findOne({ where: { id: productId } });
                 if (product) {
-                    newProducts.push(product)
+                    newProducts.push(product);
                 }
             }
+            coupon.products = newProducts;
+        } else if (coupon.scope === 'global') {
+            coupon.products = [];
         }
+
         if (updateData.code !== undefined) {
             const newUniqueCode = `V-${vendorId}-${updateData.code}`;
             coupon.code = newUniqueCode.toUpperCase();
-            coupon.displayName = updateData.code;
+            coupon.displayName = updateData.code.toLowerCase();
         }
 
         return await this.couponRepo.save(coupon);
@@ -237,48 +298,39 @@ export class CouponsService {
         return { success: true, isActive: saved.isActive, message: `Coupon ${saved.isActive ? 'activated' : 'deactivated'}` };
     }
 
-    // Vendor coupon (created by vendor)
-    async createVendorCoupon(coupon, vendorId: string) {
-        const existing = await this.couponRepo.findOne({
-            where: { code: coupon.code.toUpperCase() }
-        });
-
-        if (existing) {
-            throw new BadRequestException('A coupon with this code already exists');
-        }
-
-        const newCoupon = this.couponRepo.create({
-            ...coupon,
-            code: coupon.code.toUpperCase(),
-            expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate) : null,
-            creatorType: 'vendor',
-            vendor: { id: vendorId },
-        });
-
-        return await this.couponRepo.save(newCoupon);
-    }
-
     // Get all coupons (for admin)
     async findAllCoupons() {
-        return await this.couponRepo.find({ relations: ['vendor', 'product'], order: { id: 'DESC' } });
+        return await this.couponRepo.find({ relations: ['vendor', 'products'], order: { id: 'DESC' } });
     }
 
-
+    // Get coupons for a vendor
     async getCoupons(vendorId: number) {
-        const coupons = await this.couponRepo.find({ where: { vendor: { id: vendorId } }, relations: ['product'], order: { id: 'DESC' } });
+        const coupons = await this.couponRepo.find({
+            where: { vendor: { id: vendorId } },
+            relations: ['products'],
+            order: { id: 'DESC' }
+        });
         return { success: true, coupons }
     }
 
-    // Get coupons for a specific product (vendor-scoped)
+    // Get coupons applicable to a specific product (for product page display)
     async getCouponsByProduct(productId: string, vendorId: number) {
-        
         const coupons = await this.couponRepo.find({
             where: { vendor: { id: vendorId }, isActive: true },
             order: { id: 'DESC' },
-            relations: ['product']
+            relations: ['products']
         });
 
-        const filtered =  coupons.filter(coupon => coupon.products.some(p => p.id ===  productId))
+        // Filter: global coupons, vendor-scope coupons from this vendor, or product-scope coupons containing this product
+        const filtered = coupons.filter(coupon => {
+            if (coupon.scope === 'global') return true;
+            if (coupon.scope === 'vendor') return true;
+            if (coupon.scope === 'product') {
+                return coupon.products.some(p => p.id === productId);
+            }
+            return false;
+        });
+
         return { success: true, coupons: filtered };
     }
 

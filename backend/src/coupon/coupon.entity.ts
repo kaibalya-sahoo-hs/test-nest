@@ -1,13 +1,14 @@
 // src/coupons/entities/coupon.entity.ts
 import { Product } from 'src/product/product.entity';
 import { User } from 'src/users/users.entity';
-import { Vendor } from 'src/vendor/vendor.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('coupons')
@@ -58,9 +59,10 @@ export class Coupon {
   @ManyToOne(() => User, { nullable: true, onDelete: 'CASCADE' })
   vendor: User;
 
-  @Column()
+  @Column({ type: 'enum', enum: ['global', 'vendor', 'product'], default: 'product' })
   scope: 'global' | 'vendor' | 'product'
 
-  @ManyToOne(() => Product)
+  @ManyToMany(() => Product, (product) => product.coupons, { onDelete: "CASCADE" })
+  @JoinTable({ name: 'coupon_products' })
   products: Product[]
 }

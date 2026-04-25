@@ -109,7 +109,7 @@ export class PaymentService {
     if (couponCode) {
       coupon = await this.couponRepo.findOne({
         where: { code: couponCode.toUpperCase() },
-        relations: ['vendor', 'product'],
+        relations: ['vendor', 'products'],
       });
     }
 
@@ -194,18 +194,36 @@ export class PaymentService {
         0,
       );
 
-      // Check if any item in this vendor group has the coupon applied
+      // Check if any item in this vendor group has the coupon applied (scope-aware)
       let subDiscount = 0;
       let subCouponCode: string | null = null;
       let subCouponType: 'platform' | 'vendor' | null = null;
 
       if (coupon && totalDiscount > 0) {
-        const hasCouponProduct = items.some(
-          (itm) => coupon.products.some(product => product.id == itm.product.id),
-        );
+        let hasCouponProduct = false;
+
+        if (coupon.scope === 'global') {
+          // Global coupon applies to all vendors
+          hasCouponProduct = true;
+        } else if (coupon.scope === 'vendor') {
+          // Vendor coupon applies only to items from that vendor
+          hasCouponProduct = coupon.vendor?.id === vendorId;
+        } else if (coupon.scope === 'product') {
+          // Product coupon applies to specific products
+          const couponProductIds = (coupon.products || []).map(p => p.id);
+          hasCouponProduct = items.some(
+            (itm) => couponProductIds.includes(itm.product.id),
+          );
+        }
 
         if (hasCouponProduct) {
-          subDiscount = totalDiscount;
+          // For global coupons spanning multiple vendors, split discount proportionally
+          if (coupon.scope === 'global' && vendorGroups.size > 1) {
+            const proportion = subTotal / totalBeforeDiscount;
+            subDiscount = Math.round(totalDiscount * proportion * 100) / 100;
+          } else {
+            subDiscount = totalDiscount;
+          }
           subCouponCode = coupon.code;
           subCouponType = coupon.creatorType;
         }

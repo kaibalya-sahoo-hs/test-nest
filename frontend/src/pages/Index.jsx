@@ -1,172 +1,432 @@
-import React, { useEffect } from 'react'
-import { useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast';
-import { CiHeart } from 'react-icons/ci'
-import { FaRupeeSign } from 'react-icons/fa';
-import { FaAngleLeft, FaAngleRight, FaStar } from 'react-icons/fa6'
-import { LuCreditCard, LuHeadphones, LuRotateCcw, LuTruck } from 'react-icons/lu';
+import { FaRupeeSign, FaShoppingCart, FaArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaStar, FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
+import { LuCreditCard, LuHeadphones, LuRotateCcw, LuTruck, LuShieldCheck, LuPackage } from 'react-icons/lu';
+import { FiMail, FiMapPin, FiPhone, FiArrowRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
 import { useCart } from '../context/CartContext';
 import api from '../utils/api';
 
 function Index() {
+  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+  const [loadingNew, setLoadingNew] = useState(true);
+  const [currentBanner, setCurrentBanner] = useState(0);
+  const [email, setEmail] = useState('');
+  const trendingRef = useRef(null);
+  const newRef = useRef(null);
 
-  const [loading, setLoading] = useState(false)
-  
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
 
-  const features = [
+  // Banner carousel data
+  const banners = [
     {
-      icon: <LuTruck size={32} className="text-gray-800" />,
-      title: "FASTEST DELIVERY",
-      desc: "Delivery in 24/H"
+      title: "Summer Sale is Here",
+      subtitle: "Up to 50% off on electronics",
+      cta: "Shop Now",
+      bg: "from-[#4379EE] to-[#6C63FF]",
+      accent: "#FF8743",
     },
     {
-      icon: <LuRotateCcw size={32} className="text-gray-800" />,
-      title: "24 HOURS RETURN",
-      desc: "Money-back guarantee"
+      title: "New Arrivals Daily",
+      subtitle: "Discover the latest trends & gadgets",
+      cta: "Explore",
+      bg: "from-[#1a1a2e] to-[#16213e]",
+      accent: "#00D2FF",
     },
     {
-      icon: <LuCreditCard size={32} className="text-gray-800" />,
-      title: "SECURE PAYMENT",
-      desc: "Your money is safe"
-    },
-    {
-      icon: <LuHeadphones size={32} className="text-gray-800" />,
-      title: "SUPPORT 24/7",
-      desc: "Live contact/message"
+      title: "Free Shipping Worldwide",
+      subtitle: "No minimum order required this weekend",
+      cta: "Start Shopping",
+      bg: "from-[#0f3443] to-[#34e89e]",
+      accent: "#FBBF24",
     }
   ];
 
-  const handleShopNow = () => {
-    navigate('/products');
+  // Auto-rotate banners
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner(prev => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await api.get('/products');
+        if (data) {
+          const products = data.products || data.data || data;
+          if (Array.isArray(products)) {
+            setTrendingProducts(products.slice(0, 8));
+            const sorted = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setNewArrivals(sorted.slice(0, 8));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoadingTrending(false);
+        setLoadingNew(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleAddToCart = async (product) => {
+    if (product.stock < 1) {
+      toast.error("Sorry, this product is out of stock.");
+      return;
+    }
+    await addToCart(product);
+    toast.success("Added to cart!");
   };
+
+  const scrollContainer = (ref, direction) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
+    }
+  };
+
+  const features = [
+    { icon: <LuTruck size={28} />, title: "Fast Delivery", desc: "Within 24 hours" },
+    { icon: <LuRotateCcw size={28} />, title: "Easy Returns", desc: "24-hour return policy" },
+    { icon: <LuCreditCard size={28} />, title: "Secure Payment", desc: "100% protected" },
+    { icon: <LuHeadphones size={28} />, title: "24/7 Support", desc: "Always available" },
+  ];
+
+  const categories = [
+    { name: "Electronics", emoji: "💻", color: "from-blue-500 to-indigo-600" },
+    { name: "Fashion", emoji: "👕", color: "from-pink-500 to-rose-600" },
+    { name: "Home", emoji: "🏠", color: "from-amber-500 to-orange-600" },
+    { name: "Beauty", emoji: "✨", color: "from-purple-500 to-fuchsia-600" },
+    { name: "Sports", emoji: "⚽", color: "from-green-500 to-emerald-600" },
+    { name: "Books", emoji: "📚", color: "from-cyan-500 to-teal-600" },
+  ];
+
+  const ProductCard = ({ item }) => (
+    <div
+      className="flex-shrink-0 w-[200px] sm:w-[230px] bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-blue-100 transition-all duration-300 cursor-pointer group"
+    >
+      <div className="h-40 w-full overflow-hidden bg-gray-50 relative" onClick={() => navigate(`/products/${item.id}`)}>
+        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        {item.stock < 1 && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span className="text-white text-xs font-bold bg-red-500 px-3 py-1 rounded-full">Sold Out</span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="text-sm font-bold text-[#202224] line-clamp-1 mb-1 cursor-pointer" onClick={() => navigate(`/products/${item.id}`)}>{item.name}</h3>
+        <p className="text-xs text-gray-400 line-clamp-1 mb-3">{item.vendor?.storeName || 'Marketplace'}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-base font-black text-[#4379EE] flex items-center">
+            <FaRupeeSign className="text-xs" />{Number(item.price).toLocaleString('en-IN')}
+          </span>
+          {item.stock > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
+              className="p-2 bg-[#4379EE] text-white rounded-lg hover:bg-[#3662c1] transition-all active:scale-90 cursor-pointer"
+              title="Add to Cart"
+            >
+              <FaShoppingCart size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const SectionHeader = ({ title, subtitle, onViewAll }) => (
+    <div className="flex items-end justify-between mb-6">
+      <div>
+        <h2 className="text-xl sm:text-2xl font-black text-[#202224]">{title}</h2>
+        {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
+      </div>
+      <button onClick={onViewAll} className="flex items-center gap-1.5 text-sm font-bold text-[#4379EE] hover:text-[#3662c1] transition-colors cursor-pointer">
+        View All <FiArrowRight size={16} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="bg-[#F5F6FA] min-h-screen font-sans">
-      {/* Hero Banner Section */}
-      <div className="relative w-full h-[200px] sm:h-[280px] bg-[#4379EE] rounded-lg overflow-hidden mb-8 flex items-center px-6 sm:px-12 shadow-lg">
-        {/* Background SVG Pattern (Wavy Lines) */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 100 Q 250 50 400 200 T 800 150 T 1200 250" stroke="white" fill="transparent" strokeWidth="2" />
-            <path d="M0 150 Q 300 100 500 250 T 900 200 T 1300 300" stroke="white" fill="transparent" strokeWidth="2" />
-          </svg>
-        </div>
 
-        {/* Banner Content */}
-        <div className="relative z-10 text-white max-w-lg ml-2 sm:ml-6">
-          <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2 opacity-90">September 12-22</p>
-          <h2 className="text-xl sm:text-4xl font-bold mb-2 sm:mb-4 leading-tight">
-            Enjoy free home <br className="hidden sm:block" />delivery in this summer
-          </h2>
-          <p className="text-xs sm:text-sm mb-4 sm:mb-6 opacity-80">Designer Dresses - Pick from trendy Designer Dress.</p>
-          <button className="bg-[#FF8743] hover:bg-[#e67635] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold text-sm transition-colors">
-            Get Started
-          </button>
-        </div>
-
-        {/* Banner Navigation Arrows */}
-        <button className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
-          <FaAngleLeft size={20} />
-        </button>
-        <button className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 text-sm rounded-full text-white backdrop-blur-sm transition-all">
-          <FaAngleRight size={20} />
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 min-h-[500px]">
-        
-        {/* Left Side: Large Hero Section (Spans 2 columns on desktop) */}
-        <div className="md:col-span-2 relative rounded-2xl bg-[#4b4b4b] overflow-hidden group min-h-[350px]">
-          {/* Main content would go here */}
-          <div className="absolute">
-          <button 
-                onClick={handleShopNow}
-                className="bg-blue-600 absolute bottom-15 left-10 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
-                aria-label='shop now'
-              >
-                Shop Now <span>→</span>
-              </button>
-            <img src="https://webandcrafts.com/_next/image?url=https%3A%2F%2Fadmin.wac.co%2Fuploads%2FWhat_is_E_commerce_and_What_are_its_Applications_2_d2eb0d4402.jpg&w=4500&q=90" className='h-full' />
-          </div>
-        </div>
-
-        {/* Right Side: Two Stacked Banners */}
-        <div className="grid grid-rows-2 gap-4 lg:gap-6">
-          
-          {/* Top Right Card: Pixel 6 Pro */}
-          <div className="relative bg-black rounded-2xl p-6 overflow-hidden flex flex-col justify-center border border-gray-800">
-            <div className="relative z-10">
-              <span className="text-yellow-500 text-xs font-bold uppercase tracking-widest">Summer Sales</span>
-              <h2 className="text-white text-2xl font-bold mt-2 mb-4 leading-tight">
-                New Google <br /> Pixel 6 Pro
-              </h2>
-              <button 
-                onClick={handleShopNow}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
-              >
-                Shop Now <span>→</span>
-              </button>
-            </div>
-            {/* Discount Badge */}
-            <div className="absolute top-4 right-4 bg-yellow-400 text-black font-bold px-3 py-1 text-sm rounded">
-              29% OFF
-            </div>
-            {/* Background Image Placeholder */}
-            <img 
-              src="https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=500" 
-              alt="Pixel 6" 
-              className="absolute right-[-20px] top-4 w-40 opacity-80"
-            />
-          </div>
-
-          {/* Bottom Right Card: FlipBuds Pro */}
-          <div className="relative bg-black rounded-2xl p-6 overflow-hidden flex items-center border border-gray-800">
-            <div className="flex-1 z-10">
-              <h2 className="text-white text-2xl font-bold mb-1">Xiaomi <br /> FlipBuds Pro</h2>
-              <p className="text-blue-500 font-bold mb-4">$299 USD</p>
-              <button 
-                onClick={handleShopNow}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all"
-              >
-                Shop Now <span>→</span>
-              </button>
-            </div>
-            {/* Background Image Placeholder */}
-            <img 
-              src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=500" 
-              alt="Earbuds" 
-              className="absolute right-0 w-32 object-contain"
-            />
-          </div>  
-
-        </div>
-      </div>
-
-      <div className="mt-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {features.map((feature, index) => (
-          <div 
-            key={index} 
-            className="bg-white p-6 flex items-center space-x-4 border border-gray-100 shadow-sm rounded-sm"
+      {/* ==================== BANNER CAROUSEL ==================== */}
+      <div className="relative w-full h-[220px] sm:h-[320px] rounded-2xl overflow-hidden mb-8 shadow-lg">
+        {banners.map((banner, idx) => (
+          <div
+            key={idx}
+            className={`absolute inset-0 bg-gradient-to-r ${banner.bg} flex items-center px-6 sm:px-14 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}
           >
-            {/* Icon Container */}
-            <div className="flex-shrink-0">
-              {feature.icon}
+            {/* Decorative SVG */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="80%" cy="20%" r="200" fill="white" opacity="0.1" />
+                <circle cx="90%" cy="80%" r="150" fill="white" opacity="0.08" />
+                <path d="M0 100 Q 250 50 400 200 T 800 150 T 1200 250" stroke="white" fill="transparent" strokeWidth="2" />
+              </svg>
             </div>
-            
-            {/* Text Content */}
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 tracking-tight leading-none mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-xs text-gray-500 font-medium">
-                {feature.desc}
-              </p>
+            <div className="relative z-10 text-white max-w-lg">
+              <p className="text-xs sm:text-sm font-medium mb-2 opacity-80 tracking-wide uppercase">Limited Time Offer</p>
+              <h2 className="text-2xl sm:text-4xl font-black mb-3 leading-tight">{banner.title}</h2>
+              <p className="text-sm sm:text-base mb-6 opacity-80">{banner.subtitle}</p>
+              <button
+                onClick={() => navigate('/products')}
+                className="text-white px-6 py-3 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-95 flex items-center gap-2"
+                style={{ backgroundColor: banner.accent }}
+              >
+                {banner.cta} <FaArrowRight size={12} />
+              </button>
             </div>
           </div>
         ))}
+
+        {/* Carousel Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {banners.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentBanner(idx)}
+              className={`h-2 rounded-full transition-all cursor-pointer ${idx === currentBanner ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+            />
+          ))}
+        </div>
+
+        {/* Arrows */}
+        <button onClick={() => setCurrentBanner(prev => (prev - 1 + banners.length) % banners.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
+          <FaAngleLeft size={18} />
+        </button>
+        <button onClick={() => setCurrentBanner(prev => (prev + 1) % banners.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
+          <FaAngleRight size={18} />
+        </button>
       </div>
-    </div>
+
+      {/* ==================== CATEGORIES ==================== */}
+      <div className="mb-10">
+        <SectionHeader title="Shop by Category" subtitle="Browse our curated categories" onViewAll={() => navigate('/products')} />
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {categories.map((cat, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate('/products')}
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all cursor-pointer group active:scale-95"
+            >
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform`}>
+                {cat.emoji}
+              </div>
+              <span className="text-xs font-bold text-gray-700">{cat.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ==================== PROMOTIONAL GRID ==================== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-10">
+        <div className="md:col-span-2 relative rounded-2xl bg-gradient-to-r from-[#1a1a2e] to-[#16213e] overflow-hidden group min-h-[280px] flex items-center">
+          <div className="relative z-10 p-8 sm:p-12">
+            <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-2 inline-block">Trending Now</span>
+            <h2 className="text-white text-2xl sm:text-3xl font-black mb-3 leading-tight">Premium Electronics<br />Collection</h2>
+            <p className="text-gray-400 text-sm mb-6 max-w-[300px]">Explore the latest gadgets from top brands.</p>
+            <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+              Shop Now <FaArrowRight size={12} />
+            </button>
+          </div>
+          <img src="https://webandcrafts.com/_next/image?url=https%3A%2F%2Fadmin.wac.co%2Fuploads%2FWhat_is_E_commerce_and_What_are_its_Applications_2_d2eb0d4402.jpg&w=4500&q=90" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity" />
+        </div>
+
+        <div className="grid grid-rows-2 gap-4 lg:gap-6">
+          <div className="relative bg-gradient-to-br from-black to-gray-900 rounded-2xl p-6 overflow-hidden flex flex-col justify-center">
+            <div className="relative z-10">
+              <span className="text-yellow-500 text-[10px] font-bold uppercase tracking-widest">Hot Deal</span>
+              <h3 className="text-white text-xl font-black mt-1 mb-3 leading-tight">Summer<br />Essentials</h3>
+              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-5 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+                Shop Now <FaArrowRight size={10} />
+              </button>
+            </div>
+            <div className="absolute top-3 right-3 bg-yellow-400 text-black font-black px-2.5 py-0.5 text-xs rounded-lg">29% OFF</div>
+          </div>
+
+          <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 overflow-hidden flex items-center">
+            <div className="relative z-10 flex-1">
+              <h3 className="text-white text-xl font-black mb-1 leading-tight">Accessories<br />& More</h3>
+              <p className="text-blue-400 font-bold text-sm mb-3">Starting ₹299</p>
+              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-5 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+                Shop Now <FaArrowRight size={10} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== TRENDING PRODUCTS ==================== */}
+      <div className="mb-10">
+        <SectionHeader title="Trending Products" subtitle="Most popular picks this week" onViewAll={() => navigate('/products')} />
+        {loadingTrending ? (
+          <div className="flex gap-5 overflow-hidden">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="flex-shrink-0 w-[230px] bg-white rounded-2xl p-4 animate-pulse">
+                <div className="h-40 bg-gray-100 rounded-xl mb-3"></div>
+                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : trendingProducts.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">No products available yet.</p>
+        ) : (
+          <div className="relative">
+            <div ref={trendingRef} className="flex gap-4 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+              {trendingProducts.map(item => <ProductCard key={item.id} item={item} />)}
+            </div>
+            {trendingProducts.length > 4 && (
+              <>
+                <button onClick={() => scrollContainer(trendingRef, 'left')} className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronLeft size={12} /></button>
+                <button onClick={() => scrollContainer(trendingRef, 'right')} className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronRight size={12} /></button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ==================== NEW ARRIVALS ==================== */}
+      <div className="mb-10">
+        <SectionHeader title="New Arrivals" subtitle="Fresh picks just for you" onViewAll={() => navigate('/products')} />
+        {loadingNew ? (
+          <div className="flex gap-5 overflow-hidden">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="flex-shrink-0 w-[230px] bg-white rounded-2xl p-4 animate-pulse">
+                <div className="h-40 bg-gray-100 rounded-xl mb-3"></div>
+                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : newArrivals.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">No new arrivals yet.</p>
+        ) : (
+          <div className="relative">
+            <div ref={newRef} className="flex gap-4 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+              {newArrivals.map(item => <ProductCard key={item.id} item={item} />)}
+            </div>
+            {newArrivals.length > 4 && (
+              <>
+                <button onClick={() => scrollContainer(newRef, 'left')} className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronLeft size={12} /></button>
+                <button onClick={() => scrollContainer(newRef, 'right')} className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronRight size={12} /></button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ==================== FEATURES ==================== */}
+      <div className="mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {features.map((feature, index) => (
+            <div key={index} className="bg-white p-5 flex flex-col sm:flex-row items-center sm:items-start gap-3 border border-gray-100 shadow-sm rounded-2xl hover:shadow-md transition-all text-center sm:text-left">
+              <div className="text-[#4379EE] flex-shrink-0">{feature.icon}</div>
+              <div>
+                <h3 className="text-sm font-black text-gray-900 leading-tight mb-0.5">{feature.title}</h3>
+                <p className="text-xs text-gray-500">{feature.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ==================== NEWSLETTER ==================== */}
+      <div className="bg-gradient-to-r from-[#4379EE] to-[#6C63FF] rounded-2xl p-8 sm:p-12 mb-10 text-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10%" cy="80%" r="150" fill="white" />
+            <circle cx="90%" cy="20%" r="100" fill="white" />
+          </svg>
+        </div>
+        <div className="relative z-10">
+          <h2 className="text-white text-2xl sm:text-3xl font-black mb-2">Stay in the Loop</h2>
+          <p className="text-white/80 text-sm mb-6 max-w-md mx-auto">Subscribe to get exclusive deals, new arrivals, and insider-only discounts.</p>
+          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 px-5 py-3 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 outline-none border border-white/20 focus:border-white/50 transition-all"
+            />
+            <button
+              onClick={() => {
+                if (email) { toast.success('Subscribed successfully!'); setEmail(''); }
+                else toast.error('Please enter your email');
+              }}
+              className="px-6 py-3 bg-white text-[#4379EE] rounded-xl font-bold text-sm hover:bg-gray-100 transition-all active:scale-95 cursor-pointer"
+            >
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== FOOTER ==================== */}
+      <footer className="bg-[#1a1a2e] rounded-t-3xl -mx-4 sm:-mx-8 px-6 sm:px-12 pt-12 pb-6 mt-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+            {/* Brand */}
+            <div>
+              <h3 className="text-white text-xl font-black mb-3">DashStack</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-4">Your one-stop destination for premium products from trusted vendors.</p>
+              <div className="flex gap-3">
+                {['𝕏', 'in', 'fb', 'ig'].map((social, i) => (
+                  <button key={i} className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center text-xs font-bold transition-all cursor-pointer">{social}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Quick Links</h4>
+              <ul className="space-y-2.5">
+                {[{ label: 'Products', to: '/products' }, { label: 'My Orders', to: '/orders' }, { label: 'Cart', to: '/cart' }, { label: 'Profile', to: '/profile' }].map((link, i) => (
+                  <li key={i}>
+                    <button onClick={() => navigate(link.to)} className="text-gray-400 hover:text-white text-sm transition-colors cursor-pointer">{link.label}</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Support</h4>
+              <ul className="space-y-2.5">
+                {['Help Center', 'Shipping Policy', 'Returns & Refunds', 'Privacy Policy'].map((item, i) => (
+                  <li key={i}><span className="text-gray-400 hover:text-white text-sm transition-colors cursor-pointer">{item}</span></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Contact Us</h4>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2.5 text-gray-400 text-sm"><FiMail size={14} /> support@dashstack.com</li>
+                <li className="flex items-center gap-2.5 text-gray-400 text-sm"><FiPhone size={14} /> +91 98765 43210</li>
+                <li className="flex items-start gap-2.5 text-gray-400 text-sm"><FiMapPin size={14} className="mt-0.5 flex-shrink-0" /> Bhubaneswar, Odisha, India</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-gray-500 text-xs">© {new Date().getFullYear()} DashStack. All rights reserved.</p>
+            <div className="flex items-center gap-2">
+              <LuShieldCheck size={14} className="text-green-400" />
+              <span className="text-gray-500 text-xs">100% Secure Payments</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

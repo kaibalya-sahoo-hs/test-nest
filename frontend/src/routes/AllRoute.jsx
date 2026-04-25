@@ -19,7 +19,7 @@ import Index from "../pages/Index";
 import CartPage from "../pages/CartPage";
 import Nav from "../components/Nav";
 import MyOrders from "../pages/OrdersPage";
-import OrdersPage from "../pages/OrdersPage";
+import OrdersPage, { OrderDetailPage } from "../pages/OrdersPage";
 import Products from "../pages/Public/Products";
 import ManageProducts from "../pages/ManageProducts";
 import AddressManager from "../pages/User/AddressManager";
@@ -59,6 +59,7 @@ function AllRoute() {
         <Route path="/products" element={<Products />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/products/:id" element={<ProductPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/profile/wallet" element={<VendorWallet />} />
