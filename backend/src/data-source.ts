@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { join } from 'path';
 
 dotenv.config();
 
@@ -10,6 +11,6 @@ export default new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  entities: ['src/**/*.entity.ts'],
+  entities: [join(__dirname, '**/*.entity{.ts,.js}')],
   migrations: ['src/db/migrations/*.ts'],
 });

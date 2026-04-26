@@ -21,6 +21,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bull';
 import { ProductModule } from './product/product.module';
 import { Product } from './product/product.entity';
+import { Cart } from './cart/cart.entity';
 import { CartModule } from './cart/cart.module';
 import { CouponModule } from './coupon/coupon.module';
 import { PaymentModule } from './payment/payment.module';
@@ -76,7 +77,7 @@ import { Tag } from './product/tag.entity';
         }),
       }),
     }),
-    TypeOrmModule.forFeature([User, ApiLog, Product, CartModule, Order, Tag]),
+    TypeOrmModule.forFeature([User, ApiLog, Product, Cart, Order, Tag]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -84,6 +85,9 @@ import { Tag } from './product/tag.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
+      synchronize: false,
+      migrationsRun: true,
+      autoLoadEntities: true,
     }),
 
     UsersModule,

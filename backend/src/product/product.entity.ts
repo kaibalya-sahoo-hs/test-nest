@@ -49,7 +49,7 @@ export class Product {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (vendor) => vendor.products)
+  @ManyToOne(() => User, (vendor) => vendor.products, {onDelete: 'CASCADE'})
   vendor!: User;
 
   @Column({ nullable: true })

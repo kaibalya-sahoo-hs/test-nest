@@ -45,7 +45,7 @@ export class Order {
   @ManyToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
   deliveryAddress: Address;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   vendor: User;
 
   @Column({ nullable: true })
