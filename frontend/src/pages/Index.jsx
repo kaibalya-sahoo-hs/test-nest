@@ -292,36 +292,6 @@ function Index() {
         )}
       </div>
 
-      {/* ==================== NEW ARRIVALS ==================== */}
-      <div className="mb-10">
-        <SectionHeader title="New Arrivals" subtitle="Fresh picks just for you" onViewAll={() => navigate('/products')} />
-        {loadingNew ? (
-          <div className="flex gap-5 overflow-hidden">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex-shrink-0 w-[230px] bg-white rounded-2xl p-4 animate-pulse">
-                <div className="h-40 bg-gray-100 rounded-xl mb-3"></div>
-                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        ) : newArrivals.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No new arrivals yet.</p>
-        ) : (
-          <div className="relative">
-            <div ref={newRef} className="flex gap-4 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none' }}>
-              {newArrivals.map(item => <ProductCard key={item.id} item={item} />)}
-            </div>
-            {newArrivals.length > 4 && (
-              <>
-                <button onClick={() => scrollContainer(newRef, 'left')} className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronLeft size={12} /></button>
-                <button onClick={() => scrollContainer(newRef, 'right')} className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 bg-white p-2.5 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#4379EE] transition-all z-10 hidden sm:block cursor-pointer"><FaChevronRight size={12} /></button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* ==================== FEATURES ==================== */}
       <div className="mb-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -337,96 +307,7 @@ function Index() {
         </div>
       </div>
 
-      {/* ==================== NEWSLETTER ==================== */}
-      <div className="bg-gradient-to-r from-[#4379EE] to-[#6C63FF] rounded-2xl p-8 sm:p-12 mb-10 text-center relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10%" cy="80%" r="150" fill="white" />
-            <circle cx="90%" cy="20%" r="100" fill="white" />
-          </svg>
-        </div>
-        <div className="relative z-10">
-          <h2 className="text-white text-2xl sm:text-3xl font-black mb-2">Stay in the Loop</h2>
-          <p className="text-white/80 text-sm mb-6 max-w-md mx-auto">Subscribe to get exclusive deals, new arrivals, and insider-only discounts.</p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 px-5 py-3 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 outline-none border border-white/20 focus:border-white/50 transition-all"
-            />
-            <button
-              onClick={() => {
-                if (email) { toast.success('Subscribed successfully!'); setEmail(''); }
-                else toast.error('Please enter your email');
-              }}
-              className="px-6 py-3 bg-white text-[#4379EE] rounded-xl font-bold text-sm hover:bg-gray-100 transition-all active:scale-95 cursor-pointer"
-            >
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* ==================== FOOTER ==================== */}
-      <footer className="bg-[#1a1a2e] rounded-t-3xl -mx-4 sm:-mx-8 px-6 sm:px-12 pt-12 pb-6 mt-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
-            <div>
-              <h3 className="text-white text-xl font-black mb-3">DashStack</h3>
-              <p className="text-gray-400 text-sm leading-relaxed mb-4">Your one-stop destination for premium products from trusted vendors.</p>
-              <div className="flex gap-3">
-                {['𝕏', 'in', 'fb', 'ig'].map((social, i) => (
-                  <button key={i} className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center text-xs font-bold transition-all cursor-pointer">{social}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Quick Links</h4>
-              <ul className="space-y-2.5">
-                {[{ label: 'Products', to: '/products' }, { label: 'My Orders', to: '/orders' }, { label: 'Cart', to: '/cart' }, { label: 'Profile', to: '/profile' }].map((link, i) => (
-                  <li key={i}>
-                    <button onClick={() => navigate(link.to)} className="text-gray-400 hover:text-white text-sm transition-colors cursor-pointer">{link.label}</button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Support</h4>
-              <ul className="space-y-2.5">
-                {['Help Center', 'Shipping Policy', 'Returns & Refunds', 'Privacy Policy'].map((item, i) => (
-                  <li key={i}><span className="text-gray-400 hover:text-white text-sm transition-colors cursor-pointer">{item}</span></li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Contact Us</h4>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2.5 text-gray-400 text-sm"><FiMail size={14} /> support@dashstack.com</li>
-                <li className="flex items-center gap-2.5 text-gray-400 text-sm"><FiPhone size={14} /> +91 98765 43210</li>
-                <li className="flex items-start gap-2.5 text-gray-400 text-sm"><FiMapPin size={14} className="mt-0.5 flex-shrink-0" /> Bhubaneswar, Odisha, India</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-gray-500 text-xs">© {new Date().getFullYear()} DashStack. All rights reserved.</p>
-            <div className="flex items-center gap-2">
-              <LuShieldCheck size={14} className="text-green-400" />
-              <span className="text-gray-500 text-xs">100% Secure Payments</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

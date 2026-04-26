@@ -172,23 +172,7 @@ function ProductPage() {
               )}
             </div>
 
-            {/* Thumbnail Strip */}
-            {images.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto max-w-[550px] pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
-                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
-                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
-                      }`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+           
           </div>
 
           {/* Right Side: Details */}
@@ -226,8 +210,26 @@ function ProductPage() {
                 </p>
               </div>
 
+               {/* Thumbnail Strip */}
+            {images.length > 1 && (
+              <div className="flex gap-3 mt-4 overflow-x-auto max-w-[550px] pb-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
+                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
               {/* Vendor Section */}
-              <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 mb-6">
+              <div className="flex w-fit items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 mb-6">
                 {product.vendor?.profile ?
                   <img
                     src={product.vendor.profile}
@@ -293,21 +295,6 @@ function ProductPage() {
                 </button>
               ) : null}
 
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-3 mt-8">
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-gray-100">
-                  <FaTruck className="text-[#4379EE] mb-1.5" size={18} />
-                  <span className="text-[10px] font-bold text-gray-600">Free Delivery</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-gray-100">
-                  <FaUndo className="text-[#4379EE] mb-1.5" size={18} />
-                  <span className="text-[10px] font-bold text-gray-600">Easy Returns</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-gray-100">
-                  <FaShieldAlt className="text-[#4379EE] mb-1.5" size={18} />
-                  <span className="text-[10px] font-bold text-gray-600">Secure Payment</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

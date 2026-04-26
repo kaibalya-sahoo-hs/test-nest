@@ -84,8 +84,6 @@ import { Tag } from './product/tag.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      autoLoadEntities: true,
-      synchronize: true, // dev only
     }),
 
     UsersModule,
