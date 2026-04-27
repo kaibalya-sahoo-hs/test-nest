@@ -296,7 +296,6 @@ const UserProfile = () => {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm font-medium text-gray-400 cursor-not-allowed"
                   />
                 </div>
-                <div>Vendor Status: {user.vendorStatus}</div>
                 {user.role === "vendor" && (
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">

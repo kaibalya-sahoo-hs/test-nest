@@ -47,7 +47,7 @@ export class SeedService implements OnApplicationBootstrap {
       });
 
       await this.userRepo.save(admin);
-      console.log('✅ Default admin created successfully.');
+      console.log('Default admin created successfully.');
     }
   }
 
@@ -112,7 +112,7 @@ export class SeedService implements OnApplicationBootstrap {
 
     await this.userRepo.save([...users, ...vendors]);
 
-    console.log('✅ Users & Vendors seeded');
+    console.log('Users & Vendors seeded');
   }
 
   async seedProducts() {
@@ -122,7 +122,7 @@ export class SeedService implements OnApplicationBootstrap {
     }
     const vendor = await this.userRepo.findOne({ where: { role: 'vendor' } });
     if (!vendor) {
-      console.error('❌ Seed failed: No vendor found in database.');
+      console.error('Seed failed: No vendor found in database.');
       return;
     }
 
@@ -170,7 +170,7 @@ export class SeedService implements OnApplicationBootstrap {
       },
     ];
 
-    console.log('🌱 Seeding Products...');
+    console.log('Seeding Products...');
 
     for (const data of dummyData) {
       const product = this.productRepo.create({
@@ -190,6 +190,6 @@ export class SeedService implements OnApplicationBootstrap {
       await this.productRepo.save(product);
     }
 
-    console.log('✅ Seeding Complete!');
+    console.log('Seeding Complete!');
   }
 }

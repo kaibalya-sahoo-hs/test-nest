@@ -205,25 +205,6 @@ function Index() {
         </button>
       </div>
 
-      {/* ==================== CATEGORIES ==================== */}
-      <div className="mb-10">
-        <SectionHeader title="Shop by Category" subtitle="Browse our curated categories" onViewAll={() => navigate('/products')} />
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {categories.map((cat, idx) => (
-            <button
-              key={idx}
-              onClick={() => navigate('/products')}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all cursor-pointer group active:scale-95"
-            >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform`}>
-                {cat.emoji}
-              </div>
-              <span className="text-xs font-bold text-gray-700">{cat.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* ==================== PROMOTIONAL GRID ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-10">
         <div className="md:col-span-2 relative rounded-2xl bg-gradient-to-r from-[#1a1a2e] to-[#16213e] overflow-hidden group min-h-[280px] flex items-center">

@@ -301,7 +301,7 @@ const VendorOrders = () => {
                                 {order.couponCode && (
                                   <div className="mt-4 bg-white p-3 rounded-xl border border-gray-100">
                                     <p className="text-xs font-bold text-gray-400 uppercase">Coupon Applied</p>
-                                    <p className="text-sm font-bold text-[#202224] mt-1">{order.couponCode}</p>
+                                    <p className="text-sm font-bold text-[#202224] mt-1">{order.couponCode.toUpperCase()}</p>
                                     <p className="text-xs text-gray-400">Discount: ₹{Number(order.discount || 0).toLocaleString('en-IN')}</p>
                                   </div>
                                 )}

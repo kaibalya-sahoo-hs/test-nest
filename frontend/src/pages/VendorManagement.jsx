@@ -144,54 +144,6 @@ function VendorManagement() {
             </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-5 border border-gray-50">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-sm text-[#202224] font-semibold opacity-70">Total Vendors</span>
-                <p className="text-2xl font-bold text-[#202224]">{stats.total}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-purple-100 text-purple-600">
-                <LuUsers size={20} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-50">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-sm text-[#202224] font-semibold opacity-70">Pending</span>
-                <p className="text-2xl font-bold text-[#202224]">{stats.pending}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-amber-100 text-amber-600">
-                <LuClock size={20} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-50">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-sm text-[#202224] font-semibold opacity-70">Approved</span>
-                <p className="text-2xl font-bold text-[#202224]">{stats.approved}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-600">
-                <LuShieldCheck size={20} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-50">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-sm text-[#202224] font-semibold opacity-70">Suspended</span>
-                <p className="text-2xl font-bold text-[#202224]">{stats.suspended}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-orange-100 text-orange-600">
-                <LuShieldAlert size={20} />
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Search and Filter */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">

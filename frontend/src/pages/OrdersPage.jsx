@@ -159,7 +159,7 @@ export function OrderDetailPage() {
               {orderDetail.couponCode && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 flex items-center gap-1.5"><FaTag size={10} className="text-emerald-500" /> Coupon</span>
-                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs">{orderDetail.couponCode}</span>
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs">{orderDetail.couponCode.toUpperCase()}</span>
                 </div>
               )}
               {Number(orderDetail.discount) > 0 && (
@@ -336,7 +336,7 @@ function OrdersPage() {
                         {order.couponCode ? (
                           <div className="flex flex-col gap-0.5">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold border border-emerald-100 w-fit">
-                              <FaTag size={8} /> {order.couponCode}
+                              <FaTag size={8} /> {order.couponCode.toUpperCase()}
                             </span>
                             {Number(order.discount) > 0 && (
                               <span className="text-[10px] text-emerald-600 font-bold">-₹{Number(order.discount).toLocaleString('en-IN')} saved</span>
@@ -397,7 +397,7 @@ function OrdersPage() {
                     <span className="text-base font-black text-gray-900 flex items-center"><FaRupeeSign className="text-xs" />{parseFloat(order.totalAmount).toLocaleString('en-IN')}</span>
                     {order.couponCode && (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-bold border border-emerald-100">
-                        <FaTag size={7} /> {order.couponCode}
+                        <FaTag size={7} /> {order.couponCode.toUpperCase()}
                       </span>
                     )}
                   </div>

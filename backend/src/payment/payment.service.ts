@@ -118,6 +118,7 @@ export class PaymentService {
       (sum, i) => sum + i.product.price * i.quantity,
       0,
     );
+
     totalDiscount = totalBeforeDiscount - amount; // difference is the discount applied
 
     let masterOrder: Order;
@@ -128,7 +129,7 @@ export class PaymentService {
         status: 'pending',
         items: cartItems,
         totalAmount: amount,
-        couponCode: coupon?.code || undefined,
+        couponCode: coupon?.displayName || undefined,
         discount: totalDiscount,
         deliveryAddress: address || null,
       });
@@ -153,13 +154,12 @@ export class PaymentService {
         );
       }
     } else {
-      console.log('new order')
       const masterOrderData: Partial<Order> = {
         user: { id: userID } as any,
         items: cartItems,
         totalAmount: amount,
         status: 'pending',
-        couponCode: coupon?.code || undefined,
+        couponCode: coupon?.displayName || undefined,
         deliveryAddress: address || null,
         discount: totalDiscount,
         couponType: coupon?.creatorType || undefined,

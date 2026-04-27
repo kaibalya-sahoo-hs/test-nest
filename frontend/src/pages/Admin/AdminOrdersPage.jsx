@@ -159,7 +159,7 @@ function AdminOrdersPage() {
                       <td className="px-5 py-4">
                         {order.couponCode ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold border border-emerald-100">
-                            <FaTag size={7} /> {order.couponCode}
+                            <FaTag size={7} /> {order.couponCode.toUpperCase()}
                           </span>
                         ) : (
                           <span className="text-xs text-gray-300">—</span>
@@ -216,7 +216,7 @@ function AdminOrdersPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-black text-gray-900 flex items-center text-sm"><FaRupeeSign className="text-[10px]" />{Number(order.totalAmount).toLocaleString('en-IN')}</span>
                     {order.couponCode && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-bold border border-emerald-100"><FaTag size={7} /> {order.couponCode}</span>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-bold border border-emerald-100"><FaTag size={7} /> {order.couponCode.toUpperCase()}</span>
                     )}
                   </div>
                   <button onClick={(e) => { e.stopPropagation(); navigate(`/admin/orders/payments/${order.id}`); }} className="text-[10px] text-[#4379EE] font-bold">
