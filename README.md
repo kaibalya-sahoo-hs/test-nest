@@ -99,14 +99,3 @@ Notes:
 - Start frontend dev server: `cd frontend && npm run dev`
 - Run tests: `npm test`
 
-## Troubleshooting
-
-- Error "Not implemented: navigation to another Document" in tests: ensure tests mock navigation or avoid direct assignment to `window.location.href` (use navigation mocks or JSDOM-friendly guards).
-- API requests from the frontend in tests should be mocked (e.g., spy on `api.post`) to avoid attempts to contact a real backend.
-
-## License & contacts
-
-This repository does not include a license file. Add one if you plan to publish.
-
-For questions, open an issue in the repo.
-
