@@ -109,6 +109,13 @@ GOOGLE_CRED_PATH=google_credentails_file_path
 GOOGLE_SHEET_ID=google_sheet_id
 ```
 
+## Migration
+No need to run migration after setting up the enviorment when the application runs the migration files runs automatically if its does not run run with the following command
+
+```bash 
+npm run migartion:run
+```
+
 ## Running (development)
 
 Start the backend (NestJS):
