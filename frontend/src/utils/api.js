@@ -1,6 +1,5 @@
 import axios from "axios";
 
-console.log(import.meta.env.VITE_BACKEND_URL);
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -20,15 +19,19 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (
-      error.response?.status === 401 || !originalRequest._retry
-    ) {
+    if (!originalRequest) return Promise.reject(error);
+
+    // Only attempt refresh when we got a 401 and the request wasn't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
         localStorage.clear();
-        window.location.href = "/login";
+        // avoid forcing navigation in test/jsdom environments
+        try {
+          window.location.href = "/login";
+        } catch (e) {}
         return Promise.reject(error);
       }
 

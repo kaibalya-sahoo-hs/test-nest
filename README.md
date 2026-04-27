@@ -1,134 +1,112 @@
-# Ecommerce APP
+# Ecommerce App
 
-A full-stack **Ecommerce APP** built with **React (Frontend)** and **NestJS (Backend)** using **PostgreSQL** as the database.
+A full-stack ecommerce application built with React (frontend) and NestJS (backend). The app uses PostgreSQL via TypeORM and supports user, product, cart, payment, and admin management features.
 
-The system allows managing users by performing operations such as creating, viewing, updating, and deleting user records.
+## Table of Contents
+- **Project structure**
+- **Prerequisites**
+- **Installation**
+- **Running (dev)**
+- **Docker / Services**
+- **Testing**
+- **Environment & configuration**
 
----
+## Project structure
 
-## Project Structure
+Top-level folders:
 
-```
-├── frontend/        # React frontend 
-│
-├── backend/         # NestJS backend API
-│
-└── README.md
-```
-
----
+- `frontend/` — React frontend (Vite)
+- `backend/` — NestJS backend
 
 ## Prerequisites
 
-Before running the project, make sure you have the following installed:
-
-* Node.js
-* npm
-* PostgreSQL
-
----
+- Node.js
+- npm or pnpm
+- PostgreSQL
 
 ## Installation
 
-Clone the repository and install dependencies for both frontend and backend.
+Install dependencies for both backend and frontend:
 
-### Install Backend Dependencies
-
-Navigate to the backend folder:
-
-```
+```bash
+# Install backend deps
 cd backend
 npm install
-```
 
-### Install Frontend Dependencies
-
-Navigate to the frontend folder:
-
-```
-cd frontend
+# Install frontend deps
+cd ../frontend
 npm install
 ```
 
----
+## Running (development)
 
-### Run redis
-```
-docker run -d --name my-redis -p 6379:6379 redis:latest
-```
+Start the backend (NestJS):
 
----
-
-## Running the Project
-
-### Start Backend (NestJS Dev Server)
-
-Inside the **backend** folder run:
-
-```
+```bash
+cd backend
 npm run start:dev
 ```
 
-This will start the backend server in development mode.
+Start the frontend (Vite):
 
----
-
-### Start Frontend (React Dev Server)
-
-Inside the **frontend** folder run:
-
-```
+```bash
+cd frontend
 npm run dev
 ```
 
-This will start the React development server.
+Open the app at the URL printed by the Vite server (typically http://localhost:5173).
 
----
+## Docker / Services
 
-### Start Ngork (For making payments)
+Run Redis (used by backend for caching or queues):
+
+```bash
+docker run -d --name my-redis -p 6379:6379 redis:latest
 ```
-ngrok http 8000
+
+## Environment & configuration
+
+- Backend and frontend read environment variables; ensure the backend URL is set for the frontend. Example (frontend .env):
+
 ```
-PORT (default - 8000)
-
-### Start Local Tunnel (For making withdraws)
+VITE_BACKEND_URL=http://localhost:8000
 ```
-lt --port 8000 --subdomain razor-pay-payout
-```
-PORT (default - 8000)
 
+- Backend database connection is configured in the backend environment files — ensure PostgreSQL credentials and DB name are set.
 
-## Database
+## Testing
 
-The project uses **PostgreSQL** as the database.
+Unit and integration tests use Vitest / React Testing Library for the frontend and Jest for the backend (where applicable).
 
-Make sure PostgreSQL is running and the database configuration is correctly set in the backend environment configuration.
+Run tests from the repository root:
 
-
-## Technologies Used
-
-Frontend:
-
-* React
-
-Backend:
-
-* NestJS
-* Node.js
-
-Database:
-
-* PostgreSQL (TypeORM)
-
-## To run tests
-
-* To run all the tests
-In your root folder run the following command
-```
+```bash
 npm test
 ```
-* To run individual test
+
+Run a single frontend test file with Vitest:
+
+```bash
+npx vitest frontend/test/<path-to-test>.jsx
 ```
-npx vitest src/frontend/test/filename.jsx 
-```
+
+Notes:
+- If tests interact with Google APIs (e.g., updating Google Sheets), configure service account credentials as a JSON file and set the path or mock the calls in the test environment.
+
+## Useful commands
+
+- Start backend dev server: `cd backend && npm run start:dev`
+- Start frontend dev server: `cd frontend && npm run dev`
+- Run tests: `npm test`
+
+## Troubleshooting
+
+- Error "Not implemented: navigation to another Document" in tests: ensure tests mock navigation or avoid direct assignment to `window.location.href` (use navigation mocks or JSDOM-friendly guards).
+- API requests from the frontend in tests should be mocked (e.g., spy on `api.post`) to avoid attempts to contact a real backend.
+
+## License & contacts
+
+This repository does not include a license file. Add one if you plan to publish.
+
+For questions, open an issue in the repo.
 

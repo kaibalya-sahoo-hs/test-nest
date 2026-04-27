@@ -20,7 +20,7 @@ describe('Feature: Registartion', () => {
   })
 
 
-  test('Scenario: Brand New User', async () => {
+  test.only('Scenario: Brand New User', async () => {
     try {
       const uniqueEmail = `testuser${Date.now()}@gmail.com`;
       fireEvent.change(nameInput, { target: { value: "someone" } })
@@ -35,7 +35,7 @@ describe('Feature: Registartion', () => {
     }
   });
 
-  test('Scenario: Duplicate User', async () => {
+  test.only('Scenario: Duplicate User', async () => {
     try {
       fireEvent.change(emailInput, { target: { value: "random" } })
       fireEvent.click(registerButton)

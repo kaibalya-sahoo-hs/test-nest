@@ -3,6 +3,7 @@ import App from '../../src/App'
 import { updateTestResult } from '../../src/utils/updateSheets'
 import Login from '../../src/pages/Login'
 import { render } from '../test-utils'
+import { Route, Routes } from 'react-router'
 
 describe('Feature: Login', () => {
 
@@ -13,7 +14,9 @@ describe('Feature: Login', () => {
     beforeEach(() => {
 
         render(
-            <Login />
+            <Routes>
+                <Route path='/' element={<Login />}/>
+            </Routes>    
         );
         emailInput = screen.getByPlaceholderText(/esteban_schiller@gmail.com/)
         passwordInput = screen.getByPlaceholderText(/••••••/)
@@ -22,18 +25,19 @@ describe('Feature: Login', () => {
 
 
     test('Scenario: Valid User', async () => {
-        try {
-            fireEvent.change(emailInput, { target: { value: "demo@gmail.com" } })
-            fireEvent.change(passwordInput, { target: { value: 'demo@123' } })
+        // try {
+            fireEvent.change(emailInput, { target: { value: "admin@gmail.com" } })
+            fireEvent.change(passwordInput, { target: { value: 'admin@123' } })
             fireEvent.click(loginButton)
+            screen.debug()
             const successMessage = await screen.findByText(/Login successful/i)
             const NavText = await screen.findByText(/DashStack/i)
             expect(successMessage)
             expect(NavText)
             await updateTestResult('TC_LOG_01', 'pass')
-        } catch (error) {
-            await updateTestResult('TC_LOG_01', 'fail')
-        }
+        // } catch (error) {
+        //     await updateTestResult('TC_LOG_01', 'fail')
+        // }
     });
 
     test('Scenario: Invalid User', async () => {

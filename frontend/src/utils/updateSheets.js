@@ -1,13 +1,17 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 import creds from '../../agile-device-493307-g5-07e288ccee39.json';
-const serviceAccountAuth = new JWT({
-  email: creds.client_email,
-  key: creds.private_key,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
 
 export const updateTestResult = async (testId, status) => {
+  // Skip external Google Sheets calls during tests
+  if (process.env.NODE_ENV === 'test') return;
+
+  const serviceAccountAuth = new JWT({
+    email: creds.client_email,
+    key: creds.private_key,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+
   const doc = new GoogleSpreadsheet('12bz0fmv82nDRmZcLtT3zpig_l8mfnv6H97gRzOKPuMs', serviceAccountAuth);
   await doc.loadInfo();
   
