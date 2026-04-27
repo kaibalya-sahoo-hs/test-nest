@@ -11,13 +11,41 @@ A full-stack ecommerce application built with React (frontend) and NestJS (backe
 - **Testing**
 - **Environment & configuration**
 
-## Project structure
 
-Top-level folders:
+## Key Features
+- **Authentication**:  is implemented using JWT access and refresh tokens
 
-- `frontend/` — React frontend (Vite)
-- `backend/` — NestJS backend
+- **Cart  Management**: User can manage his cart even when logged out and the the cart items will be persisted after login
 
+- **Role Based Accesscontrol**: There are 3 roles (Admin, User, Vendor) in the application and separate dashboard for every role an separate ecces for different roles
+
+- **Vendor System**: Vendor can manage products (CRUD), coupons (CRUD) and update the status of orders , and can withdraw funds.
+
+- **Admin System**: Admin can manage vendors(CRUD) , and can manage vendors and their status and can also withdraw funds
+
+- **Payment Gateway**: User can add to cart items even while loggedout , added payment gateway integration with razor pay
+
+
+## Project Structure
+
+```text
+├── backend/                  # NestJS API Root
+│   ├── src/                  # Application source code
+│   │   ├── modules/          # Feature modules (Auth, Product, Order, etc.)
+│   │   └── main.ts           # NestJS entry point
+│   ├── test/                 # test Cases
+│   ├── data-source.ts        # TypeORM database migration configuration
+│   └── .env.example          # Template for backend environment variables
+├── frontend/                 # React Frontend Root
+│   ├── src/                  # React source code and co-located tests
+│   │   ├── components/       # Reusable UI components
+│   │   ├── pages/            # Route components (Dashboard, Login, etc.)
+│   │   ├── context/          # React Context providers (Auth, Global State)
+│   │   └── utils/            # Helper functions and API services
+│   ├── vite.config.js        # Vite configuration file
+│   └── .env.example          # Template for frontend environment variables
+└── README.md                 # Project documentation
+```
 ## Prerequisites
 
 - Node.js
@@ -36,6 +64,49 @@ npm install
 # Install frontend deps
 cd ../frontend
 npm install
+```
+## Understanding the application before running
+
+### Setup the enviorment for backend
+Create a file named `.env` in the `backend/` folder:
+```properties
+PORT=your_port
+
+DB_NAME=postgres_db_name
+DB_PASS=postgres_db_password
+DB_USERNAME=postgres_db_username
+JWT_SECRET=anysecretstring
+
+APP_PASSWORD=google_app_password
+GOOGLE_MAIL=gmail_address
+
+FRONTEND_URL=frontend_running_url
+
+RAZORPAY_TEST_APIKEY=razorpay_test_apikey
+RAZORPAY_TEST_APISECRET=razorpay_api_secert
+RAZORPAY_WEBHOOK_SECRET=secretstring
+
+RAZORPAY_PAYOUT_TEST_APIKEY=razorpayx_test_apikey
+RAZORPAY_PAYOUT_TEST_APISECRET=secretcode
+
+
+ADMIN_EMAIL=admin_email
+ADMIN_PASSWORD=admin_password
+```
+
+### Setup the enviorment for backend
+Create a file named `.env` in the `backend/` folder:
+```properties
+VITE_RAZORPAY_TEST_KEY=razorpay_test_credentials
+VITE_BACKEND_URL=running_backend_url
+VITE_PORT=your_port
+```
+
+## For testing enviorment
+Add a the following variable to `.env` in the `backend/` folder
+```properties
+GOOGLE_CRED_PATH=google_credentails_file_path
+GOOGLE_SHEET_ID=google_sheet_id
 ```
 
 ## Running (development)
@@ -98,4 +169,7 @@ Notes:
 - Start backend dev server: `cd backend && npm run start:dev`
 - Start frontend dev server: `cd frontend && npm run dev`
 - Run tests: `npm test`
+
+Notes:
+- After setting up admin and some dummy users and some dummy products will be added automatically
 
