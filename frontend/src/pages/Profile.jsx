@@ -124,7 +124,7 @@ const Profile = () => {
   if (!user) return null;
 
   return (
-    <div className="font-sans">
+    <div className="">
       <h1 className="text-xl sm:text-2xl font-bold text-[#202224] mb-6 sm:mb-8">
         My Profile
       </h1>

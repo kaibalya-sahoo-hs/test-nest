@@ -153,7 +153,7 @@ function Index() {
   );
 
   return (
-    <div className="bg-[#F5F6FA] min-h-screen font-sans">
+    <div className="bg-[#F5F6FA] min-h-screen ">
 
       {/* ==================== BANNER CAROUSEL ==================== */}
       <div className="relative w-full h-[220px] sm:h-[320px] rounded-2xl overflow-hidden mb-8 shadow-lg">

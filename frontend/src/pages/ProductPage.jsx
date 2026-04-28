@@ -129,28 +129,19 @@ function ProductPage() {
   const images = getImages();
 
   return (
-    <div className="bg-[#F5F6FA] min-h-fit font-sans">
-      {/* Navigation Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-4 sm:pt-8">
-        <button
-          onClick={() => navigate("/products")}
-          className="flex items-center gap-2 text-[#202224] font-bold hover:text-[#4379EE] transition-colors cursor-pointer mb-6"
-        >
-          <FaArrowLeft className="font-light rounded-lg" size={14} />
-          <span>Back to Products</span>
-        </button>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
-          {/* Left Side: Image Gallery */}
-          <div className="flex flex-col items-center">
-            {/* Main Image */}
-            <div className="relative w-full max-w-[550px] bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+    <div className="bg-[#F5F6FA] min-h-fit overflow-x-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6 flex flex-col items-center">
+        <div className="w-full text-start mb-4 font-semibold text-lg flex justify-start">
+          <span className="flex justify-center items-center"><FaArrowLeft/> Back to poducts</span>
+        </div>
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left column: Image + thumbnails */}
+          <div className="flex flex-col items-center w-full">
+            <div className="relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm w-full flex items-center justify-center p-4">
               <img
                 src={images[selectedImageIndex]}
                 alt={product.name}
-                className="w-full h-[300px] sm:h-[450px] object-contain mix-blend-multiply p-6 transition-all duration-300"
+                className="w-full max-w-[560px] h-auto object-contain mix-blend-multiply transition-all duration-300"
               />
               {/* Navigation arrows */}
               {images.length > 1 && (
@@ -177,26 +168,64 @@ function ProductPage() {
               )}
             </div>
 
-           
+            {images.length > 1 && (
+              <div className="flex gap-3 mt-4 overflow-x-auto w-full pb-2 justify-center">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
+                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
           </div>
 
-          {/* Right Side: Details */}
-          <div className="flex flex-col">
-            <div className="max-w-xl mx-auto lg:mx-0 w-full">
+          {/* Right column: Details */}
+          <div className="flex flex-col w-full">
+            <div className="w-full">
               {/* Title */}
-              <h1 className="text-2xl sm:text-4xl font-bold text-[#202224] mb-2">
+              <h1 className="text-2xl sm:text-6xl text-[#202224] mb-2">
                 {product.name}
               </h1>
 
+              {/* Vendor Section */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-shrink-0">
+                  {product.vendor?.profile ? (
+                    <img
+                      src={product.vendor.profile}
+                      alt="vendor"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-gray-50 shadow-inner"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 flex justify-center items-center bg-gradient-to-br from-blue-400 to-blue-600 font-bold rounded-full border-2 border-gray-50 text-white">
+                      {product.vendor?.name?.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-gray-900 truncate">{product.vendor?.name}</div>
+                  <div className="text-xs font-medium text-gray-500 truncate">{product.vendor?.storeName}</div>
+                </div>
+              </div>
               {/* Price & Stock */}
               <div className="mb-6">
-                <p className="text-3xl sm:text-4xl font-bold text-[#4379EE] flex items-center">
-                  <FaRupeeSign className="text-xl sm:text-2xl" />
+                <p className="text-3xl sm:text-4xl  flex items-center">
+                  <span className="text-3xl font-light text-gray-400">Price: </span>
+
+                  <FaRupeeSign className="text-2xl" />
                   {Number(product.price).toLocaleString("en-IN")}
                 </p>
                 {product.stock > 0 ? (
-                  <p className="text-sm text-green-500 font-semibold mt-1.5 flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                  <p className="text-sm text-green-600 font-semibold mt-1.5 flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-green-600 rounded-full inline-block"></span>
                     In Stock · Ready to ship
                   </p>
                 ) : (
@@ -215,42 +244,10 @@ function ProductPage() {
                 </p>
               </div>
 
-               {/* Thumbnail Strip */}
-            {images.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto max-w-[550px] pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
-                      ? 'border-[#4379EE] shadow-md shadow-blue-100'
-                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
-                      }`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+              {/* Thumbnail Strip */}
 
-              {/* Vendor Section */}
-              <div className="flex w-fit items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 mb-6">
-                {product.vendor?.profile ?
-                  <img
-                    src={product.vendor.profile}
-                    alt="vendor"
-                    className="w-11 h-11 rounded-full object-cover border-2 border-gray-50 shadow-inner flex-shrink-0"
-                  />
-                  :
-                  <div className="w-11 h-11 flex justify-center items-center bg-gradient-to-br from-blue-400 to-blue-600 font-bold rounded-full border-2 border-gray-50 text-white flex-shrink-0">
-                    {product.vendor?.name?.charAt(0)}
-                  </div>
-                }
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-gray-900 truncate">{product.vendor?.name}</span>
-                  <span className="text-xs font-medium text-gray-500">{product.vendor?.storeName}</span>
-                </div>
-              </div>
+
+
 
               {/* Tags */}
               {product.tags && product.tags.length > 0 && (
@@ -265,7 +262,7 @@ function ProductPage() {
 
               {/* Add to Cart / Quantity Controls */}
               {product && product.stock > 0 ? cartItem ? (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex flex-col gap-3 w-fit">
                   <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm justify-center">
                     <button
                       onClick={() => handleQuantityChange(cartItem.quantity - 1)}
@@ -304,8 +301,14 @@ function ProductPage() {
           </div>
         </div>
 
+        <div className="mt-8 w-full" >
+          <h2 className="text-lg font-bold text-[#202224] mb-2">Description</h2>
+          <p className="text-gray-500 leading-relaxed">
+            {product.description || "No description provided for this product."}
+          </p>
+        </div>
         {/* Recommended Products */}
-        <div className="mt-12 pb-8">
+        <div className="mt-12 pb-8 w-full">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-[#202224]">You May Also Like</h2>
             {suggestedProducts.length > 4 && (

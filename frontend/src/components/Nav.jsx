@@ -154,9 +154,9 @@ function Nav() {
     navLinks = isAdmin ? adminLinks : isVendor ? vendorLinks : userLinks;
   }
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-[#F5F6FA] ">
       {/* --- TOP NAVBAR --- */}
-      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
+      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50 font-[serif]">
         <div className="flex items-center gap-3">
           {/* Hamburger Button — visible on mobile/tablet only */}
           <button
@@ -215,7 +215,10 @@ function Nav() {
 
             {/* Profile Info + Dropdown */}
             {user ? (
-              <div className="relative flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100">
+              <div
+                ref={dropdownRef}
+                className="relative flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-100"
+              >
                 {
                   <div
                     className="text-sm flex items-center bg-gray-100 hover:bg-gray-200 rounded-2xl border border-gray-300 px-3 py-1.5 cursor-pointer transition-colors"
@@ -283,6 +286,7 @@ function Nav() {
                     <div className="mx-4 border-t border-gray-100"></div>
                     <button
                       onClick={() => {
+                        setDropdownOpen(false);
                         handleLogout();
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-[#F93C65] hover:bg-red-50 transition-colors"
@@ -393,7 +397,7 @@ function Nav() {
         <main
           className={`flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto font-[serif]">
             <Outlet />
           </div>
         </main>
