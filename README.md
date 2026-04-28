@@ -141,16 +141,17 @@ Run Redis (used by backend for caching or queues):
 ```bash
 docker run -d --name my-redis -p 6379:6379 redis:latest
 ```
-
-## Environment & configuration
-
-- Backend and frontend read environment variables; ensure the backend URL is set for the frontend. Example (frontend .env):
-
+### Start Ngork (For making payments)
 ```
-VITE_BACKEND_URL=http://localhost:8000
+ngrok http 8000
 ```
+PORT (default - 8000)
 
-- Backend database connection is configured in the backend environment files — ensure PostgreSQL credentials and DB name are set.
+### Start Local Tunnel (For making withdraws)
+```
+lt --port 8000 --subdomain razor-pay-payout
+```
+PORT (default - 8000)
 
 ## Testing
 
