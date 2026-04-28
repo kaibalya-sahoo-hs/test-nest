@@ -522,7 +522,6 @@ const CreateUserForm = ({ setShowAddForm, setUsers }) => {
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all cursor-pointer"
               >
                 <option value="admin">Admin</option>
-                <option value="vendor">Vendor</option>
                 <option value="guest">Guest</option>
               </select>
             </div>

@@ -290,7 +290,7 @@ function VendorDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <button
             onClick={() => navigate('/vendor/products')}
             className="bg-white rounded-2xl p-6 border border-gray-50 hover:border-[#4379EE] hover:shadow-lg hover:shadow-blue-50 transition-all group text-left"
@@ -310,16 +310,6 @@ function VendorDashboard() {
             </div>
             <h3 className="font-bold text-[#202224]">Manage Orders</h3>
             <p className="text-xs text-gray-400 mt-1">Update order statuses and track shipments</p>
-          </button>
-          <button
-            onClick={() => navigate('/vendor/profile')}
-            className="bg-white rounded-2xl p-6 border border-gray-50 hover:border-[#4379EE] hover:shadow-lg hover:shadow-blue-50 transition-all group text-left"
-          >
-            <div className="p-3 rounded-xl bg-blue-50 text-[#4379EE] w-fit mb-3 group-hover:bg-[#4379EE] group-hover:text-white transition-all">
-              <FaCheckCircle size={16} />
-            </div>
-            <h3 className="font-bold text-[#202224]">Store Profile</h3>
-            <p className="text-xs text-gray-400 mt-1">Update your store details and branding</p>
           </button>
         </div>
       </div>

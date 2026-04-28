@@ -260,9 +260,10 @@ export class PaymentService {
     await this.paymentLogService.createLog(updatedPayment.id, PaymentStatus.FAILED)
     order.status = 'payment_failed'
 
-    const subOrders = await this.orderRepo.find({where: {id: order.id}})
+    const subOrders = await this.orderRepo.find({where: {parentOrder: {id: order.id}}})
 
     for(const subOrder of subOrders){
+      console.log("Sub order",subOrder.id)
       subOrder.status = 'payment_failed'
       await this.orderRepo.save(subOrder)
     }
