@@ -32,15 +32,16 @@ export class ProductService {
   // Get all products (with optional pagination)
   async findAll(): Promise<Product[]> {
     return await this.productRepo.find({
-      order: { createdAt: 'DESC' }, // Show newest first
+      order: { createdAt: 'DESC' },
+      relations: ['vendor'] // Show newest first
     });
   }
 
   // Find one by ID
-  async findOne(id: string): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { id }, relations: ['vendor'] });
+  async findOne(title: string, vendor): Promise<Product> {
+    const product = await this.productRepo.findOne({ where: { name: title, vendor: {name: vendor} }, relations: ['vendor'] });
     if (!product)
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      throw new NotFoundException(`Product not found`);
     return product;
   }
 
@@ -48,6 +49,7 @@ export class ProductService {
     try {
       const products = await this.productRepo.find({
         where: { name: Like(`%${name}%`) },
+        relations: ['vendor'],
       });
       return { products, success: true };
     } catch (error) {
@@ -72,13 +74,16 @@ export class ProductService {
 
   // Delete product
   async remove(id: string): Promise<{ deleted: boolean }> {
-    const product = await this.findOne(id);
+    const product = await this.productRepo.findOne({where:{id}});
+    if(!product){
+      throw new NotFoundException("Product not found")
+    }
     await this.productRepo.remove(product);
     return { deleted: true };
   }
 
-  async getSimilarSuggestions(productId: string) {
-    const product = await this.productRepo.findOne({ where: { id: productId }, relations: ['tags'] })
+  async getSimilarSuggestions(productName: string) {
+    const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })
 
     if (!product) {
       throw new NotFoundException('Product not found')
@@ -91,24 +96,19 @@ export class ProductService {
     const resultMap = new Map<string, any>();
     const limit = 8;
 
-    // 1. PRIMARY: Tag-based matching via full-text search
-    if (keyWords) {
-      try {
-        const tagMatches = await this.productRepo.query(`
-          SELECT DISTINCT p.*
-          FROM products p
-          JOIN product_tags pt ON pt."productsId" = p.id
-          JOIN tags t ON t.id = pt."tagsId"
-          WHERE to_tsvector(t.name)
-          @@ plainto_tsquery($1)
-          AND p.id != $2
-          LIMIT $3
-        `, [keyWords, productId, limit]);
+    // 1. PRIMARY: Tag-based matching
+    try {
+      const tagMatches = await this.productRepo.createQueryBuilder('p')
+        .leftJoinAndSelect('p.tags', 'tags')
+        .leftJoinAndSelect('p.vendor', 'vendor')
+        .where('p.id != :productId', { productId: product.id })
+        .andWhere('tags.name ILIKE :keyword', { keyword: `%${keyWords}%` })
+        .take(limit)
+        .getMany();
 
-        tagMatches.forEach(p => resultMap.set(p.id, p));
-      } catch (e) {
-        console.error('Tag matching error:', e);
-      }
+      tagMatches.forEach(p => resultMap.set(p.id, p));
+    } catch (e) {
+      console.error('Tag matching error:', e);
     }
 
     // 2. SECONDARY: Description-based keyword matching
@@ -118,17 +118,18 @@ export class ProductService {
         .replace(/[^\w\s]/gi, '')
         .split(/\s+/)
         .filter(word => word.length > 3 && !stopWords.includes(word.toLowerCase()))
-        .slice(0, 6); // Use top 6 meaningful words
+        .slice(0, 6);
 
       if (descKeywords.length > 0) {
-        const existingIds = [productId, ...Array.from(resultMap.keys())];
+        const existingIds = [product.id, ...Array.from(resultMap.keys())];
         try {
-          const descMatches = await this.productRepo.createQueryBuilder('product')
-            .where('product.id NOT IN (:...ids)', { ids: existingIds })
+          const descMatches = await this.productRepo.createQueryBuilder('p')
+            .leftJoinAndSelect('p.vendor', 'vendor')
+            .where('p.id NOT IN (:...ids)', { ids: existingIds })
             .andWhere(new Brackets(qb => {
               descKeywords.forEach((word, index) => {
                 const param = `desc_${index}`;
-                qb.orWhere(`product.description ILIKE :${param}`, { [param]: `%${word}%` });
+                qb.orWhere(`p.description ILIKE :${param}`, { [param]: `%${word}%` });
               });
             }))
             .take(limit - resultMap.size)
@@ -163,25 +164,26 @@ export class ProductService {
     // 2. PRIMARY SEARCH (Keyword Match)
     let related: Product[] = [];
     if (keywords.length > 0) {
-      related = await this.productRepo.createQueryBuilder('product')
-        .where('product.id NOT IN (:...ids)', { ids: allExcludeIds })
+      related = await this.productRepo.createQueryBuilder('p')
+        .leftJoinAndSelect('p.vendor', 'vendor')
+        .where('p.id NOT IN (:...ids)', { ids: allExcludeIds })
         .andWhere(new Brackets(qb => {
           keywords.forEach((word, index) => {
             const param = `word_${index}`;
-            qb.orWhere(`product.name ILIKE :${param}`, { [param]: `%${word}%` });
+            qb.orWhere(`p.name ILIKE :${param}`, { [param]: `%${word}%` });
           });
         }))
         .take(limit)
         .getMany();
     }
 
-    // 3. FALLBACK (fill with random products)
+    // 3. FALLBACK (fill with remaining products)
     if (related.length < limit) {
       const existingIds = [...allExcludeIds, ...related.map(p => p.id)];
       
-      const additionalProducts = await this.productRepo.createQueryBuilder('product')
-        .where('product.id NOT IN (:...ids)', { ids: existingIds })
-        .orderBy('RANDOM()') 
+      const additionalProducts = await this.productRepo.createQueryBuilder('p')
+        .leftJoinAndSelect('p.vendor', 'vendor')
+        .where('p.id NOT IN (:...ids)', { ids: existingIds })
         .take(limit - related.length)
         .getMany();
 

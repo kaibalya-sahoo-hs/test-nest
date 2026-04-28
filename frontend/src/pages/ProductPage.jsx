@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   FaStar,
   FaShoppingCart,
@@ -18,7 +18,11 @@ import toast from "react-hot-toast";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 
 function ProductPage() {
-  const { id } = useParams();
+  const { title } = useParams();
+  const [searchParams] = useSearchParams();
+
+  // Get specific param (?name=John)
+  const vendor = searchParams.get('vendor');
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +66,7 @@ function ProductPage() {
 
   const fetchRecomendedProducts = async () => {
     try {
-      const { data } = await api.get(`/products/suggest/${id}`);
+      const { data } = await api.get(`/products/suggest/${title}`);
       if (data && data.success) {
         setSuggestedProducts(data.products);
       }
@@ -87,7 +91,8 @@ function ProductPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/products/${id}`);
+        const response = await api.get(`/products/${title}?vendor=${vendor}`);
+        console.log(response)
         if (response.data.success) {
           setProduct(response.data.product);
           setSelectedImageIndex(0);
@@ -100,7 +105,7 @@ function ProductPage() {
     };
     fetchProduct();
     fetchRecomendedProducts();
-  }, [id]);
+  }, [title, vendor]);
 
   if (loading)
     return (
@@ -332,7 +337,7 @@ function ProductPage() {
               {suggestedProducts.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => navigate(`/products/${item.id}`)}
+                  onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor.name}`)}
                   className="flex-shrink-0 w-[220px] sm:w-[240px] bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-blue-100 transition-all duration-300 cursor-pointer group"
                 >
                   <div className="h-40 w-full overflow-hidden bg-gray-50">

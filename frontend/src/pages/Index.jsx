@@ -111,7 +111,7 @@ function Index() {
     <div
       className="flex-shrink-0 w-[200px] sm:w-[230px] bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-blue-100 transition-all duration-300 cursor-pointer group"
     >
-      <div className="h-40 w-full overflow-hidden bg-gray-50 relative" onClick={() => navigate(`/products/${item.id}`)}>
+      <div className="h-40 w-full overflow-hidden bg-gray-50 relative" onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor.name}`)}>
         <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         {item.stock < 1 && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -120,7 +120,7 @@ function Index() {
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-bold text-[#202224] line-clamp-1 mb-1 cursor-pointer" onClick={() => navigate(`/products/${item.id}`)}>{item.name}</h3>
+        <h3 className="text-sm font-bold text-[#202224] line-clamp-1 mb-1 cursor-pointer" onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor.name}`)}>{item.name}</h3>
         <p className="text-xs text-gray-400 line-clamp-1 mb-3">{item.vendor?.storeName || 'Marketplace'}</p>
         <div className="flex justify-between items-center">
           <span className="text-base font-black text-[#4379EE] flex items-center">

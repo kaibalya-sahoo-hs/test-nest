@@ -167,9 +167,9 @@ export class AdminController {
     }
   }
 
-  @Get('products/:id')
-  async getProductById(@Param('id') id: string) {
-    const product = await this.productService.findOne(id);
+  @Get('products/:title/p/:id')
+  async getProductById(@Param('id') id: string, @Param('title') title: string) {
+    const product = await this.productService.findOne(id, title);
 
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);

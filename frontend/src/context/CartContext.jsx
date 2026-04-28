@@ -82,7 +82,6 @@ export const CartProvider = ({ children }) => {
       }
 
       const guestState = calculateGuestTotals(newItems);
-      console.log("Guest State", guestState);
       setCart(guestState);
       localStorage.setItem("cart", JSON.stringify(guestState));
     }

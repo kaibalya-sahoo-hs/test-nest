@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Razorpay from 'razorpay';
@@ -69,7 +70,7 @@ export class PaymentService {
     const existingPendingOrder = await this.orderRepo.findOne({
       where: {
         user: { id: userID },
-        status: In(['payment_failed', 'pending', 'awaiting_payment']),
+        status: In(['pending', 'awaiting_payment']),
         parentOrder: {id: IsNull()},
       },
       relations: ['payments'],
@@ -124,7 +125,6 @@ export class PaymentService {
     let masterOrder: Order;
     if (existingPendingOrder) {
       masterOrder = existingPendingOrder;
-      console.log("eexsting order id: ", existingPendingOrder.id)
       await this.orderRepo.update(masterOrder.id, {
         status: 'pending',
         items: cartItems,
@@ -203,13 +203,10 @@ export class PaymentService {
         let hasCouponProduct = false;
 
         if (coupon.scope === 'global') {
-          // Global coupon applies to all vendors
           hasCouponProduct = true;
         } else if (coupon.scope === 'vendor') {
-          // Vendor coupon applies only to items from that vendor
           hasCouponProduct = coupon.vendor?.id === vendorId;
         } else if (coupon.scope === 'product') {
-          // Product coupon applies to specific products
           const couponProductIds = (coupon.products || []).map(p => p.id);
           hasCouponProduct = items.some(
             (itm) => couponProductIds.includes(itm.product.id),
@@ -246,6 +243,31 @@ export class PaymentService {
 
     return rzpOrder;
       
+  }
+
+  async dismissPayment(userId){
+    const order = await this.orderRepo.findOne({where: {user: {id: userId},parentOrder: IsNull(), status: 'pending'}})
+    if(!order){
+      throw new NotFoundException("Order not found")
+    }
+
+    const payment  = await this.paymentRepo.findOne({where: {order: {id: order.id}}})
+    if(!payment){
+      throw new NotFoundException('Payment not found')
+    }
+    payment.status = PaymentStatus.FAILED 
+    const updatedPayment = await this.paymentRepo.save(payment)
+    await this.paymentLogService.createLog(updatedPayment.id, PaymentStatus.FAILED)
+    order.status = 'payment_failed'
+
+    const subOrders = await this.orderRepo.find({where: {id: order.id}})
+
+    for(const subOrder of subOrders){
+      subOrder.status = 'payment_failed'
+      await this.orderRepo.save(subOrder)
+    }
+
+    await this.orderRepo.save(order)
   }
 
   async verifyPayment(payload) {
@@ -332,7 +354,7 @@ export class PaymentService {
             balance: () => `balance + ${vendorEarning}`,
           });
           await this.userRepo.update(
-            { email: 'admin@gmail.com' },
+            { email: process.env.ADMIN_EMAIL },
             { balance: () => `balance + ${adminEarning}` },
           );
 

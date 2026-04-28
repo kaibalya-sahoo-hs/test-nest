@@ -12,6 +12,12 @@ export class PaymentController {
         return this.paymentService.createOrder(userId, body.amount, body.cartItems, body.coupon);
     }
 
+    @Post('dismiss')
+    @UseGuards(AuthGuard)
+    async dismissPayment(@Req() req){
+        await this.paymentService.dismissPayment(req.user.id)
+    }
+
     @Post('verify')
     async verifdyPayment(@Body() body: {
         razorpay_order_id: string;

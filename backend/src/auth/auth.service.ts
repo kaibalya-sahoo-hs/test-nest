@@ -98,7 +98,6 @@ export class AuthService {
 
     async loginUser({ email, password }) {
         // Validation
-        console.log(email, password)
         if (!email || !email.trim()) {
             return { message: "Email is required", success: false }
         }

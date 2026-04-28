@@ -361,6 +361,6 @@ export class CartService {
 
   async clearCart(userId: number) {
     await this.cartRepo.delete({ user: { id: userId } });
-    return { message: 'Cart cleared successfully' };
+    return { message: 'Cart cleared successfully', success: true };
   }
 }

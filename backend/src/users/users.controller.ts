@@ -3,12 +3,14 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthGuard } from "src/common/guards/auth.guard";
 import { UserService } from "./users.service";
 import { CouponsService } from "src/coupon/coupon.service";
+import { CartService } from "src/cart/cart.service";
 
 @Controller("users")
 export class UserController {
   constructor(
     private userService: UserService, 
-    private couponService: CouponsService
+    private couponService: CouponsService,
+    private cartService: CartService
   ) { }
   @Get()
   getUser() {
@@ -74,6 +76,11 @@ export class UserController {
   @Post('applycoupon')
   applyCoupon(@Query('coupon') coupon: string, @Body() body:any) {
     return this.couponService.applyCoupon(coupon, body.cartId)
+  }
+  @Post('clearcart')
+  @UseGuards(AuthGuard)
+  async clearCart(@Req() req){
+      return await this.cartService.clearCart(req.user.id)
   }
 
 }

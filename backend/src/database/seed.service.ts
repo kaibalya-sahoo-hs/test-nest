@@ -174,7 +174,7 @@ export class SeedService implements OnApplicationBootstrap {
         price: 1200.00,
         stock: 50,
         category: 'Electronics',
-        image: 'https://conceptkart.com/products/nilko-n2-300ml-temperature-control-smart-coffee-mug-with-led-display?srsltid=AfmBOoqSnWX1wHB81Gwm2mfssCeV7gQ5OdJCixE2YuV9_5ibFBsAk1iF',
+        image: 'https://res.cloudinary.com/dtwulja9k/image/upload/f_auto,q_auto/v1777291195/hqrximes99wlt9qyjxqs.jpg',
         tagIndices: [0, 4, 6, 9, 11], // Electronics, Eco-friendly, Home-Office, Lifestyle, Durable
       },
       {
@@ -219,7 +219,7 @@ export class SeedService implements OnApplicationBootstrap {
         price: 950.00,
         stock: 100,
         category: 'Fitness',
-        image: 'https://femora.in/products/femora-stainless-steel-water-bottle-fridge-bottle-travel-bottle-1000-ml-with-steel-cap?srsltid=AfmBOorfs34RdWvRjD5bgZvm5KXGL6eTCGglcqlFb-srUjJZRqalVmJl',
+        image: 'https://res.cloudinary.com/dtwulja9k/image/upload/q_auto,f_auto/v1777290932/xbgn0ljhodr6mygabx7q.jpg',
         tagIndices: [8, 4, 7, 11, 9], // Fitness, Eco-friendly, Portable, Durable, Lifestyle
       },
       {

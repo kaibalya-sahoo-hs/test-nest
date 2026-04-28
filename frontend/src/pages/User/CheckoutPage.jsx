@@ -10,10 +10,14 @@ function CheckoutPage() {
   const [addresses, setAddresses] = useState([]);
   const [defaultAddress, setDefaultAddress] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { cart, clearCart, fetchCart } = useCart();
+  const { cart, fetchCart } = useCart();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const isCartEmpty = !cart?.items || cart.items.length === 0;
   const fetchAddress = async () => {
+    // Only attempt to fetch addresses when a user is logged in
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    if (!currentUser) navigate('/login');
     try {
       const { data } = await api.get("/addresses");
       setAddresses(data);
@@ -25,8 +29,13 @@ function CheckoutPage() {
   };
 
   useEffect(() => {
-    fetchAddress();
-  }, []);
+    // Only fetch addresses when there are items in the cart. Avoids
+    // unnecessary auth calls for empty carts which may trigger redirects.
+    if (cart.items && cart.items.length > 0) {
+      fetchAddress();
+    }
+    // Re-run when number of items changes
+  }, [cart.items?.length]);
 
   // Calculate Total
   const totalAmount =
@@ -37,6 +46,7 @@ function CheckoutPage() {
 
   const handlePayment = async () => {
     try {
+      setLoading(true)
       if (!defaultAddress) {
         toast.error("No deafult address selected");
         return;
@@ -65,6 +75,12 @@ function CheckoutPage() {
             navigate("/orders");
             fetchCart();
           },
+          modal: {
+            onDismiss: async function() {
+              await api.post('/payment/dismiss')
+              navigate('/orders')
+            }
+          },
           prefill: {
             name: user.name,
             email: user.email,
@@ -75,6 +91,8 @@ function CheckoutPage() {
         };
 
         const rzp = new window.Razorpay(options);
+        await api.post('/users/clearcart')
+
 
         rzp.on("payment.failed", function (response) {
           toast.error("Payment Failed: " + response.error.description);
@@ -91,10 +109,26 @@ function CheckoutPage() {
       console.error("Payment Initiation Error:", error);
       toast.error("Could not initiate payment");
     }
+    setLoading(false)
   };
 
+  if (isCartEmpty) {
+    return (
+      <div className="flex items-center justify-center">
+        <div className="max-w-xl w-full text-center p-8 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
+          <p className="text-gray-500 mb-6">Add some products to proceed to checkout.</p>
+          <div className="flex justify-center gap-4">
+            <button onClick={() => navigate('/products')} className="px-6 py-3 bg-[#4379EE] text-white rounded-xl font-bold">Browse Products</button>
+            <button onClick={() => navigate('/cart')} className="px-6 py-3 border border-gray-200 rounded-xl">View Cart</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Address & Items */}
         <div className="lg:col-span-2 space-y-6">
@@ -207,15 +241,15 @@ function CheckoutPage() {
 
             <button
               onClick={handlePayment}
-              disabled={loading || !cart.items?.length}
+              disabled={loading || !cart.items?.length || !defaultAddress}
               className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all ${
-                loading
+                loading || !defaultAddress
                   ? "bg-gray-400"
                   : "bg-[#4379EE] hover:bg-[#3262cc] shadow-lg shadow-blue-200"
               }`}
               aria-label="payment button"
             >
-              <CiCreditCard2 size={20} />
+              <CiCreditCard2 size={20} /> 
               {loading ? "Processing..." : "Pay with Razorpay"}
             </button>
             <p className="text-[10px] text-gray-400 text-center mt-4 uppercase tracking-widest font-bold">

@@ -11,7 +11,7 @@ import bcrypt from 'bcrypt';
 import { Product } from 'src/product/product.entity';
 import { Vendor } from 'src/vendor/vendor.entity';
 import { Order } from 'src/payment/order.entity';
-import { Payment } from 'src/payment/payment.entity';
+import { Payment, PaymentStatus } from 'src/payment/payment.entity';
 
 @Injectable()
 export class AdminService {
@@ -112,7 +112,7 @@ export class AdminService {
       where: { parentOrder: { id: IsNull() } },
     });
 
-    const totalSales = await this.paymentRepo.sum('amount');
+    const totalSales = await this.paymentRepo.sum('amount', {status: PaymentStatus.COMPLETED});
     const totalPendingOrders = await this.orderRepo.count({
       where: { status: 'pending' },
     });

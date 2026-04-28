@@ -22,7 +22,7 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState("");
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
- 
+
   const handleCheckout = () => {
     if(!user){
       toast.error("Please login before checkout")

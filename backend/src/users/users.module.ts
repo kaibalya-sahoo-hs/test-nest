@@ -9,6 +9,7 @@ import { CouponModule } from 'src/coupon/coupon.module';
 import { Cart } from 'src/cart/cart.entity';
 import { WithdrawService } from 'src/withdraw/withdraw.service';
 import { WithdrawModule } from 'src/withdraw/withdraw.module';
+import { CartModule } from 'src/cart/cart.module';
 
 
 @Module({
@@ -16,7 +17,8 @@ import { WithdrawModule } from 'src/withdraw/withdraw.module';
     TypeOrmModule.forFeature([User, Order, Cart]), 
     CloudinaryModule, 
     CouponModule, 
-    WithdrawModule
+    WithdrawModule,
+    CartModule
   ],
   controllers: [UserController],
   providers: [UserService],

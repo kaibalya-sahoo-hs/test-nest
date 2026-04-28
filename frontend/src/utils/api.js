@@ -24,10 +24,13 @@ api.interceptors.response.use(
     // Only attempt refresh when we got a 401 and the request wasn't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        localStorage.clear();
+        // Don't clear the entire localStorage (this removes guest `cart`).
+        // Only remove auth-related items so guest cart remains intact.
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
         // avoid forcing navigation in test/jsdom environments
         try {
           window.location.href = "/login";
@@ -45,10 +48,11 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // refresh failed
       }
 
-      localStorage.clear();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
       window.location.href = "/login";
       return Promise.reject(error);
     }

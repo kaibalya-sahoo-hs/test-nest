@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 
 @Controller('products')
@@ -23,12 +23,12 @@ export class ProductController {
         }
     }
 
-    @Get(':id')
-    async getProductById(@Param('id') id: string) {
-        const product = await this.productService.findOne(id);
+    @Get(':title/')
+    async getProductById(@Param('title') title: string, @Query('vendor') vendor: string) {
+        const product = await this.productService.findOne(title, vendor);
 
         if (!product) {
-            throw new NotFoundException(`Product with ID ${id} not found`);
+            throw new NotFoundException(`Product with ID ${title} not found`);
         }
 
         return {
@@ -42,8 +42,8 @@ export class ProductController {
         return this.productService.getProductsByName(name)
     }
 
-    @Get('suggest/:productId')
-    async getProductSuggestion(@Param('productId') productId: string){
-        return this.productService.getSimilarSuggestions(productId)
+    @Get('suggest/:productName')
+    async getProductSuggestion(@Param('productName') productName: string){
+        return this.productService.getSimilarSuggestions(productName)
     }
 }
