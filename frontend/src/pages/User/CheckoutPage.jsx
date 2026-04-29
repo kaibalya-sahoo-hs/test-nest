@@ -186,7 +186,7 @@ function CheckoutPage() {
   if (isCartEmpty) {
     return (
       <div className="flex items-center justify-center">
-        <div className="max-w-xl w-full text-center p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="max-w-xl w-full text-center p-8 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
           <p className="text-gray-500 mb-6">Add some products to proceed to checkout.</p>
           <div className="flex justify-center gap-4">
@@ -207,7 +207,7 @@ function CheckoutPage() {
         </div>
         {/* Left Column: Billing Form */}
         <div className="lg:col-span-2">
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold mb-6">Billing Details</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -275,7 +275,7 @@ function CheckoutPage() {
               <div className="md:col-span-2">
                 {!defaultAddress ? (
                   <div className="flex gap-3 mt-3">
-                    <button onClick={handleSaveAddress} disabled={savingAddress} className="px-5 py-3 bg-[#6C46FF] text-white rounded-md font-bold">{savingAddress ? 'Saving...' : 'Save & set as default'}</button>
+                    <button onClick={handleSaveAddress} disabled={savingAddress} className="px-5 py-3 bg-[#4379EE] text-white rounded-md font-bold">{savingAddress ? 'Saving...' : 'Save & set as default'}</button>
                     <button onClick={() => { setBilling({ name: '', email: '', country: 'United States of America', city: '', state: '', streetAddress: '', postalCode: '', phoneNumber: '', addressType: 'home' }); }} className="px-5 py-3 border rounded-md">Clear</button>
                   </div>
                 ) : (
@@ -288,7 +288,7 @@ function CheckoutPage() {
 
         {/* Right Column: Order Details Card */}
         <div className="lg:col-span-1">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-8">
             <h3 className="text-sm font-bold text-gray-700 mb-4">ORDER DETAILS</h3>
 
             <div className="space-y-3 mb-4">

@@ -60,7 +60,6 @@ function ProductPage() {
   const handleQuantityChange = async (newQty) => {
     if (newQty < 1) {
       await removeItem(cartItem.product.id);
-      toast.success("Removed from cart");
     } else {
       await updateQuantity(cartItem.product.id, newQty, null, product.stock, cartItem.quantity);
     }
@@ -147,7 +146,7 @@ function ProductPage() {
                     <button
                       key={idx}
                       onClick={() => setSelectedImageIndex(idx)}
-                      className={`flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
+                      className={`flex-shrink-0 w-15 h-15 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
                         ? 'border-[#4379EE] shadow-md shadow-blue-100'
                         : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
                         }`}
@@ -196,11 +195,11 @@ function ProductPage() {
 
           {/* Right column: Details */}
           <div className="flex flex-col w-full">
-            <div className="w-full">
+            <div className="w-full flex flex-col justify-between h-full">
               {/* Rating + Title */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map(i => (
+                  {[1, 2, 3, 4, 5].map(i => (
                     <FaStar key={i} className="text-yellow-400" />
                   ))}
                 </div>
@@ -217,13 +216,13 @@ function ProductPage() {
               </div>
 
               {/* Prices */}
-              <div className="mb-4 text-sm text-gray-500">
-                <div>List Price: <span className="line-through text-gray-400">{product.listPrice ? `${product.listPrice}` : ''}</span></div>
+              <div className="mb-4 text-xl text-gray-500">
+                <div>List Price: <span className="line-through text-gray-400">{product.listPrice ? `${product.listPrice}` : 90}</span></div>
               </div>
 
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
-                  <div className="text-sm text-gray-600">Price:</div>
+                  <div className="text-3xl font-bold text-gray-500">Price:</div>
                   <div className="text-3xl sm:text-4xl font-extrabold text-[#1E40AF]">{Number(product.price).toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-sm text-gray-500">{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
@@ -275,7 +274,7 @@ function ProductPage() {
                     </button>
                   </div>
                   <button
-                    className="bg-[#4379EE] px-8 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="bg-[#473BF0] px-8 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2"
                     onClick={() => navigate("/cart")}
                   >
                     <FaShoppingCart /> View Cart
@@ -284,14 +283,14 @@ function ProductPage() {
               ) : (
                 <button
                   aria-label="add to cart"
-                  className="w-full sm:w-auto bg-[#4379EE] px-6 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full sm:w-auto bg-[#473BF0] px-6 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
                   onClick={() => handleAddtoCart(product)}
                 >
                   <FaShoppingCart /> Add to Cart
                 </button>
               ) : null}
             </div>
-          </div>     
+          </div>
         </div>
 
         {/* Tabs */}
@@ -347,7 +346,7 @@ function ProductPage() {
           </div>
         </div>
         {/* Recommended Products */}
-        <div className="mt-20 pb-8 w-full">
+        <div className="mt-30 pb-8 w-full ">
           <div className="flex items-center justify-center mb-18">
             <h2 className="text-xl sm:text-2xl font-bold text-[#202224] ">Related Products</h2>
           </div>
@@ -366,32 +365,34 @@ function ProductPage() {
             <p className="text-gray-400 text-center py-8">No recommendations available</p>
           ) : (
             <div className="w-full">
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 justify-items-center w-full">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center w-full">
                 {suggestedProducts.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor?.name}`)}
-                    className="w-[220px] rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    className="w-[180px] sm:w-[230px] rounded-lg hover:shadow-lg transition-all duration-300 cursor-pointer"
                   >
-                    <div className="md:w-50 md:h-60 overflow-hidden rounded-xl bg-gray-50 mb-3">
-                      <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className=" overflow-hidden rounded-xl bg-gray-50 mb-3">
+                      <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
 
-                    <div className="flex items-center text-center mb-2">
-                      <div className="text-base font-bold text-[#4379EE] flex items-center gap-1">
-                        <FaRupeeSign className="text-sm" />{Number(item.price).toLocaleString('en-IN')}
+                    <div className="flex flex-col justify-center items-center gap-3">
+                      <div className="flex items-center text-center mb-2">
+                        <div className="text-base font-bold flex items-center gap-1">
+                          <FaRupeeSign className="text-sm" />{Number(item.price).toLocaleString('en-IN')}
+                        </div>
+                        {item.listPrice ? (
+                          <div className="text-xs text-gray-400 line-through">{Number(item.listPrice).toLocaleString('en-IN')}</div>
+                        ) : null}
                       </div>
-                      {item.listPrice ? (
-                        <div className="text-xs text-gray-400 line-through">{Number(item.listPrice).toLocaleString('en-IN')}</div>
-                      ) : null}
-                    </div>
 
-                    <h3 className="text-sm font-bold text-[#202224] mb-2 line-clamp-1">{item.name}</h3>
+                      <h3 className="text-sm font-bold text-[#202224] mb-2 line-clamp-1 font-extrabold">{item.name}</h3>
 
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <FaStar key={i} className={`text-yellow-400 ${i < Math.round(item.rating || 4) ? '' : 'opacity-40'}`} />
-                      ))}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <FaStar key={i} className={`text-yellow-400 ${i < Math.round(item.rating || 4) ? '' : 'opacity-40'}`} />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}

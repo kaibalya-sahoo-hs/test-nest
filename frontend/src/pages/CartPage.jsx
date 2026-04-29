@@ -8,6 +8,7 @@ import {
   FiShoppingBag,
   FiTag,
   FiX,
+  FiTrash,
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -106,92 +107,52 @@ const CartPage = () => {
       </div>
 
       <div className="grid grid-cols-1 items-start">
-        <div className="md:col-span-2 space-y-4">
-          {/* Header row for desktop */}
-          <div className="hidden md:flex items-center bg-transparent text-gray-500 text-xs font-bold px-4 py-3 rounded-t-lg">
-            <div className="w-1/2">PRODUCT</div>
-            <div className="w-1/6 text-right">PRICE</div>
-            <div className="w-1/6 text-center">QUANTITY</div>
-            <div className="w-1/6 text-right">TOTAL</div>
+        <div className="md:col-span-2">
+          {/* Header row for desktop (grid) */}
+          <div className="hidden md:grid grid-cols-12 items-center bg-transparent text-gray-500 text-xs font-bold px-4 py-3 rounded-t-lg">
+            <div className="col-span-4">PRODUCT</div>
+            <div className="col-span-2 text-center">PRICE</div>
+            <div className="col-span-2 text-center">QUANTITY</div>
+            <div className="col-span-2 text-center">TOTAL</div>
           </div>
+
           {cart.items.map((item) => (
-            // IMPORTANT: use item.product.id for the key if it's unique
-            <div
-              key={item.product?.id}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4 hover:border-blue-200 transition-colors"
-            >
-                {/* Product Image - Mapping to item.product */}
-                <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-50">
-                <img
-                  src={item.product?.image}
-                  alt={'Product image'}
-                  className="w-full h-full object-cover mix-blend-multiply"
-                />
+            <div key={item.product?.id} className="bg-white rounded p-4 shadow-sm border border-gray-100 md:grid md:grid-cols-12 gap-4 items-center hover:border-blue-200 transition-colors">
+              {/* Product */}
+              <div className="col-span-4 flex justify-start items-center gap-4 md:mb-0 mb-4">
+                <div className="w-20 h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-50">
+                  <img src={item.product?.image} alt={'Product image'} className="w-full h-full object-cover mix-blend-multiply" />
+                </div>
+                <div>
+                  <h3 className="text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
+                  <p className="text-xs text-gray-400">Product ID: {item.product?.id?.slice(0,8)}...</p>
+                </div>
               </div>
 
-              {/* Product Info */}
-                <div className="flex-1">
-                  <h3 className="text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
-                  <p className="text-xs text-gray-400 mb-2">Product ID: {item.product?.id?.slice(0,8)}...</p>
-                </div>
+              {/* Price */}
+              <div className="col-span-2 text-center">
+                <div className="text-sm text-gray-500 line-through">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}</div>
+                <div className="text-[#4379EE] font-extrabold">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
+              </div>
 
-                {/* Price (desktop column) */}
-                <div className="hidden md:flex md:w-1/6 md:justify-end">
-                  <div className="text-sm text-gray-500 line-through mr-3">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}</div>
-                  <div className="text-[#4379EE] font-extrabold flex items-center">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
-                </div>
+              {/* Quantity */}
+              <div className="col-span-2 flex gap-2 items-center justify-center">
+                <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput, item.product.stock, item.quantity)} disabled={item.quantity <= 1} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiMinus size={14} /></button>
+                <div className="px-3 font-bold text-[#202224] min-w-[36px] text-center bg-white border border-gray-50">{item.quantity}</div>
+                <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput, item.product.stock, item.quantity)} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiPlus size={14} /></button>
+              </div>
 
-                {/* Quantity Selector */}
-                <div className="flex items-center gap-3 md:w-1/6 justify-center">
-                  <button
-                    onClick={() =>
-                      updateQuantity(
-                        item.product.id,
-                        item.quantity - 1,
-                        couponInput,
-                        item.product.stock,
-                        item.quantity
-                      )
-                    }
-                    className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-100"
-                    disabled={item.quantity <= 1}
-                    aria-label="Decrease quantity"
-                  >
-                    <FiMinus size={16} />
-                  </button>
-                  <span className="px-3 font-bold text-[#202224] min-w-[36px] text-center">{item.quantity}</span>
-                  <button
-                    onClick={() =>
-                      updateQuantity(
-                        item.product.id,
-                        item.quantity + 1,
-                        couponInput,
-                        item.product.stock,
-                        item.quantity
-                      )
-                    }
-                    className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-100"
-                    aria-label="Increase quantity"
-                  >
-                    <FiPlus size={16} />
-                  </button>
-                </div>
-
-                {/* Total & Remove */}
-                <div className="flex items-center gap-4 md:w-1/6 md:justify-end">
-                  <div className="text-sm font-bold">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
-                  <button
-                    onClick={() => removeItem(item.product.id, couponInput)}
-                    className="text-gray-300 hover:text-red-500 rounded-full p-2"
-                    aria-label="remove item"
-                  >
-                    <FiTrash2 size={18} />
-                  </button>
-                </div>
+              {/* Total + remove */}
+              <div className="col-span-2 flex items-center justify-center">
+                <div className="text-sm font-bold">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
+              </div>
+              <div className="col-span-2 flex justify-center">
+                <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2" aria-label="remove item"><FiTrash size={18} /></button>
+              </div>
             </div>
           ))}
           <div>
-            <button className="px-4 py-2 rounded-lg border border-blue-500 text-blue-500 cursor-pointer" onClick={() => navigate('/products')}>
+            <button className="px-4 py-2 mt-2 sm:mt-6 rounded test-black cursor-pointer bg-white" onClick={() => navigate('/products')}>
               Continue Shopping
             </button>
           </div>
@@ -273,7 +234,7 @@ const CartPage = () => {
               <div className="text-3xl font-extrabold text-[#202224] flex items-center"> <FaRupeeSign />{cart.total && (cart.total).toLocaleString('en-IN')}</div>
             </div>
 
-            <button aria-label="checkout btn" className="w-full py-3 bg-[#03a3ff] text-white font-extrabold rounded-lg hover:bg-[#5a3ee6] transition-all shadow-lg" onClick={handleCheckout}>
+            <button aria-label="checkout btn" className="w-full py-3 bg-[#4379EE] text-white font-extrabold rounded-lg hover:bg-[#5a3ee6] transition-all shadow-lg" onClick={handleCheckout}>
               Proceed to checkout
             </button>
           </div>
