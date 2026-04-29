@@ -10,10 +10,11 @@ import {
   FiX,
   FiTrash,
 } from "react-icons/fi";
+import { RxCross1 } from "react-icons/rx";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
-import { FaRupeeSign } from "react-icons/fa";
+import { FaCross, FaRupeeSign } from "react-icons/fa";
 import api from "../utils/api";
 
 const CartPage = () => {
@@ -102,8 +103,8 @@ const CartPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6">
       <div className="text-center mt-8 mb-6">
-        <h1 className="text-3xl font-extrabold text-[#202224]">Your cart</h1>
-        <p className="text-sm text-gray-500 mt-2">{cart.items && cart.items.length} items on your cart</p>
+        <h1 className="text-5xl font-extrabold text-[#202224]">Your cart</h1>
+        <p className="text-lg text-gray-500 mt-2">{cart.items && cart.items.length} items on your cart</p>
       </div>
 
       <div className="grid grid-cols-1 items-start">
@@ -131,7 +132,6 @@ const CartPage = () => {
 
               {/* Price */}
               <div className="col-span-2 text-center">
-                <div className="text-sm text-gray-500 line-through">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}</div>
                 <div className="text-[#4379EE] font-extrabold">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
               </div>
 
@@ -147,7 +147,7 @@ const CartPage = () => {
                 <div className="text-sm font-bold">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
               </div>
               <div className="col-span-2 flex justify-center">
-                <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2" aria-label="remove item"><FiTrash size={18} /></button>
+                <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2" aria-label="remove item"><RxCross1 size={18} /></button>
               </div>
             </div>
           ))}

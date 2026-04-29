@@ -156,7 +156,7 @@ function Nav() {
   return (
     <div className="min-h-screen bg-[#F5F6FA] ">
       {/* --- TOP NAVBAR --- */}
-      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50 font-[serif]">
+      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
         <div className="flex items-center gap-3">
           {/* Hamburger Button — visible on mobile/tablet only */}
           <button
@@ -397,7 +397,7 @@ function Nav() {
         <main
           className={`flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
-          <div className="max-w-7xl mx-auto font-[serif]">
+          <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>

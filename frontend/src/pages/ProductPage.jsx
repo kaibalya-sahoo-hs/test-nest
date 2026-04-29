@@ -131,22 +131,22 @@ function ProductPage() {
 
   return (
     <div className="bg-[#F5F6FA] min-h-fit overflow-x-hidden">
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6 items-center">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 items-center">
 
         <div className="w-full text-start mb-4 font-semibold text-lg flex justify-start">
           <span className="flex justify-center items-center gap-2 cursor-pointer" onClick={() => navigate('/products')}><FaArrowLeft size={16} /> Back to poducts</span>
         </div>
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
           {/* Left column: Image + thumbnails */}
-          <div className="flex w-full gap-2">
+          <div className="flex w-full col-span-2">
             <div className="">
               {images.length > 1 && (
-                <div className="flex flex-col gap-1 overflow-x-auto w-full pb-2 justify-center">
+                <div className="flex flex-col gap-1 mr-4 overflow-x-auto w-full pb-2 justify-center">
                   {images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImageIndex(idx)}
-                      className={`flex-shrink-0 w-15 h-15 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
+                      className={`flex-shrink-0 mb-2 w-15 h-15 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx
                         ? 'border-[#4379EE] shadow-md shadow-blue-100'
                         : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
                         }`}
@@ -158,7 +158,7 @@ function ProductPage() {
               )}
 
             </div>
-            <div className="w-80 h-80 md:w-[560px] md:h-125 relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm w-full flex items-center justify-center">
+            <div className="w-80 h-80 md:w-[560px] md:h-125 overflow-hidden relative bg-white rounded-2xl  border border-gray-100 shadow-sm w-full flex flex-wrap items-center justify-center">
 
               <img
                 src={images[selectedImageIndex]}
@@ -166,7 +166,7 @@ function ProductPage() {
                 className="h-full w-full object-cover mix-blend-multiply transition-all duration-300"
               />
               {/* Navigation arrows */}
-              {images.length > 1 && (
+              {/* {images.length > 1 && (
                 <>
                   <button
                     onClick={() => setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
@@ -181,7 +181,7 @@ function ProductPage() {
                     <FaChevronRight size={14} />
                   </button>
                 </>
-              )}
+              )} */}
               {/* Image counter */}
               {images.length > 1 && (
                 <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -195,18 +195,9 @@ function ProductPage() {
 
           {/* Right column: Details */}
           <div className="flex flex-col w-full">
-            <div className="w-full flex flex-col justify-between h-full">
-              {/* Rating + Title */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <FaStar key={i} className="text-yellow-400" />
-                  ))}
-                </div>
-                <div className="text-sm text-gray-400">{product.rating || 'New'}</div>
-              </div>
+            <div className="w-full flex flex-col gap-2 h-full">
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#202224] leading-tight mb-2">
+              <h1 className="text-4xl sm:text-3xl font-extrabold text-[#202224] leading-tight mb-2">
                 {product.name}
               </h1>
 
@@ -216,14 +207,15 @@ function ProductPage() {
               </div>
 
               {/* Prices */}
-              <div className="mb-4 text-xl text-gray-500">
-                <div>List Price: <span className="line-through text-gray-400">{product.listPrice ? `${product.listPrice}` : 90}</span></div>
-              </div>
 
+                <div>
+                  <span className="text-gray-500">List Price: </span>
+                  <span className="text-gray-400">{(Number(product.price) + Number(product.price*0.1)).toLocaleString('en-IN')}</span>
+                </div>
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
                   <div className="text-3xl font-bold text-gray-500">Price:</div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-[#1E40AF]">{Number(product.price).toLocaleString('en-IN')}</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-black flex justify-center items-center"><FaRupeeSign size={25}/>{Number(product.price).toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-sm text-gray-500">{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
               </div>
@@ -257,13 +249,14 @@ function ProductPage() {
               {product && product.stock > 0 ? cartItem ? (
                 <div className="flex flex-col gap-3 w-fit">
                   <div className="flex items-center justify-center gap-2">
+                    <span className="text-xl text-gray-500">Quantity</span>
                     <button
                       onClick={() => handleQuantityChange(cartItem.quantity - 1)}
                       className="p-2 text-[#202224] bg-gray-200 rounded-full  transition-colors cursor-pointer"
                     >
                       <FaMinus size={16} />
                     </button>
-                    <span className="px-6 font-bold text-xl text-[#202224] min-w-[60px] text-center bg-white border border-black">
+                    <span className="px-6 font-bold text-xl text-[#202224] min-w-[60px] text-center bg-white border border-gray-400">
                       {cartItem.quantity}
                     </span>
                     <button
@@ -274,7 +267,7 @@ function ProductPage() {
                     </button>
                   </div>
                   <button
-                    className="bg-[#473BF0] px-8 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="bg-[#473BF0] w-fit px-8 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2"
                     onClick={() => navigate("/cart")}
                   >
                     <FaShoppingCart /> View Cart
@@ -283,7 +276,7 @@ function ProductPage() {
               ) : (
                 <button
                   aria-label="add to cart"
-                  className="w-full sm:w-auto bg-[#473BF0] px-6 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                  className="w-fit sm:w-fit bg-[#473BF0] px-6 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
                   onClick={() => handleAddtoCart(product)}
                 >
                   <FaShoppingCart /> Add to Cart
@@ -295,14 +288,14 @@ function ProductPage() {
 
         {/* Tabs */}
         <div className="md:mt-20 mt-8 w-full ">
-          <div role="tablist" aria-label="Product tabs" className="flex gap-6 mb-4 border-b-1 border-b-gray-300 w-full">
+          <div role="tablist" aria-label="Product tabs" className="flex gap-6 md:gap-15 mb-4 border-b-1 border-b-gray-300 w-full">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 role="tab"
                 aria-selected={currentTab === tab}
                 onClick={() => setCurrentTab(tab)}
-                className={`px-3 py-2 font-extrabold text-lg ${currentTab === tab ? 'text-[#0501ff] border-b-1 border-[#0501ff]' : 'text-gray-500'} transition-colors`}
+                className={`font-extrabold pb-4 text-lg ${currentTab === tab ? 'text-[#0501ff] border-b-1 border-[#0501ff]' : 'text-gray-500'} transition-colors`}
               >
                 {tab}
               </button>
@@ -348,7 +341,7 @@ function ProductPage() {
         {/* Recommended Products */}
         <div className="mt-30 pb-8 w-full ">
           <div className="flex items-center justify-center mb-18">
-            <h2 className="text-xl sm:text-2xl font-bold text-[#202224] ">Related Products</h2>
+            <h2 className="text-xl md:text-3xl font-bold text-[#202224] ">Related Products</h2>
           </div>
 
           {loadingProducts ? (
