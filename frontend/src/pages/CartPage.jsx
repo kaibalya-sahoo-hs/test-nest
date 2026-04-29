@@ -99,24 +99,29 @@ const CartPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto ">
-      <h1 className="text-3xl font-extrabold text-[#202224] mb-8 flex items-center gap-3">
-        Shopping Cart
-        <span className="text-sm bg-blue-100 text-[#4379EE] px-3 py-1 rounded-full">
-          {cart.items && cart.items.length} Items
-        </span>
-      </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="text-center mt-8 mb-6">
+        <h1 className="text-3xl font-extrabold text-[#202224]">Your cart</h1>
+        <p className="text-sm text-gray-500 mt-2">{cart.items && cart.items.length} items on your cart</p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-        <div className=" space-y-4 md:col-span-1">
+      <div className="grid grid-cols-1 items-start">
+        <div className="md:col-span-2 space-y-4">
+          {/* Header row for desktop */}
+          <div className="hidden md:flex items-center bg-transparent text-gray-500 text-xs font-bold px-4 py-3 rounded-t-lg">
+            <div className="w-1/2">PRODUCT</div>
+            <div className="w-1/6 text-right">PRICE</div>
+            <div className="w-1/6 text-center">QUANTITY</div>
+            <div className="w-1/6 text-right">TOTAL</div>
+          </div>
           {cart.items.map((item) => (
             // IMPORTANT: use item.product.id for the key if it's unique
             <div
               key={item.product?.id}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:border-blue-200 transition-colors"
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4 hover:border-blue-200 transition-colors"
             >
-              {/* Product Image - Mapping to item.product */}
-              <div className="w-24 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-50">
+                {/* Product Image - Mapping to item.product */}
+                <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-50">
                 <img
                   src={item.product?.image}
                   alt={'Product image'}
@@ -125,85 +130,77 @@ const CartPage = () => {
               </div>
 
               {/* Product Info */}
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-lg font-bold text-[#202224]">
-                  {item.product?.name}
-                </h3>
-                <p className="text-xs text-gray-400 mb-2 font-medium">
-                  Product ID: {item.product?.id?.slice(0, 8)}...
-                </p>
-                <div className="flex items-center justify-center sm:justify-start gap-3">
-                  <span className="text-gray-400 line-through text-sm flex items-center">
-                    <FaRupeeSign className="text-sm" />{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-[#4379EE] text-xl flex items-center">
-                    <FaRupeeSign className="text-sm" /><span className="font-extrabold ">{Number(item.product?.price).toLocaleString('en-IN')}</span>
-                  </span>
+                <div className="flex-1">
+                  <h3 className="text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
+                  <p className="text-xs text-gray-400 mb-2">Product ID: {item.product?.id?.slice(0,8)}...</p>
                 </div>
-              </div>
 
-              {/* Quantity Selector - Uses item.product.id */}
-              <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
-                <button
-                  onClick={() =>
-                    updateQuantity(
-                      item.product.id,
-                      item.quantity - 1,
-                      couponInput,
-                      item.product.stock,
-                      item.quantity
-                    )
-                  }
-                  className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 disabled:opacity-30"
-                  disabled={item.quantity <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <FiMinus size={16} />
-                </button>
-                <span className="px-4 font-bold text-[#202224] min-w-[40px] text-center">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() =>
-                    updateQuantity(
-                      item.product.id,
-                      item.quantity + 1,
-                      couponInput,
-                      item.product.stock,
-                      item.quantity
-                    )
-                  }
-                  className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500"
-                  aria-label="Increase quantity"
-                >
-                  <FiPlus size={16} />
-                </button>
-              </div>
+                {/* Price (desktop column) */}
+                <div className="hidden md:flex md:w-1/6 md:justify-end">
+                  <div className="text-sm text-gray-500 line-through mr-3">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * 1.2).toLocaleString('en-IN')}</div>
+                  <div className="text-[#4379EE] font-extrabold flex items-center">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
+                </div>
 
-              {/* Remove Button - Uses item.product.id */}
-              <button
-                onClick={() => removeItem(item.product.id, couponInput)}
-                className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                aria-label="remove item"
-              >
-                <FiTrash2 size={20} />
-              </button>
+                {/* Quantity Selector */}
+                <div className="flex items-center gap-3 md:w-1/6 justify-center">
+                  <button
+                    onClick={() =>
+                      updateQuantity(
+                        item.product.id,
+                        item.quantity - 1,
+                        couponInput,
+                        item.product.stock,
+                        item.quantity
+                      )
+                    }
+                    className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                    disabled={item.quantity <= 1}
+                    aria-label="Decrease quantity"
+                  >
+                    <FiMinus size={16} />
+                  </button>
+                  <span className="px-3 font-bold text-[#202224] min-w-[36px] text-center">{item.quantity}</span>
+                  <button
+                    onClick={() =>
+                      updateQuantity(
+                        item.product.id,
+                        item.quantity + 1,
+                        couponInput,
+                        item.product.stock,
+                        item.quantity
+                      )
+                    }
+                    className="w-8 h-8 bg-gray-50 rounded-md flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                    aria-label="Increase quantity"
+                  >
+                    <FiPlus size={16} />
+                  </button>
+                </div>
+
+                {/* Total & Remove */}
+                <div className="flex items-center gap-4 md:w-1/6 md:justify-end">
+                  <div className="text-sm font-bold">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
+                  <button
+                    onClick={() => removeItem(item.product.id, couponInput)}
+                    className="text-gray-300 hover:text-red-500 rounded-full p-2"
+                    aria-label="remove item"
+                  >
+                    <FiTrash2 size={18} />
+                  </button>
+                </div>
             </div>
           ))}
           <div>
-            <button className="px-4 py-2 rounded-lg bg-blue-500 text-white cursor-pointer" onClick={() => navigate('/products')}>
-              Explore More
+            <button className="px-4 py-2 rounded-lg border border-blue-500 text-blue-500 cursor-pointer" onClick={() => navigate('/products')}>
+              Continue Shopping
             </button>
           </div>
         </div>
 
         {/* Right Side: Order Summary (Takes up 1 col) */}
-        <div className="md:col-span-1 md:sticky top-24 h-fit">
-          <div className="bg-white rounded-2xl p-8 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
-            <h2 className="text-xl font-bold text-[#202224] mb-6 flex items-center justify-between">
-              Summary
-              <FiShoppingBag className="text-gray-300" />
-            </h2>
+        <div className="h-fit sm:w-full sm:flex sm:justify-end mt-10 sm:mt-0">
+          <div className="bg-white rounded-2xl p-6 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
+            <h2 className="text-lg font-bold text-[#202224] mb-4">Order Details</h2>
 
             {/* Coupon Section */}
             {user && (
@@ -260,38 +257,25 @@ const CartPage = () => {
             )}
 
             {/* Calculations */}
-            <div className="space-y-4 mb-8 border-b pb-8 border-dashed border-gray-100">
+            <div className="space-y-4 mb-6">
               <div className="flex justify-between text-gray-500 font-medium text-sm">
-                <span>Subtotal</span>
-                <span className="text-[#202224] font-bold flex items-center">
-                  <FaRupeeSign className="text-sm" />{cart.subTotal?.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <div className="flex justify-between text-green-600 font-bold text-sm">
-                <span>Discount</span>
-                <span className="flex items-center"> - <FaRupeeSign className="text-sm" />{cart.discount ? cart.discount.toLocaleString('en-IN') : '0'}</span>
+                <span>Items</span>
+                <span className="text-[#202224] font-bold">{cart.items && cart.items.length}</span>
               </div>
               <div className="flex justify-between text-gray-500 font-medium text-sm">
-                <span>Estimated Shipping</span>
-                <span className="text-green-500 font-bold uppercase text-[10px] bg-green-50 px-2 py-0.5 rounded">
-                  Free
-                </span>
+                <span>Delivery Fee</span>
+                <span className="text-green-500 font-bold">FREE</span>
               </div>
             </div>
 
-            <div className="mb-8 flex justify-between items-end">
-              <div>
-                <span className="text-xs font-bold text-gray-400 uppercase block mb-1">
-                  Total Amount
-                </span>
-                <span className="text-4xl font-black text-[#202224] tracking-tighter flex items-center">
-                  <FaRupeeSign />{cart.total && (cart.total).toLocaleString('en-IN')}
-                </span>
-              </div>
+            <div className="mb-6">
+              <div className="text-xs font-bold text-gray-400 uppercase mb-1">Total Price</div>
+              <div className="text-3xl font-extrabold text-[#202224] flex items-center"> <FaRupeeSign />{cart.total && (cart.total).toLocaleString('en-IN')}</div>
             </div>
-              <button aria-label="checkout btn" className="w-full py-4 bg-[#4379EE] text-white font-extrabold rounded-2xl hover:bg-[#3662c1] transition-all shadow-lg shadow-blue-100 hover:shadow-blue-200 active:scale-[0.98]" onClick={handleCheckout}>
-                Proceed to Checkout
-              </button>
+
+            <button aria-label="checkout btn" className="w-full py-3 bg-[#03a3ff] text-white font-extrabold rounded-lg hover:bg-[#5a3ee6] transition-all shadow-lg" onClick={handleCheckout}>
+              Proceed to checkout
+            </button>
           </div>
         </div>
       </div>

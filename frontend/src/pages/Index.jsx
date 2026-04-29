@@ -126,15 +126,6 @@ function Index() {
           <span className="text-base font-black text-[#4379EE] flex items-center">
             <FaRupeeSign className="text-xs" />{Number(item.price).toLocaleString('en-IN')}
           </span>
-          {item.stock > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); handleAddToCart(item); }}
-              className="p-2 bg-[#4379EE] text-white rounded-lg hover:bg-[#3662c1] transition-all active:scale-90 cursor-pointer"
-              title="Add to Cart"
-            >
-              <FaShoppingCart size={12} />
-            </button>
-          )}
         </div>
       </div>
     </div>
