@@ -110,7 +110,7 @@ const CartPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6">
       <div className="text-center mt-8 mb-6">
         <h1 className="text-5xl font-extrabold text-[#202224]">Your cart</h1>
         <p className="text-lg text-gray-500 mt-2">{cart.items && cart.items.length} items on your cart</p>
