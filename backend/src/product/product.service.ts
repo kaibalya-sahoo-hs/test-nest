@@ -94,7 +94,7 @@ export class ProductService {
       .join(' | ');
 
     const resultMap = new Map<string, any>();
-    const limit = 8;
+    const limit = 4;
 
     // 1. PRIMARY: Tag-based matching
     try {

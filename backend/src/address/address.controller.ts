@@ -10,9 +10,9 @@ export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}
 
   @Post()
-  create(@Req() req, @Body() dto: CreateAddressDto) {
+  create(@Req() req, @Body() body) {
     console.log("Called")
-    return this.addressesService.create(req.user.id, dto);
+    return this.addressesService.create(req.user.id, body);
   }
 
   @Get()
