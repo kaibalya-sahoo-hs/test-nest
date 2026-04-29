@@ -50,6 +50,15 @@ function CheckoutPage() {
     // Re-run when number of items changes
   }, [cart.items?.length]);
 
+  // Ensure top of page is visible when this page mounts
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } catch (err) {
+      // ignore if not running in browser context
+    }
+  }, []);
+
   // Prefill billing when default address is available
   useEffect(() => {
     if (defaultAddress) {

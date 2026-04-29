@@ -73,6 +73,15 @@ const CartPage = () => {
     }
   }, [user])
 
+  // Ensure top of page is visible when this page mounts
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } catch (err) {
+      // ignore in non-browser environments
+    }
+  }, []);
+
   useEffect(() => {
     if(cart.coupon){
       setCouponInput(cart.coupon.displayName || cart.coupon.code || "")

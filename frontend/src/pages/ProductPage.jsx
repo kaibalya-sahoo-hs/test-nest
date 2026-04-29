@@ -108,6 +108,15 @@ function ProductPage() {
     fetchRecomendedProducts();
   }, [title, vendor]);
 
+  // Ensure top of page is visible when this page mounts
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } catch (err) {
+      // ignore in non-browser environments
+    }
+  }, [title]);
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -131,7 +140,7 @@ function ProductPage() {
 
   return (
     <div className="bg-[#F5F6FA] min-h-fit overflow-x-hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 items-center">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6 items-center">
 
         <div className="w-full text-start mb-4 font-semibold text-lg flex justify-start">
           <span className="flex justify-center items-center gap-2 cursor-pointer" onClick={() => navigate('/products')}><FaArrowLeft size={16} /> Back to poducts</span>
@@ -208,9 +217,9 @@ function ProductPage() {
 
               {/* Prices */}
 
-                <div>
+                <div className="flex justify-start items-center">
                   <span className="text-gray-500">List Price: </span>
-                  <span className="text-gray-400">{(Number(product.price) + Number(product.price*0.1)).toLocaleString('en-IN')}</span>
+                  <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-light"/>{(Number(product.price) + Number(product.price*0.1)).toLocaleString('en-IN')}</span>
                 </div>
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
