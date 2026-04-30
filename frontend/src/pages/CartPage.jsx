@@ -146,7 +146,7 @@ const CartPage = () => {
               {/* Quantity */}
               <div className="col-span-3 md:col-span-2 flex gap-2 items-center justify-center">
                 <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput, item.product.stock, item.quantity)} disabled={item.quantity <= 1} className="w-4 h-4 sm:w-8 sm:h-8 bg-gray-200 cursor-pointer rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiMinus size={14} /></button>
-                <div className="px-3 font-bold text-[#202224] w-[20px] sm:w-[36px] text-xs sm:text-md text-center bg-white border border-gray-50">{item.quantity}</div>
+                <div className="px-3 font-bold text-[#202224] w-[20px] sm:min-w-[36px] text-xs sm:text-lg text-center bg-white border border-gray-50">{item.quantity}</div>
                 <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput, item.product.stock, item.quantity)} className="w-4 h-4 sm:w-8 sm:h-8 bg-gray-200 rounded-full cursor-pointer flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiPlus size={14} /></button>
               </div>
 

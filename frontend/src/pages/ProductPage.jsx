@@ -446,7 +446,7 @@ function ProductPage() {
                                         } catch (err) {
                                           toast.error('Delete failed');
                                         }
-                                      }} className="text-sm text-red-500 font-medium hover:underline">Delete</button>
+                                      }} className="text-sm text-red-500 font-medium">Delete</button>
                                     </>
                                   )}
                                 </div>
@@ -527,10 +527,10 @@ function ProductPage() {
                   <div
                     key={item.id}
                     onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor?.name}`)}
-                    className="w-[180px] sm:w-[230px] rounded-lg hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    className="w-[180px] sm:w-[230px] rounded-lg transition-all duration-300 cursor-pointer"
                   >
                     <div className=" overflow-hidden rounded-xl bg-gray-50 mb-3">
-                      <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover transition-transform duration-300" />
                     </div>
 
                     <div className="flex flex-col justify-between items-center gap-4">

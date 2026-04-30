@@ -129,6 +129,7 @@ function CheckoutPage() {
       setLoading(true)
       if (!defaultAddress) {
         toast.error("No deafult address selected");
+        setLoading(false)
         return;
       }
       if (user) {

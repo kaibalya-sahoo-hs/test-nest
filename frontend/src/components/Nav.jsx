@@ -19,6 +19,7 @@ function Nav() {
   const { cart, setCart } = useCart();
   const { balance, setBalance, getBalance } = useUser();
   const [user, setUser] = useState(null)
+  const [searchedValue, setSearchedValue] = useState('')
 
   // Determine role from localStorage
 
@@ -188,6 +189,13 @@ function Nav() {
             <CiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
+              value={searchedValue}
+              onChange={(e) => setSearchedValue(e.target.value)}
+              onKeyDown={(e) => {
+                console.log("first") 
+                if(e.key == "Enter"){
+                  navigate('/products')
+                }}}
               placeholder="Search"
               className="pl-10 pr-4 py-2 bg-[#F5F6FA] border border-gray-100 rounded-full text-sm w-72 focus:outline-none focus:ring-2 focus:ring-[#4379EE]/20 transition-all"
             />
