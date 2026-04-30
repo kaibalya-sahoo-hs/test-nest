@@ -178,7 +178,7 @@ function Nav() {
               navigate(user?.role === "admin" ? "/admin/dashboard" : "/");
             }}
           >
-            <span className="text-[#4379EE]">Dash</span>Stack
+            <span className="text-[#4379EE]">Swift</span>Cart
           </span>
         </div>
 

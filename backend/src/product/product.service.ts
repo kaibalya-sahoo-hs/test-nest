@@ -11,17 +11,18 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
-    private embeddingService: EmbeddingService,
     private cloudinaryService: CloudinaryService,
   ) { }
 
   // Create a new product
   async create(
-    productData: Partial<Product>,
+    productData,
     file: Express.Multer.File,
   ): Promise<Product> {
     const result = await this.cloudinaryService.uploadImage(file);
-    const newProduct = this.productRepo.create(productData);
+
+    const featuresArray = productData.features.split(",")
+    const newProduct: any = this.productRepo.create({...productData, features: featuresArray});
 
     if (result?.url) {
       newProduct.image = result?.url;
@@ -39,7 +40,7 @@ export class ProductService {
 
   // Find one by ID
   async findOne(title: string, vendor): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { name: title, vendor: {name: vendor} }, relations: ['vendor'] });
+    const product = await this.productRepo.findOne({ where: { name: title, vendor: {name: vendor} }, relations: ['vendor', 'reviews'] });
     if (!product)
       throw new NotFoundException(`Product not found`);
     return product;

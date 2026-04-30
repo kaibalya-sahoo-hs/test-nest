@@ -19,6 +19,8 @@ import { PaymentLogService } from 'src/payment-log/payment-log.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bullmq';
 import { User } from 'src/users/users.entity';
+import { CouponsService } from 'src/coupon/coupon.service';
+import { Cart } from 'src/cart/cart.entity';
 
 @Injectable()
 export class PaymentService {
@@ -41,8 +43,11 @@ export class PaymentService {
     private userRepo: Repository<User>,
     @InjectRepository(Coupon)
     private couponRepo: Repository<Coupon>,
+    @InjectRepository(Cart)
+    private cartRepo: Repository<Cart>,
     private cartService: CartService,
     private paymentLogService: PaymentLogService,
+    private couponService: CouponsService
   ) {
     this.razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_TEST_APIKEY || '',
@@ -55,6 +60,7 @@ export class PaymentService {
     amount: number,
     cartItems: any,
     couponCode: string,
+    cartId
   ) {
     // Check for existing pending master order for this user (payment retry)
 
@@ -64,6 +70,21 @@ export class PaymentService {
 
     if (!address) {
       return { message: 'Address is required', success: false };
+    }
+
+    // Fetch coupon info
+    let coupon: Coupon | null = null;
+    if (couponCode) {
+      coupon = await this.couponRepo.findOne({
+        where: { code: couponCode.toUpperCase() },
+        relations: ['vendor', 'products'],
+      });
+    }
+    
+
+    if(coupon){
+      const cart = await this.cartRepo.findOne({where: {id: cartId}})
+      await this.couponService.validateCoupon(coupon?.displayName, cart)
     }
 
 
@@ -104,17 +125,9 @@ export class PaymentService {
       vendorGroups.get(vendorId).push(item);
     }
 
-    // Fetch coupon info
-    let coupon: Coupon | null = null;
-    let totalDiscount = 0;
-    if (couponCode) {
-      coupon = await this.couponRepo.findOne({
-        where: { code: couponCode.toUpperCase() },
-        relations: ['vendor', 'products'],
-      });
-    }
-
+    
     // Calculate total before discount (sum of all items)
+    let totalDiscount = 0;
     const totalBeforeDiscount = cartItems.reduce(
       (sum, i) => sum + i.product.price * i.quantity,
       0,

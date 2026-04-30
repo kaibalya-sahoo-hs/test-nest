@@ -140,6 +140,7 @@ function CheckoutPage() {
           coupon: cart.coupon ? cart.coupon.code : null,
           amount: cart.discountedAmount,
           cartItems: cart.items,
+          cartId: cart.id
         });
         const order = response.data;
         const options = {
@@ -186,8 +187,9 @@ function CheckoutPage() {
         navigate("/login");
       }
     } catch (error) {
+      console.log(error.response)
       console.error("Payment Initiation Error:", error);
-      toast.error("Could not initiate payment");
+      toast.error(error.response.data.message || "Could not initiate payment");
     }
     setLoading(false)
   };

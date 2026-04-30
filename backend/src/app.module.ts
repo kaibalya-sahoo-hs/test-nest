@@ -36,6 +36,8 @@ import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/adapters/ejs.adapter';
 import { EmbeddingModule } from './embedding/embedding.module';
 import { Tag } from './product/tag.entity';
+import { ReviewModule } from './review/review.module';
+import { Review } from './review/review.entity';
 console.log('MIGRATION_PATH_CHECK:', join(__dirname, 'db/migrations', '*.ts'));
 @Module({
   imports: [
@@ -77,7 +79,7 @@ console.log('MIGRATION_PATH_CHECK:', join(__dirname, 'db/migrations', '*.ts'));
         }),
       }),
     }),
-    TypeOrmModule.forFeature([User, ApiLog, Product, Cart, Order, Tag]),
+    TypeOrmModule.forFeature([User, ApiLog, Product, Cart, Order, Tag, Review]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -106,6 +108,7 @@ console.log('MIGRATION_PATH_CHECK:', join(__dirname, 'db/migrations', '*.ts'));
     PaymentLogModule,
     WithdrawModule,
     EmbeddingModule,
+    ReviewModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService, SeedService],

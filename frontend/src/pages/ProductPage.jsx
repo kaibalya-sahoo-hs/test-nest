@@ -16,6 +16,7 @@ import api from "../utils/api";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
 import { FaMinus, FaPlus } from "react-icons/fa6";
+import { FiStar } from "react-icons/fi";
 
 function ProductPage() {
   const { title } = useParams();
@@ -29,10 +30,18 @@ function ProductPage() {
   const [suggestedProducts, setSuggestedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [reviewInput, setReviewInput] = useState('');
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+
   const suggestRef = useRef(null);
 
   const { cart, addToCart, updateQuantity, removeItem } = useCart();
-  const user = localStorage.getItem("user");
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
   const tabs = ["Description", "Specifications", "Reviews"]
   const [currentTab, setCurrentTab] = useState(tabs[0])
 
@@ -42,6 +51,11 @@ function ProductPage() {
     if (product?.image) return [product.image];
     return ["https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"];
   };
+
+  const getInitials = (name) => {
+    if (!name) return 'A';
+    return name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+  }
 
   const cartItem =
     cart?.items &&
@@ -78,6 +92,57 @@ function ProductPage() {
     }
   };
 
+  const fetchProductReviews = async (productId) => {
+    try {
+      setLoadingReviews(true);
+      const { data } = await api.get(`/reviews/product/${productId}`);
+      if (data && data.success) {
+        setReviews(data.reviews || []);
+      }
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+
+    if (!user) {
+      toast.error("Please log in to add a review");
+      return;
+    }
+
+    if (user.role !== 'guest') {
+      toast.error("Only guest users can add reviews");
+      return;
+    }
+
+    if (!reviewInput.trim()) {
+      toast.error("Please enter a review");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      const { data } = await api.post('/reviews', {
+        content: reviewInput,
+        productId: product.id
+      });
+
+      if (data && data.success) {
+        toast.success("Review added successfully!");
+        setReviewInput('');
+        await fetchProductReviews(product.id);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const scrollSuggestions = (direction) => {
     if (suggestRef.current) {
       const scrollAmount = 300;
@@ -97,6 +162,7 @@ function ProductPage() {
         if (response.data.success) {
           setProduct(response.data.product);
           setSelectedImageIndex(0);
+          await fetchProductReviews(response.data.product.id);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -107,6 +173,7 @@ function ProductPage() {
     fetchProduct();
     fetchRecomendedProducts();
   }, [title, vendor]);
+
 
   // Ensure top of page is visible when this page mounts
   useEffect(() => {
@@ -172,7 +239,7 @@ function ProductPage() {
               <img
                 src={images[selectedImageIndex]}
                 alt={product.name}
-                className="h-full w-full object-cover mix-blend-multiply transition-all duration-300"
+                className="h-full w-full object-contain mix-blend-multiply transition-all duration-300"
               />
               {/* Navigation arrows */}
               {/* {images.length > 1 && (
@@ -217,31 +284,27 @@ function ProductPage() {
 
               {/* Prices */}
 
-                <div className="flex justify-start items-center">
-                  <span className="text-gray-500">MRP: </span>
-                  <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-light"/>{(Number(product.price) + Number(product.price*0.1)).toLocaleString('en-IN')}</span>
-                </div>
+              <div className="flex justify-start items-center">
+                <span className="text-gray-500">MRP: </span>
+                <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-light" />{(Number(product.price) + Number(product.price * 0.1)).toLocaleString('en-IN')}</span>
+              </div>
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
                   <div className="text-3xl font-bold text-gray-500">Price:</div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-black flex justify-center items-center"><FaRupeeSign size={25}/>{Number(product.price).toLocaleString('en-IN')}</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-black flex justify-center items-center"><FaRupeeSign size={25} />{Number(product.price).toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-sm text-gray-500">{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
               </div>
 
               {/* Feature bullets (compact) */}
               <ul className="list-none space-y-2 mb-6 text-sm text-gray-600">
-                {(product.features && product.features.length > 0 ? product.features : [
-                  'Active noise cancellation for immersive sound',
-                  'Transparency mode for hearing and connecting',
-                  'Three sizes of soft, tapered silicone tips',
-                  'Sweat and water resistant',
-                ]).map((f, i) => (
+                {(product.features && product.features.length > 0 ? product.features.map((f, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <span className="mt-1 w-2 h-2 bg-gray-900 rounded-full inline-block flex-shrink-0"></span>
                     <span>{f}</span>
                   </li>
-                ))}
+                )) : 'No features available')
+                }
               </ul>
 
               {product.tags && product.tags.length > 0 && (
@@ -304,7 +367,7 @@ function ProductPage() {
                 role="tab"
                 aria-selected={currentTab === tab}
                 onClick={() => setCurrentTab(tab)}
-                className={`font-extrabold pb-4 text-lg ${currentTab === tab ? 'text-[#0501ff] border-b-1 border-[#0501ff]' : 'text-gray-500'} transition-colors`}
+                className={`font-extrabold pb-4 text-lg cursor-pointer ${currentTab === tab ? 'text-[#0501ff] border-b-1 border-[#0501ff]' : 'text-gray-500'} transition-colors`}
               >
                 {tab}
               </button>
@@ -330,23 +393,115 @@ function ProductPage() {
             )}
 
             {currentTab === 'Reviews' && (
-              <>
-                {product.reviews && product.reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {product.reviews.map((r, i) => (
-                      <div key={i} className="bg-white p-4 rounded-lg border border-gray-100">
-                        <div className="text-sm font-bold">{r.user || 'Anonymous'}</div>
-                        <div className="text-xs text-gray-500">{r.comment}</div>
-                      </div>
-                    ))}
+              <div className="space-y-6">
+                {/* Add Review Form - Only for guest users */}
+                {user && user.role === 'guest' && (
+                  <div className="flex">
+                    <button
+                      onClick={() => { setEditingReview(null); setReviewInput(''); setIsReviewModalOpen(true); }}
+                      className="bg-[#4379EE] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#3768D1] transition-all"
+                    >
+                      Add Review
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-gray-500">No reviews yet.</p>
                 )}
-              </>
+
+                {user && user.role !== 'guest' && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+                    <p className="text-sm text-gray-600">Only guest users can add reviews</p>
+                  </div>
+                )}
+
+                {/* Reviews List */}
+                <div>
+
+                  {loadingReviews ? (
+                    <div className="flex justify-center py-8">
+                      <div className="w-8 h-8 border-4 border-[#4379EE] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : reviews.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {reviews.map((review) => (
+                        <div key={review.id} className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                          <div className="flex items-start gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-700">
+                              {getInitials(review.user?.name)}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div className="font-semibold text-[#202224]">{review.user?.name || 'Anonymous'}</div>
+                                  <div className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString()}</div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  {user && review.user && user.id === review.user.id && (
+                                    <>
+                                      <button onClick={() => { setEditingReview(review); setReviewInput(review.content); setIsReviewModalOpen(true); }} className="text-sm text-blue-600 font-medium hover:underline">Edit</button>
+                                      <button onClick={async () => {
+                                        if (!window.confirm('Delete this review?')) return;
+                                        try {
+                                          await api.delete(`/reviews/${review.id}`);
+                                          toast.success('Review deleted');
+                                          await fetchProductReviews(product.id);
+                                        } catch (err) {
+                                          toast.error('Delete failed');
+                                        }
+                                      }} className="text-sm text-red-500 font-medium hover:underline">Delete</button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-gray-600 text-sm mt-3 whitespace-pre-line">{review.content}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
+        
+        
+        {isReviewModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6">
+              <h3 className="text-xl font-bold mb-4">{editingReview ? 'Edit Review' : 'Add Review'}</h3>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!user) { toast.error('Please log in'); return; }
+                if (user.role !== 'guest') { toast.error('Only guest users can add reviews'); return; }
+                if (!reviewInput.trim()) { toast.error('Please enter a review'); return; }
+                try {
+                  setSubmittingReview(true);
+                  if (editingReview) {
+                    await api.put(`/reviews/${editingReview.id}`, { content: reviewInput });
+                    toast.success('Review updated');
+                  } else {
+                    await api.post('/reviews', { content: reviewInput, productId: product.id });
+                    toast.success('Review added');
+                  }
+                  setIsReviewModalOpen(false);
+                  setEditingReview(null);
+                  setReviewInput('');
+                  await fetchProductReviews(product.id);
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Operation failed');
+                } finally { setSubmittingReview(false); }
+              }} className="space-y-4">
+                <textarea value={reviewInput} onChange={(e) => setReviewInput(e.target.value)} className="w-full p-4 border border-gray-300 rounded-lg resize-none" rows={6} />
+                <div className="flex justify-end gap-3">
+                  <button type="button" onClick={() => { setIsReviewModalOpen(false); setEditingReview(null); setReviewInput(''); }} className="px-4 py-2 rounded-lg border">Cancel</button>
+                  <button type="submit" disabled={submittingReview || !reviewInput.trim()} className="px-4 py-2 rounded-lg bg-[#4379EE] text-white">{submittingReview ? 'Saving...' : (editingReview ? 'Update' : 'Submit')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
         {/* Recommended Products */}
         <div className="mt-30 pb-8 w-full ">
           <div className="flex items-center justify-center mb-18">
@@ -378,21 +533,19 @@ function ProductPage() {
                       <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
 
-                    <div className="flex flex-col justify-center items-center gap-3">
-                      <div className="flex items-center text-center mb-2">
+                    <div className="flex flex-col justify-between items-center gap-4">
+                      <div className="flex items-center text-center gap-4">
                         <div className="text-base font-bold flex items-center gap-1">
                           <FaRupeeSign className="text-sm" />{Number(item.price).toLocaleString('en-IN')}
                         </div>
-                        {item.listPrice ? (
-                          <div className="text-xs text-gray-400 line-through">{Number(item.listPrice).toLocaleString('en-IN')}</div>
-                        ) : null}
+                        <div className="text-xs text-gray-400 font-bold flex items-center gap-1"> <FaRupeeSign className="text-xs" /> {(Number(item.price) + Number(item.price) * 0.1).toLocaleString('en-IN')}</div>
                       </div>
 
-                      <h3 className="text-sm font-bold text-[#202224] mb-2 line-clamp-1 font-extrabold">{item.name}</h3>
+                      <h3 className="text-md font-semibold text-[#202224] line-clamp-1">{item.name}</h3>
 
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <FaStar key={i} className={`text-yellow-400 ${i < Math.round(item.rating || 4) ? '' : 'opacity-40'}`} />
+                          <FiStar key={i} className={`text-yellow-500 ${i < Math.round(item.rating || 4) ? '' : 'opacity-40'}`} />
                         ))}
                       </div>
                     </div>
@@ -401,6 +554,8 @@ function ProductPage() {
               </div>
             </div>
           )}
+        </div>
+        <div>
         </div>
       </div>
     </div>

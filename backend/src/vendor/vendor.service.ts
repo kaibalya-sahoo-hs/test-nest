@@ -181,6 +181,9 @@ export class VendorService {
     this.tagRepo.create({ name })
   );
 
+
+    const featuresArray = productData.features.split(",")
+
   const savedNewTags = await this.tagRepo.save(newTags);
 
   const allTags = [...existingTags, ...savedNewTags];
@@ -200,6 +203,7 @@ export class VendorService {
 
     const newProduct = this.productRepo.create({
       ...productData,
+      features: featuresArray,
       vendor: { id: userID },
       tags: allTags,
       image: imageUrls[0] || '', // First image as thumbnail
@@ -395,6 +399,7 @@ export class VendorService {
 
     const allTags = [...existingTags, ...savedNewTags];
 
+    const featuresArray = updateData.features.split(',')
     const product = await this.productRepo.findOne({where: {id: id}, relations: ['tags'] },);
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -437,8 +442,7 @@ export class VendorService {
     // Remove tags from updateData to avoid TypeORM errors
     delete updateData.tags;
     Object.assign(product, updateData);
-    const updatedProduct = await this.productRepo.save(product);
-    console.log(updatedProduct)
+    const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
     return updatedProduct
   }
 

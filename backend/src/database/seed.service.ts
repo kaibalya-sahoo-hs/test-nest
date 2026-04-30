@@ -8,7 +8,7 @@ import { Product } from 'src/product/product.entity';
 import { Tag } from 'src/product/tag.entity';
 
 @Injectable()
-export class SeedService implements OnApplicationBootstrap {
+export class SeedService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
@@ -18,7 +18,7 @@ export class SeedService implements OnApplicationBootstrap {
     private tagRepo: Repository<Tag>
   ) { }
 
-  async onApplicationBootstrap() {
+  async seedAll() {
     await this.seedAdmin();
     await this.seedUsers()
     await this.seedProducts()
@@ -32,8 +32,7 @@ export class SeedService implements OnApplicationBootstrap {
       where: { email: adminEmail },
     });
 
-    if (!adminExists) {
-      let hashedPassword;
+    let hashedPassword;
 
       if (adminPassword) {
         hashedPassword = await bcrypt.hash(adminPassword, 10);
@@ -48,7 +47,6 @@ export class SeedService implements OnApplicationBootstrap {
 
       await this.userRepo.save(admin);
       console.log('Default admin created successfully.');
-    }
   }
 
   async seedUsers() {
@@ -62,12 +60,6 @@ export class SeedService implements OnApplicationBootstrap {
 
     // 👤 Normal Users
     const users = [
-      this.userRepo.create({
-        name: 'Admin 2',
-        email: 'admin2@gmail.com',
-        password: await bcrypt.hash('admin@123', 10),
-        role: 'guest',
-      }),
       this.userRepo.create({
         name: 'Alice Smith',
         email: 'alice@example.com',
@@ -123,9 +115,6 @@ export class SeedService implements OnApplicationBootstrap {
 
   async seedProducts() {
     const productCount = await this.productRepo.count()
-    if (productCount > 0) {
-      return
-    }
     const vendor = await this.userRepo.findOne({ where: { role: 'vendor' } });
     if (!vendor) {
       console.error('Seed failed: No vendor found in database.');

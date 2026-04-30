@@ -29,4 +29,7 @@ export class CreateProductDto {
 
   @IsOptional()
   tags: string
+
+  @IsString()
+  features: string
 }

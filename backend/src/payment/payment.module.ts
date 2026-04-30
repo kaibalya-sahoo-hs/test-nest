@@ -13,12 +13,15 @@ import { PaymentLogService } from 'src/payment-log/payment-log.service';
 import { PaymentLogModule } from 'src/payment-log/payment-log.module';
 import { BullModule } from '@nestjs/bull';
 import { User } from 'src/users/users.entity';
+import { Cart } from 'src/cart/cart.entity';
+import { CouponModule } from 'src/coupon/coupon.module';
 
 @Module({
   imports: [
-  TypeOrmModule.forFeature([Payment, Order, Address, Product, Vendor, Coupon, User]),
+  TypeOrmModule.forFeature([Payment, Order, Address, Product, Vendor, Coupon, User, Cart]),
   BullModule.registerQueue({name: "mail-queue"}),
-  CartModule, 
+  CartModule,
+  CouponModule, 
   PaymentLogModule],
   controllers: [PaymentController],
   providers: [PaymentService],

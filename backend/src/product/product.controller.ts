@@ -1,9 +1,14 @@
-import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { ReviewService } from 'src/review/review.service';
 
 @Controller('products')
 export class ProductController {
-    constructor(private productService: ProductService){}
+    constructor(
+        private productService: ProductService,
+        private reviewService: ReviewService
+    ){}
     @Get('')
     async getAllProducts() {
         try {
@@ -21,6 +26,12 @@ export class ProductController {
                 error: error.message,
             };
         }
+    }
+
+    @Get('reviews')
+    @UseGuards(AuthGuard)
+    async getAllreviews(@Query('pid') productId: string, @Req() req){
+        return await this.reviewService.getAllReviews(req.user.id, productId)
     }
 
     @Get(':title/')

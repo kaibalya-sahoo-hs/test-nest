@@ -14,6 +14,7 @@ import {
 } from 'typeorm';
 import { Tag } from './tag.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
+import { Review } from 'src/review/review.entity';
 
 @Entity('products')
 export class Product {
@@ -64,6 +65,9 @@ export class Product {
   })
   tags: Tag[]
 
-  @ManyToMany(() => Coupon, (coupon) => coupon.products)
+  @OneToMany(() => Review, (r) => r.product)
+  reviews: Review[]
+
+  @ManyToMany(() => Coupon, (coupon) => coupon.products, {onDelete: 'CASCADE'})
   coupons: Coupon[]
 }

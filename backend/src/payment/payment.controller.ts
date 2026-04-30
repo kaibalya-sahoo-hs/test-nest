@@ -9,7 +9,7 @@ export class PaymentController {
     @UseGuards(AuthGuard)
     async createOrder(@Req() req, @Body() body: any) {
         const userId = req.user.id
-        return this.paymentService.createOrder(userId, body.amount, body.cartItems, body.coupon);
+        return this.paymentService.createOrder(userId, body.amount, body.cartItems, body.coupon, body.cartId);
     }
 
     @Post('dismiss')

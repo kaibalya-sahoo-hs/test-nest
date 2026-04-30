@@ -154,7 +154,7 @@ const Register = () => {
             </button>
           </p>
         </div>
-        <div className="flex justify-center items-center border-gray-400 mt-4 w-full" >
+        <div className="flex justify-center items-center border-gray-400 mt-4 w-full cursor-pointer" >
           <div className="w-fit rounded bg-blue-500 text-white font-bold px-4 py-2 ">
             <NavLink to={'/'}>Back to Home</NavLink>
           </div>

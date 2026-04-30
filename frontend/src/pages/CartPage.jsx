@@ -145,9 +145,9 @@ const CartPage = () => {
 
               {/* Quantity */}
               <div className="col-span-3 md:col-span-2 flex gap-2 items-center justify-center">
-                <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput, item.product.stock, item.quantity)} disabled={item.quantity <= 1} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiMinus size={14} /></button>
+                <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput, item.product.stock, item.quantity)} disabled={item.quantity <= 1} className="w-8 h-8 bg-gray-200 cursor-pointer rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiMinus size={14} /></button>
                 <div className="px-3 font-bold text-[#202224] min-w-[36px] text-center bg-white border border-gray-50">{item.quantity}</div>
-                <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput, item.product.stock, item.quantity)} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiPlus size={14} /></button>
+                <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput, item.product.stock, item.quantity)} className="w-8 h-8 bg-gray-200 rounded-full cursor-pointer flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiPlus size={14} /></button>
               </div>
 
               {/* Total + remove */}
@@ -155,7 +155,7 @@ const CartPage = () => {
                 <div className="text-sm font-bold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-center">
-                <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2" aria-label="remove item"><RxCross1 size={18} /></button>
+                <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2 cursor-pointer" aria-label="remove item"><RxCross1 size={18} /></button>
               </div>
             </div>
           ))}

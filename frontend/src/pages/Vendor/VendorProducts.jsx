@@ -224,7 +224,9 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     category: initialData?.category || "",
     stock: initialData?.stock || 0,
     description: initialData?.description || "",
-    features: []
+    features: initialData?.features && Array.isArray(initialData.features)
+      ? initialData.features.map(f => (typeof f === 'string' ? f : f.name || String(f)))
+      : []
   });
   const [errors, setErrors] = useState({});
 
@@ -306,21 +308,23 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
 
     const handleAddFeature = (e) => {
-      e.preventDefault()
-      let featureError = ""
+      e.preventDefault();
+      let featureError = "";
+      const trimmed = featureInput.trim();
 
-      if(featureInput.trim() === "") featureError = "Field canot be empty"
-      if(featureInput.length > 5) featureError = "A feature should be atleast 5 characters long"
+      if (!trimmed) featureError = "Feature cannot be empty";
+      else if (trimmed.length < 5) featureError = "A feature should be at least 5 characters long";
+      else if (formData.features.some(f => f === trimmed)) featureError = "This feature already exist"
 
-      if(featureError){
-        setErrors({...error, features: featureError})
-        return
+      if (featureError) {
+        setErrors({ ...errors, features: featureError });
+        return;
       }
 
-      setFormData({...formData, features: [...formData.features, featureInput]})
-      setfeatureInput('')
-        setErrors({...errors, features: null})
-    }
+      setFormData((prev) => ({ ...prev, features: [...prev.features, trimmed] }));
+      setfeatureInput("");
+      setErrors({ ...errors, features: null });
+    };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -335,6 +339,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     data.append("stock", formData.stock);
     data.append("description", formData.description);
     data.append("tags", formattedtags);
+    data.append("features", formData.features)
 
     // Append new files
     for (const file of files) {
@@ -503,17 +508,36 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               />
               <ErrorMsg msg={errors.description}/>
             </div>
-            <div className="flex gap-2 relative items-center">
-                <input placeholder="Add atleast 3 features" value={featureInput}
-                  className={`flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.tags ? 'ring-2 ring-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
+            <div className="space-y-2 col-span-2">
+              <div className="flex items-center gap-1">
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Features</label>
+                <FaAsterisk size={10} className="text-red-500"/>
+              </div>
+              <div className="flex gap-2 items-center relative">
+                <input placeholder="Add at least 3 features" value={featureInput}
+                  className={`flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.features ? 'ring-2 ring-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
                   onChange={(e) => { setfeatureInput(e.target.value); if (errors.features) setErrors({ ...errors, features: null }); }}
-                  onKeyPress={(e) => e.key === 'Enter' && handleButtonClick(e)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddFeature(e)}
                 />
                 <button type="button" onClick={handleAddFeature}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 absolute right-2 text-sm font-bold transition-transform active:scale-90">
+                  className="ml-2 right-2 bg-blue-500 text-white px-4 py-2 absolute rounded-lg hover:bg-blue-600 text-sm font-bold transition-transform active:scale-90">
                   Add
                 </button>
               </div>
+              <div className="flex flex-wrap gap-2 mt-2 min-h-[32px]">
+                {formData.features.map((feat, index) => {
+                  const display = typeof feat === 'string' ? feat : feat.name || String(feat);
+                  return (
+                    <div key={index} className="flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full text-xs font-bold transition-all hover:bg-blue-100">
+                      <span>{display}</span>
+                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }))} className="hover:text-red-500 transition-colors">✕</button>
+                    </div>
+                  )
+                })}
+                {formData.features.length === 0 && !errors.features && <p className="text-xs text-gray-400 italic ml-1">No features added yet</p>}
+              </div>
+              <ErrorMsg msg={errors.features}/>
+          </div>
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
