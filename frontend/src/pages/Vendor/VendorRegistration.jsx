@@ -4,7 +4,7 @@ import { FaStore } from 'react-icons/fa';
 import { FaArrowRight, FaEye, FaEyeSlash, FaKey } from 'react-icons/fa6';
 import { FiFileText } from 'react-icons/fi';
 import { LuLoader } from 'react-icons/lu';
-import { useNavigate } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
@@ -206,6 +206,11 @@ function VendorRegistration() {
               Log In
             </button>
           </p>
+        </div>
+        <div className="flex justify-center items-center border-gray-400 mt-4 w-full" >
+          <div className="w-fit rounded bg-blue-500 text-white font-bold px-4 py-2 ">
+            <NavLink to={'/'}>Back to Home</NavLink>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import api from "../utils/api";
 
 const Register = () => {
@@ -153,6 +153,11 @@ const Register = () => {
               Sign In
             </button>
           </p>
+        </div>
+        <div className="flex justify-center items-center border-gray-400 mt-4 w-full" >
+          <div className="w-fit rounded bg-blue-500 text-white font-bold px-4 py-2 ">
+            <NavLink to={'/'}>Back to Home</NavLink>
+          </div>
         </div>
       </div>
     </div>

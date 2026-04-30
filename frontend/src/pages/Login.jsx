@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { toast } from "react-hot-toast";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useCart } from "../context/CartContext";
@@ -170,7 +170,7 @@ const Login = () => {
             </button>
           </p>
           <p className="mt-4 text-center text-sm text-gray-400">
-              Are you a vendor?{" "}
+            Are you a vendor?{" "}
             <button
               onClick={() => navigate("/vendor/login")}
               className="text-[#4379EE] font-bold hover:underline cursor-pointer"
@@ -178,6 +178,11 @@ const Login = () => {
               Login as Vendor
             </button>
           </p>
+        </div>
+        <div className="flex justify-center items-center border-gray-400 mt-4 w-full" >
+          <div className="w-fit rounded bg-blue-500 text-white font-bold px-4 py-2 ">
+            <NavLink to={'/'}>Back to Home</NavLink>
+          </div>
         </div>
       </div>
     </div>

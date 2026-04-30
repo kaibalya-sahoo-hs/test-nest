@@ -224,10 +224,12 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     category: initialData?.category || "",
     stock: initialData?.stock || 0,
     description: initialData?.description || "",
+    features: []
   });
   const [errors, setErrors] = useState({});
 
   const [tagInput, setTagInput] = useState('');
+  const [featureInput, setfeatureInput] = useState('')
   const [tags, setTags] = useState(
     initialData?.tags && Array.isArray(initialData.tags) && initialData.tags.length > 0
       ? initialData.tags.map(tag => ({ id: tag.id, name: tag.name }))
@@ -255,6 +257,8 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     else if (formData.description.trim().length < 10) newErrors.description = "Description must be at least 10 characters";
 
     if (tags.length < 5) newErrors.tags = "Minimum 5 tags are required";
+
+    if(formData.features.length < 3) newErrors.features = "Minimum 3 features are required"
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -294,10 +298,29 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
       return;
     }
 
+
     setTags([...tags, { name: trimmedTag }]);
     setTagInput("");
     setErrors({ ...errors, tags: null });
   };
+
+
+    const handleAddFeature = (e) => {
+      e.preventDefault()
+      let featureError = ""
+
+      if(featureInput.trim() === "") featureError = "Field canot be empty"
+      if(featureInput.length > 5) featureError = "A feature should be atleast 5 characters long"
+
+      if(featureError){
+        setErrors({...error, features: featureError})
+        return
+      }
+
+      setFormData({...formData, features: [...formData.features, featureInput]})
+      setfeatureInput('')
+        setErrors({...errors, features: null})
+    }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -480,6 +503,17 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               />
               <ErrorMsg msg={errors.description}/>
             </div>
+            <div className="flex gap-2 relative items-center">
+                <input placeholder="Add atleast 3 features" value={featureInput}
+                  className={`flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.tags ? 'ring-2 ring-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  onChange={(e) => { setfeatureInput(e.target.value); if (errors.features) setErrors({ ...errors, features: null }); }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleButtonClick(e)}
+                />
+                <button type="button" onClick={handleAddFeature}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 absolute right-2 text-sm font-bold transition-transform active:scale-90">
+                  Add
+                </button>
+              </div>
           </div>
 
           <div className="flex justify-end gap-4 mt-6">

@@ -55,6 +55,9 @@ export class Product {
   @Column({ nullable: true })
   category: string;
 
+  @Column('text', {array: true, nullable: true})
+  features: string[]
+
   @ManyToMany(() => Tag, (tag) => tag.products, {onDelete: "CASCADE"})
   @JoinTable({
     name: 'product_tags',

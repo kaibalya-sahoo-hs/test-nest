@@ -218,7 +218,7 @@ function ProductPage() {
               {/* Prices */}
 
                 <div className="flex justify-start items-center">
-                  <span className="text-gray-500">List Price: </span>
+                  <span className="text-gray-500">MRP: </span>
                   <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-light"/>{(Number(product.price) + Number(product.price*0.1)).toLocaleString('en-IN')}</span>
                 </div>
               <div className="flex items-end gap-4 mb-6">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CiMail } from 'react-icons/ci';
 import { FaArrowRight, FaEye, FaEyeSlash, FaKey, FaStore } from 'react-icons/fa6';
 import { LuLoader } from 'react-icons/lu';
-import { useNavigate } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
@@ -38,11 +38,11 @@ function VendorLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    
+
     setLoading(true);
     try {
       const response = await api.post('/vendor/login', formData);
-      
+
       if (response.data.success && response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
@@ -50,7 +50,7 @@ function VendorLogin() {
 
         toast.success("Welcome to your dashboard!");
         navigate('/vendor/dashboard');
-      }else{
+      } else {
         toast.error(response.data.message || "Login failed. Please check your credentials.");
       }
     } catch (error) {
@@ -63,7 +63,7 @@ function VendorLogin() {
   return (
     <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center p-4 font-sans">
       <div className="bg-white w-full max-w-[450px] rounded-[2rem] shadow-sm border border-gray-100 p-10">
-        
+
         {/* Logo & Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-2xl mb-4 text-[#4379EE]">
@@ -73,7 +73,7 @@ function VendorLogin() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* Email Input */}
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-[0.1em] ml-1">
@@ -142,8 +142,8 @@ function VendorLogin() {
         <div className="text-center mt-10">
           <p className="text-sm text-gray-400 font-medium">
             New to the platform?{' '}
-            <button 
-              onClick={() => navigate('/vendor/register')} 
+            <button
+              onClick={() => navigate('/vendor/register')}
               className="text-[#4379EE] font-extrabold hover:text-[#3768D1] transition-colors"
             >
               Create a Store
@@ -151,6 +151,11 @@ function VendorLogin() {
           </p>
         </div>
 
+        <div className="flex justify-center items-center border-gray-400 mt-4 w-full" >
+          <div className="w-fit rounded bg-blue-500 text-white font-bold px-4 py-2 ">
+            <NavLink to={'/'}>Back to Home</NavLink>
+          </div>
+        </div>
       </div>
     </div>
   );

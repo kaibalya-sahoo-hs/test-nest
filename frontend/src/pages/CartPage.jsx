@@ -119,33 +119,32 @@ const CartPage = () => {
       <div className="grid grid-cols-1 items-start">
         <div className="md:col-span-2">
           {/* Header row for desktop (grid) */}
-          <div className="hidden md:grid grid-cols-12 items-center bg-transparent text-gray-500 text-xs font-bold px-4 py-3 rounded-t-lg">
+          <div className="grid grid-cols-12 items-center bg-transparent text-gray-500 text-xs font-bold px-4 py-3 rounded-t-lg">
             <div className="col-span-4">PRODUCT</div>
             <div className="col-span-2 text-center">PRICE</div>
-            <div className="col-span-2 text-center">QUANTITY</div>
+            <div className="col-span-3 md:col-span-2 text-center">QUANTITY</div>
             <div className="col-span-2 text-center">TOTAL</div>
           </div>
 
           {cart.items.map((item) => (
-            <div key={item.product?.id} className="bg-white rounded p-4 shadow-sm border border-gray-100 md:grid md:grid-cols-12 gap-4 items-center hover:border-blue-200 transition-colors">
+            <div key={item.product?.id} className="bg-white rounded p-2 h-fit md:p-4 shadow-sm border border-gray-100 grid grid-cols-12 gap-4 items-center hover:border-blue-200 transition-colors">
               {/* Product */}
               <div className="col-span-4 flex justify-start items-center gap-4 md:mb-0 mb-4">
-                <div className="w-20 h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-50">
+                <div className="w-17 h-17 sm:w-20 sm:h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-50">
                   <img src={item.product?.image} alt={'Product image'} className="w-full h-full object-cover mix-blend-multiply" />
                 </div>
                 <div>
-                  <h3 className="text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
-                  <p className="text-xs text-gray-400">Product ID: {item.product?.id?.slice(0,8)}...</p>
+                  <h3 className="text-xs sm:text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
                 </div>
               </div>
 
               {/* Price */}
               <div className="col-span-2 text-center">
-                <div className="text-[#4379EE] font-extrabold">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
+                <div className="text-[#4379EE] font-extrabold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
               </div>
 
               {/* Quantity */}
-              <div className="col-span-2 flex gap-2 items-center justify-center">
+              <div className="col-span-3 md:col-span-2 flex gap-2 items-center justify-center">
                 <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, couponInput, item.product.stock, item.quantity)} disabled={item.quantity <= 1} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiMinus size={14} /></button>
                 <div className="px-3 font-bold text-[#202224] min-w-[36px] text-center bg-white border border-gray-50">{item.quantity}</div>
                 <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, couponInput, item.product.stock, item.quantity)} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100"><FiPlus size={14} /></button>
@@ -153,9 +152,9 @@ const CartPage = () => {
 
               {/* Total + remove */}
               <div className="col-span-2 flex items-center justify-center">
-                <div className="text-sm font-bold">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
+                <div className="text-sm font-bold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
               </div>
-              <div className="col-span-2 flex justify-center">
+              <div className="col-span-1 md:col-span-2 flex justify-center">
                 <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2" aria-label="remove item"><RxCross1 size={18} /></button>
               </div>
             </div>
@@ -169,7 +168,7 @@ const CartPage = () => {
 
         {/* Right Side: Order Summary (Takes up 1 col) */}
         <div className="h-fit sm:w-full sm:flex sm:justify-end mt-10 sm:mt-0">
-          <div className="bg-white rounded-2xl p-6 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
+          <div className="bg-white sm:w-100 rounded-2xl p-6 shadow-xl shadow-gray-200/50 border border-gray-50 sticky top-24">
             <h2 className="text-lg font-bold text-[#202224] mb-4">Order Details</h2>
 
             {/* Coupon Section */}
@@ -236,6 +235,11 @@ const CartPage = () => {
                 <span>Delivery Fee</span>
                 <span className="text-green-500 font-bold">FREE</span>
               </div>
+              {Number(cart.discount) > 0 &&  <div className="flex justify-between text-gray-500 text-sm mb-6">
+              <span>Discount</span>
+              <span className="text-green-500 font-semibold">{"-"+cart.discount.toLocaleString('en-IN')}</span>
+            </div>}
+
             </div>
 
             <div className="mb-6">

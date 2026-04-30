@@ -84,12 +84,12 @@ function CheckoutPage() {
       return;
     }
 
-    if(billing.name.trim() === "" || billing.streetAddress.trim() === "" || billing.email.trim() === "" || billing.country.trim() === "" || billing.city.trim() === "" || billing.state.trim() === ""){
+    if (billing.name.trim() === "" || billing.streetAddress.trim() === "" || billing.email.trim() === "" || billing.country.trim() === "" || billing.city.trim() === "" || billing.state.trim() === "") {
       toast.error("fields cannot be empty")
       return
     }
 
-    if(billing.postalCode.length != 6){
+    if (billing.postalCode.length != 6) {
       toast.error('Postal code must be exactly 6 digits')
       return
     }
@@ -132,12 +132,12 @@ function CheckoutPage() {
         return;
       }
       if (user) {
-        if(!defaultAddress){
+        if (!defaultAddress) {
           toast.error("Please add a default shipping address to proceed");
           return;
         }
         const response = await api.post('/payment/create-order', {
-          coupon: cart.coupon ? cart.coupon.code: null,
+          coupon: cart.coupon ? cart.coupon.code : null,
           amount: cart.discountedAmount,
           cartItems: cart.items,
         });
@@ -156,7 +156,7 @@ function CheckoutPage() {
             fetchCart();
           },
           modal: {
-            onDismiss: async function() {
+            onDismiss: async function () {
               await api.post('/payment/dismiss')
               navigate('/orders')
             }
@@ -224,7 +224,7 @@ function CheckoutPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1">First & Last Name</label>
                 <input
                   value={billing.name}
-                  onChange={(e) => setBilling({...billing, name: e.target.value})}
+                  onChange={(e) => setBilling({ ...billing, name: e.target.value })}
                   className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]"
                   placeholder="i.e. John Doe"
                 />
@@ -234,7 +234,7 @@ function CheckoutPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Email Address</label>
                 <input
                   value={billing.email}
-                  onChange={(e) => setBilling({...billing, email: e.target.value})}
+                  onChange={(e) => setBilling({ ...billing, email: e.target.value })}
                   className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]"
                   placeholder="i.e. john@email.com"
                 />
@@ -244,7 +244,7 @@ function CheckoutPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Country</label>
                 <input
                   value={billing.country}
-                  onChange={(e) => setBilling({...billing, country: e.target.value})}
+                  onChange={(e) => setBilling({ ...billing, country: e.target.value })}
                   className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none bg-white"
                 />
               </div>
@@ -253,7 +253,7 @@ function CheckoutPage() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1">City/State</label>
                 <input
                   value={billing.city}
-                  onChange={(e) => setBilling({...billing, city: e.target.value})}
+                  onChange={(e) => setBilling({ ...billing, city: e.target.value })}
                   className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]"
                   placeholder="City"
                 />
@@ -264,22 +264,22 @@ function CheckoutPage() {
                 <input
                   value={billing.postalCode}
                   type="number"
-                  onChange={(e) => setBilling({...billing, postalCode: e.target.value})}
+                  onChange={(e) => setBilling({ ...billing, postalCode: e.target.value })}
                   className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]"
                   placeholder="Zip Code"
                 />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Street Address</label>
-                <input value={billing.streetAddress} onChange={(e) => setBilling({...billing, streetAddress: e.target.value})} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="Street address" />
+                <input value={billing.streetAddress} onChange={(e) => setBilling({ ...billing, streetAddress: e.target.value })} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="Street address" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">State</label>
-                <input value={billing.state} onChange={(e) => setBilling({...billing, state: e.target.value})} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="State" />
+                <input value={billing.state} onChange={(e) => setBilling({ ...billing, state: e.target.value })} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="State" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Phone</label>
-                <input value={billing.phoneNumber} type="number" onChange={(e) => setBilling({...billing, phoneNumber: e.target.value})} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="Phone number" />
+                <input value={billing.phoneNumber} type="number" onChange={(e) => setBilling({ ...billing, phoneNumber: e.target.value })} className="w-full border border-gray-200 rounded-md px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#f0f4ff]" placeholder="Phone number" />
               </div>
               <div className="md:col-span-2">
                 {!defaultAddress ? (
@@ -317,10 +317,15 @@ function CheckoutPage() {
               <span>Delivery Fee</span>
               <span className="text-green-500 font-bold">FREE</span>
             </div>
+            
+            {cart.discount && Number(cart.discount) > 0 &&  <div className="flex justify-between text-gray-500 text-sm mb-6">
+              <span>Discount</span>
+              <span className="text-green-500 font-semibold">{"-"+cart?.discount.toLocaleString('en-IN')}</span>
+            </div>}
 
             <div className="mb-6">
               <div className="text-xs text-gray-400 uppercase mb-1">Total Price</div>
-              <div className="text-2xl font-extrabold text-[#202224]">₹{totalAmount.toLocaleString('en-IN')}</div>
+              <div className="text-2xl font-extrabold text-[#202224]">₹{cart.discountedAmount && cart.discountedAmount.toLocaleString('en-IN')}</div>
             </div>
 
             <button onClick={handlePayment} disabled={loading} className={`w-full py-3 rounded-lg font-bold text-white ${loading ? 'bg-gray-300' : 'bg-[#4379EE] hover:bg-[#4379EE]'} transition-all`}>Pay With Razorpay</button>
