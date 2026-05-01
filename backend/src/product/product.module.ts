@@ -7,9 +7,11 @@ import { ProductController } from './product.controller';
 import { EmbeddingModule } from 'src/embedding/embedding.module';
 import { Tag } from './tag.entity';
 import { ReviewModule } from 'src/review/review.module';
+import { User } from 'src/users/users.entity';
+import { Order } from 'src/payment/order.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Tag]), CloudinaryModule, ReviewModule],
+  imports: [TypeOrmModule.forFeature([Product, Tag, User, Order]), CloudinaryModule, ReviewModule],
   providers: [ProductService],
   exports: [ProductService],
   controllers: [ProductController]

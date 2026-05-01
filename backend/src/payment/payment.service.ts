@@ -83,7 +83,7 @@ export class PaymentService {
     
 
     if(coupon){
-      const cart = await this.cartRepo.findOne({where: {id: cartId}})
+      const cart = await this.cartRepo.findOne({where: {id: cartId}, relations: ['cartItems', 'cartItems.product', 'cartItems.product.vendor', 'coupon']})
       await this.couponService.validateCoupon(coupon?.displayName, cart)
     }
 

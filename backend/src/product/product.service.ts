@@ -5,12 +5,18 @@ import { Brackets, Like, Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { EmbeddingService } from 'src/embedding/embedding.service';
 import { relative } from 'node:path';
+import { User } from 'src/users/users.entity';
+import { Order } from 'src/payment/order.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(Order)
+    private readonly orderRepo: Repository<Order>,
     private cloudinaryService: CloudinaryService,
   ) { }
 
@@ -22,7 +28,7 @@ export class ProductService {
     const result = await this.cloudinaryService.uploadImage(file);
 
     const featuresArray = productData.features.split(",")
-    const newProduct: any = this.productRepo.create({...productData, features: featuresArray});
+    const newProduct: any = this.productRepo.create({ ...productData, features: featuresArray });
 
     if (result?.url) {
       newProduct.image = result?.url;
@@ -40,7 +46,7 @@ export class ProductService {
 
   // Find one by ID
   async findOne(title: string, vendor): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { name: title, vendor: {name: vendor} }, relations: ['vendor', 'reviews'] });
+    const product = await this.productRepo.findOne({ where: { name: title, vendor: { name: vendor } }, relations: ['vendor', 'reviews'] });
     if (!product)
       throw new NotFoundException(`Product not found`);
     return product;
@@ -75,14 +81,45 @@ export class ProductService {
 
   // Delete product
   async remove(id: string): Promise<{ deleted: boolean }> {
-    const product = await this.productRepo.findOne({where:{id}});
-    if(!product){
+    const product = await this.productRepo.findOne({ where: { id } });
+    if (!product) {
       throw new NotFoundException("Product not found")
     }
     await this.productRepo.remove(product);
     return { deleted: true };
   }
 
+  async getTopVendorsByProductName(productName: string) {
+    // 1. Find Vendors and the specific products that matched the search
+    const results = await this.userRepo.createQueryBuilder('vendor')
+      .innerJoinAndSelect('vendor.products', 'product')
+      .where('LOWER(product.name) LIKE LOWER(:name)', { name: `%${productName}%` })
+      .getMany();
+
+    if (results.length === 0) return [];
+
+    // 2. Map through vendors to attach their total order counts
+    const finalReport = await Promise.all(results.map(async (vendor) => {
+      const orderCount = await this.orderRepo.count({
+        where: { vendor: { id: vendor.id } },
+      });
+
+      return {
+        vendorId: vendor.id,
+        vendorName: vendor.name,
+        totalOrders: orderCount,
+        // Returning the details of the products that matched
+        products: vendor.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price
+        }))
+      };
+    }));
+
+    // Sort by highest order count
+    return finalReport.sort((a, b) => b.totalOrders - a.totalOrders);
+  }
   async getSimilarSuggestions(productName: string) {
     const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })
 
@@ -181,7 +218,7 @@ export class ProductService {
     // 3. FALLBACK (fill with remaining products)
     if (related.length < limit) {
       const existingIds = [...allExcludeIds, ...related.map(p => p.id)];
-      
+
       const additionalProducts = await this.productRepo.createQueryBuilder('p')
         .leftJoinAndSelect('p.vendor', 'vendor')
         .where('p.id NOT IN (:...ids)', { ids: existingIds })
