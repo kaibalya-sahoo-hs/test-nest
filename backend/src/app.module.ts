@@ -38,6 +38,7 @@ import { EmbeddingModule } from './embedding/embedding.module';
 import { Tag } from './product/tag.entity';
 import { ReviewModule } from './review/review.module';
 import { Review } from './review/review.entity';
+import { AiModule } from './ai/ai.module';
 console.log('MIGRATION_PATH_CHECK:', join(__dirname, 'db/migrations', '*.ts'));
 @Module({
   imports: [
@@ -109,6 +110,7 @@ console.log('MIGRATION_PATH_CHECK:', join(__dirname, 'db/migrations', '*.ts'));
     WithdrawModule,
     EmbeddingModule,
     ReviewModule,
+    AiModule,
   ],
   controllers: [AppController, TestController, AdminController],
   providers: [AppService, CloudinaryService, ApiLogsService, SeedService],
