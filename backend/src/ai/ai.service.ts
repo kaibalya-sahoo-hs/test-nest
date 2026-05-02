@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SystemMessage, HumanMessage, initChatModel, tool, ToolMessage } from "langchain";
 import { ProductService } from 'src/product/product.service';
-import {z} from 'zod'
+import { z } from 'zod'
 
 
 @Injectable()
@@ -10,92 +10,110 @@ export class AiService {
         private productService: ProductService
     ) { }
     async getAiResponse(message: string) {
+        // 1. Initialize Model
+        const model = await initChatModel('llama-3.1-8b-instant', {
+            modelProvider: "groq",
+            apiKey: process.env.GROQ_API_KEY
+        });
 
-        const model = await initChatModel('llama-3.1-8b-instant', { modelProvider: "groq", apiKey: process.env.GROQ_API_KEY })
-
+        // 2. Define Tools
         const getTotalProducts = tool(
-            async ({ input } = {}) => {
-                return 1000
-            },
+            async () => "1000",
             {
                 name: "getTotalProducts",
-                description: "This tool returns the total number of products available in the database",
-                schema: z.object({ input: z.string().optional() })
+                description: "Returns the total number of products available in the store",
+                schema: z.object({}),
             }
-        )
+        );
 
-        
-        const getTopVendorsByProductName = tool(async({productName}) => {
-            return await this.productService.getTopVendorsByProductName(productName)
-        }, {
-            name: "getTopVendorsByProductName",
-            description: "This tool return an array of top vendors accroding to the product,vendors containing their order count and name",
-            schema: z.object({
-                productName: z.string()
-            })
-        })
-        
-        const getToolsName = { "getTotalProducts": getTotalProducts, "getTopVendorsByProductName": getTopVendorsByProductName }
+        const getTopVendorsByProductName = tool(
+            async ({ productName }) => {
+                const result = await this.productService.getTopVendorsByProductName(productName);
+                console.log(result)
+                return JSON.stringify(result); // Tools must return strings
+            },
+            {
+                name: "getTopVendorsByProductName",
+                description: "Finds top vendors for a product. Returns vendor names, product details, and total order counts.",
+                schema: z.object({ productName: z.string() }),
+            }
+        );
 
-        const tools = [getTotalProducts, getTopVendorsByProductName]
+        // 3. Define the Structured Response Schema
+        // Changed to allow for an array of products/vendors since the tool returns a list
+        const ResponseSchema = z.object({
+            textResponse: z.string().describe("Neutral customer service response text"),
+            productData: z.array(z.object({
+                productName: z.string(),
+                vendorName: z.string(),
+                productImage: z.string()
+            })).optional().describe("Structured data when product/vendor info is found")
+        });
+
+        const tools = [getTotalProducts, getTopVendorsByProductName];
+        const toolsByName = { getTotalProducts, getTopVendorsByProductName };
+
         const SYSTEM_PROMPT = new SystemMessage(`
-            You are an helpful chat assistant of the ecommerce store called SiwftCart
-            U have to answer the users query that are only related to Store, u have to answer users like
-            a customer service usually talk with their customers like that in a netural voice not like 'I am gald to know that' and all
-            just stay neutral and answer users query
-
-
+            You are a neutral customer service assistant for SwiftCart.
             Rules:
-                1. You have to answer the questions that are related to the shop only, dont answer the questions that are not related to it
-                2. You have to answer as a customer care supprot only  
-
-            Available tools:
-            - "getTotalProducts": "this tool is used to find the total products available"
-            - "getTopVendorsByProductName" - "this tool is used to find the top vendors for a specific product"
+            1. Only answer shop-related queries.
+            2. Stay neutral. Avoid overly enthusiastic phrases like 'I am glad to help'.
+            3. Use 'getTopVendorsByProductName' to find the best sellers when users ask for recommendations.
             
-        `)
+            Available Tools: 
+                - getTopVendorsByProductName : Call this tool when user asks about suggesting some product or
+                                                suggestion best vendors for a specific product 
 
-        const messages: any = [
-            SYSTEM_PROMPT,
-            new HumanMessage(message)
-        ]
+            
+        `);
 
-        const modelWithTools = await model.bindTools(tools)
+        let messages: any[] = [SYSTEM_PROMPT, new HumanMessage(message)];
 
-        let response = await modelWithTools.invoke(messages)
+        // --- EXECUTION LOOP ---
 
-        if (response && response.tool_calls && response.tool_calls.length > 0) {
-            messages.push(response)
-            for (const toolCall of response.tool_calls) {
-                if (toolCall && toolCall.name && getToolsName[toolCall.name]) {
-                    console.log('toolCall', toolCall)
+        // Step 1: Initial call to see if tools are needed
+        const modelWithTools = model.bindTools(tools);
+        let aiMsg = await modelWithTools.invoke(messages);
+        messages.push(aiMsg);
 
-                    let parsedArgs: any = undefined
-                    try {
-                        if (typeof toolCall.args === 'string') {
-                            parsedArgs = JSON.parse(toolCall.args)
-                        } else {
-                            parsedArgs = toolCall.args
-                        }
-                    } catch (e) {
-                        parsedArgs = toolCall.args
-                    }
-
-                    const result = await getToolsName[toolCall.name].invoke(parsedArgs)
-                    const content = typeof result === 'string' ? result : JSON.stringify(result)
-                    const toolMessage = new ToolMessage({
-                        content: content,
-                        tool_call_id: toolCall.id || '',
-                    })
-
-                    messages.push(toolMessage)
+        // Step 2: Handle Tool Calls
+        if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
+            for (const toolCall of aiMsg.tool_calls) {
+                const selectedTool = toolsByName[toolCall.name];
+                if (selectedTool && toolCall.id) {
+                    const toolResult = await selectedTool.invoke(toolCall.args);
+                    const cleanContent = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
+                    messages.push(new ToolMessage({
+                        content: cleanContent,
+                        tool_call_id: toolCall.id,
+                    }));
                 }
             }
+            const formattingInstruction = new SystemMessage(`
+    STRICT DATA RULE: 
+    1. Look at the tool output provided in the history.
+    2. Map that data to the 'productData' field.
+    3. 'productData' must be a JSON ARRAY. 
+    4. NEVER wrap the array in quotes or make it a string.
+    5. 'textResponse' is MANDATORY. Do not leave it blank.
+`);
+            messages.push(formattingInstruction)
+            // Step 3: Final call to generate structured output based on tool results
+            const structuredModel = await model.withStructuredOutput(ResponseSchema);
+            const finalResult = await structuredModel.invoke(messages);
 
-            response = await modelWithTools.invoke(messages)
+            return {
+                success: true,
+                message: finalResult.textResponse,
+                data: finalResult.productData || []
+            };
         }
 
-        console.log(response.content)
-        return { response: response?.content ?? null, success: true }
+        // Fallback for normal conversation without tools
+        return {
+            success: true,
+            message: aiMsg.content,
+            data: []
+        };
     }
 }

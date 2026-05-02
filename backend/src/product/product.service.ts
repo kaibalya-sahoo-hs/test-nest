@@ -90,7 +90,7 @@ export class ProductService {
   }
 
   async getTopVendorsByProductName(productName: string) {
-    // 1. Find Vendors and the specific products that matched the search
+    console.log(productName)
     const results = await this.userRepo.createQueryBuilder('vendor')
       .innerJoinAndSelect('vendor.products', 'product')
       .where('LOWER(product.name) LIKE LOWER(:name)', { name: `%${productName}%` })
@@ -112,12 +112,12 @@ export class ProductService {
         products: vendor.products.map(p => ({
           id: p.id,
           name: p.name,
+          image: p.image,
           price: p.price
         }))
       };
     }));
 
-    // Sort by highest order count
     return finalReport.sort((a, b) => b.totalOrders - a.totalOrders);
   }
   async getSimilarSuggestions(productName: string) {
