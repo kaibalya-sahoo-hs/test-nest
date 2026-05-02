@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/upload/upload.service';
-import { Brackets, Like, Repository } from 'typeorm';
+import { Brackets, ILike, Like, Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { EmbeddingService } from 'src/embedding/embedding.service';
 import { relative } from 'node:path';
@@ -55,14 +55,51 @@ export class ProductService {
   async getProductsByName(name: string) {
     try {
       const products = await this.productRepo.find({
-        where: { name: Like(`%${name}%`) },
+        where: { name: ILike(`%${name}%`) },
         relations: ['vendor'],
       });
-      return { products, success: true };
+      const result = products.map((p) => {
+        return {
+          vendor: p.vendor.name,
+          productName: p.name,
+          productImage: p.image
+        }
+      })
+      return result;
     } catch (error) {
       console.log('Error while searching ', error);
       return { message: 'Error while searching', success: false };
     }
+  }
+
+  async getTopVendorsByProductName(productName: string) {
+    const results = await this.userRepo.createQueryBuilder('vendor')
+      .innerJoinAndSelect('vendor.products', 'product')
+      .where('LOWER(product.name) LIKE LOWER(:name)', { name: `%${productName}%` })
+      .getMany();
+    if (results.length === 0) return [];
+
+    // 2. Map through vendors to attach their total order counts
+    const finalReport = await Promise.all(results.map(async (vendor) => {
+      const orderCount = await this.orderRepo.count({
+        where: { vendor: { id: vendor.id } },
+      });
+
+      return {
+        vendorId: vendor.id,
+        vendorName: vendor.name,
+        totalOrders: orderCount,
+        // Returning the details of the products that matched
+        products: vendor.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          image: p.image,
+          price: p.price
+        }))
+      };
+    }));
+
+    return finalReport.sort((a, b) => b.totalOrders - a.totalOrders);
   }
 
   // Edit / Update product
@@ -89,37 +126,8 @@ export class ProductService {
     return { deleted: true };
   }
 
-  async getTopVendorsByProductName(productName: string) {
-    console.log(productName)
-    const results = await this.userRepo.createQueryBuilder('vendor')
-      .innerJoinAndSelect('vendor.products', 'product')
-      .where('LOWER(product.name) LIKE LOWER(:name)', { name: `%${productName}%` })
-      .getMany();
+  
 
-    if (results.length === 0) return [];
-
-    // 2. Map through vendors to attach their total order counts
-    const finalReport = await Promise.all(results.map(async (vendor) => {
-      const orderCount = await this.orderRepo.count({
-        where: { vendor: { id: vendor.id } },
-      });
-
-      return {
-        vendorId: vendor.id,
-        vendorName: vendor.name,
-        totalOrders: orderCount,
-        // Returning the details of the products that matched
-        products: vendor.products.map(p => ({
-          id: p.id,
-          name: p.name,
-          image: p.image,
-          price: p.price
-        }))
-      };
-    }));
-
-    return finalReport.sort((a, b) => b.totalOrders - a.totalOrders);
-  }
   async getSimilarSuggestions(productName: string) {
     const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })
 

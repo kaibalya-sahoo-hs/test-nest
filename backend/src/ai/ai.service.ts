@@ -9,7 +9,7 @@ export class AiService {
     constructor(
         private productService: ProductService
     ) { }
-    async getAiResponse(message: string) {
+    async getAiResponse(incomingMessages: []) {
         // 1. Initialize Model
         const model = await initChatModel('llama-3.1-8b-instant', {
             modelProvider: "groq",
@@ -39,6 +39,18 @@ export class AiService {
             }
         );
 
+        const getproductsByName = tool(
+            async ({productName}) => {
+                console.log('called')
+                return await this.productService.getProductsByName(productName)
+            },
+            {
+                name: "getproductsByName",
+                description: "this tool is used to find the products by the product name ",
+                schema: z.object({productName: z.string()})
+            }
+        )
+
         // 3. Define the Structured Response Schema
         // Changed to allow for an array of products/vendors since the tool returns a list
         const ResponseSchema = z.object({
@@ -50,30 +62,33 @@ export class AiService {
             })).optional().describe("Structured data when product/vendor info is found")
         });
 
-        const tools = [getTotalProducts, getTopVendorsByProductName];
-        const toolsByName = { getTotalProducts, getTopVendorsByProductName };
+        const tools = [getTotalProducts, getTopVendorsByProductName, getproductsByName];
+        const toolsByName = { getTotalProducts, getTopVendorsByProductName, getproductsByName };
 
-        const SYSTEM_PROMPT = new SystemMessage(`
+        const SYSTEM_PROMPT =`
             You are a neutral customer service assistant for SwiftCart.
+            YOu have to maintain a friendly conversation with the user. 
+
             Rules:
-            1. Only answer shop-related queries.
+            1. Only answer shop-related queries if user query about something that is not related to the store then dont answer.
             2. Stay neutral. Avoid overly enthusiastic phrases like 'I am glad to help'.
-            3. Use 'getTopVendorsByProductName' to find the best sellers when users ask for recommendations.
-            
+            3. When user askss about a product you should only show the products in our database not other products if not profucts found simplay tel the user
+
             Available Tools: 
                 - getTopVendorsByProductName : Call this tool when user asks about suggesting some product or
                                                 suggestion best vendors for a specific product 
+                - getproductsByName : Call this tool when user query for something like show me phones or watches 
 
             
-        `);
+        `;
 
-        let messages: any[] = [SYSTEM_PROMPT, new HumanMessage(message)];
+        let messages: any[] = [{role: 'system',content: SYSTEM_PROMPT}];
 
         // --- EXECUTION LOOP ---
 
         // Step 1: Initial call to see if tools are needed
         const modelWithTools = model.bindTools(tools);
-        let aiMsg = await modelWithTools.invoke(messages);
+        let aiMsg = await modelWithTools.invoke([...messages, ...incomingMessages]);
         messages.push(aiMsg);
 
         // Step 2: Handle Tool Calls
@@ -83,21 +98,23 @@ export class AiService {
                 if (selectedTool && toolCall.id) {
                     const toolResult = await selectedTool.invoke(toolCall.args);
                     const cleanContent = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
-                    messages.push(new ToolMessage({
+                    messages.push({
+                        role: 'tool',
                         content: cleanContent,
                         tool_call_id: toolCall.id,
-                    }));
+                    });
                 }
             }
-            const formattingInstruction = new SystemMessage(`
-    STRICT DATA RULE: 
-    1. Look at the tool output provided in the history.
-    2. Map that data to the 'productData' field.
-    3. 'productData' must be a JSON ARRAY. 
-    4. NEVER wrap the array in quotes or make it a string.
-    5. 'textResponse' is MANDATORY. Do not leave it blank.
-`);
-            messages.push(formattingInstruction)
+            const formattingInstruction = `
+                    STRICT DATA RULE: 
+                    1. Look at the tool output provided in the history.
+                    2. Map that data to the 'productData' field.
+                    3. 'productData' must be a JSON ARRAY. 
+                    4. NEVER wrap the array in quotes or make it a string.
+                    5. 'textResponse' is MANDATORY. Do not leave it blank.
+                `;
+
+            messages.push({role: 'system', content: formattingInstruction})
             // Step 3: Final call to generate structured output based on tool results
             const structuredModel = await model.withStructuredOutput(ResponseSchema);
             const finalResult = await structuredModel.invoke(messages);

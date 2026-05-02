@@ -8,6 +8,7 @@ import { FiUser, FiMenu, FiX } from "react-icons/fi";
 import { FaRupeeSign, FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import { useUser } from "../context/UserContext";
+import Floatingchat from "./Floatingchat";
 
 function Nav() {
   const navigate = useNavigate();
@@ -149,6 +150,9 @@ function Nav() {
     { path: "/vendor/orders", label: "Orders" },
     { path: "/vendor/coupons", label: "Coupons" }
   ];
+
+  const hideChatOn = ['/checkout', '/payment', '/login', '/admin', '/vendor'];
+  const shouldShowChat = !hideChatOn.includes(location.pathname)
 
   let navLinks = [];
   if (user) {
@@ -407,6 +411,10 @@ function Nav() {
         >
           <div className="max-w-7xl mx-auto">
             <Outlet />
+            {shouldShowChat &&
+             <Floatingchat/>
+            }
+            
           </div>
         </main>
       </div>
