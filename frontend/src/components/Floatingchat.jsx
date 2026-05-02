@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, X, MessageSquare, Bot } from 'lucide-react';
+import { Send, X, MessageSquare, Bot, Loader } from 'lucide-react';
 import { api } from "../utils/api"
 import { useNavigate } from 'react-router';
 
@@ -9,6 +9,7 @@ function FloatingChat() {
     const [messages, setMessages] = useState([{ role: 'ai', content: "Hello! I'm your SwiftCart AI. Ask me about products or top vendors!" }])
     const messagesEndRef = useRef(null)
     const [productData, setProductData] = useState()
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
 
@@ -17,6 +18,7 @@ function FloatingChat() {
     }
 
     const handleSend = async () => {
+        setLoading(true)
         const userMessage = { role: "user", content: input }
         const updatedMessages = [...messages, userMessage]
         setMessages(updatedMessages)
@@ -33,6 +35,7 @@ function FloatingChat() {
             setMessages(prevMsg => [...prevMsg, { role: 'ai', content: "Error while generating response" }])
             setInput('')
         }
+        setLoading(false)
     }
 
     useEffect(() => {
@@ -128,12 +131,13 @@ function FloatingChat() {
                             <input
                                 type="text"
                                 value={input}
+                                
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Type your message..."
                                 className='w-full bg-gray-100 border-none rounded-full py-3 px-5 pr-12 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all'
                             />
-                            <button className='absolute right-2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all active:scale-90' onClick={handleSend}>
-                                <Send size={16} />
+                            <button disabled={loading} className={`absolute right-2 p-2  text-white rounded-full ${loading ? 'bg-gray-500' :'bg-blue-600 hover:bg-blue'}-700 transition-all active:scale-90`} onClick={handleSend}>
+                                {loading ? <Loader className='animate-spin' size={15}/> : <Send size={16} />}
                             </button>
                         </div>
                         <p className='text-[10px] text-center text-gray-400 mt-2 font-medium uppercase tracking-widest'>

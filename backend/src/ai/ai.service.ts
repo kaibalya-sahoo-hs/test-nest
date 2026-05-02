@@ -46,7 +46,7 @@ export class AiService {
             },
             {
                 name: "getproductsByName",
-                description: "this tool is used to find the products by the product name ",
+                description: "this tool is used to find the products by the product name",
                 schema: z.object({productName: z.string()})
             }
         )
@@ -118,7 +118,7 @@ export class AiService {
             // Step 3: Final call to generate structured output based on tool results
             const structuredModel = await model.withStructuredOutput(ResponseSchema);
             const finalResult = await structuredModel.invoke(messages);
-
+            console.log(finalResult)
             return {
                 success: true,
                 message: finalResult.textResponse,
