@@ -84,9 +84,6 @@ export class AiService {
 
         let messages: any[] = [{role: 'system',content: SYSTEM_PROMPT}];
 
-        // --- EXECUTION LOOP ---
-
-        // Step 1: Initial call to see if tools are needed
         const modelWithTools = model.bindTools(tools);
         let aiMsg = await modelWithTools.invoke([...messages, ...incomingMessages]);
         messages.push(aiMsg);

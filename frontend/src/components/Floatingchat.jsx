@@ -153,7 +153,7 @@ function FloatingChat() {
                 className={`group flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer ${chatOpen ? 'bg-white text-gray-600 rotate-90' : 'bg-blue-600 text-white'
                     }`}
             >
-                {chatOpen ? <X size={28} /> : <MessageSquare size={26} className='group-hover:animate-bounce' />}
+                {chatOpen ? <X size={28} /> : <MessageSquare size={26} className='' />}
             </button>
         </div>
     );
