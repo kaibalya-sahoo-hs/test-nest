@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 import { FiEdit, FiTrash2, FiUploadCloud, FiChevronDown, FiChevronUp } from "react-icons/fi";
@@ -40,6 +40,43 @@ function VendorProducts() {
     fetchVendorProducts();
     fetchVendorStatus();
   }, []);
+
+  // Poll upload status for products that are still processing
+  const pollingRef = useRef(null);
+
+  useEffect(() => {
+    const processingProducts = products.filter(p => p.imageUploadStatus === 'processing');
+
+    if (processingProducts.length > 0) {
+      pollingRef.current = setInterval(async () => {
+        let anyUpdated = false;
+
+        for (const p of processingProducts) {
+          try {
+            const { data } = await api.get(`/upload/status/${p.id}`);
+            if (data.success && data.status !== 'processing') {
+              anyUpdated = true;
+              if (data.status === 'completed') {
+                toast.success(`Images uploaded for "${p.name}"`);
+              } else if (data.status === 'failed') {
+                toast.error(`Image upload failed for "${p.name}"`);
+              }
+            }
+          } catch (e) {
+            // ignore polling errors
+          }
+        }
+
+        if (anyUpdated) {
+          fetchVendorProducts();
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [products]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -129,11 +166,41 @@ function VendorProducts() {
                     <tr className="hover:bg-gray-50/50 transition-colors group">
                       <td className="p-5 font-bold text-[#202224]">{idx + 1}</td>
                       <td className="p-5">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
-                          <img src={product.image || "https://via.placeholder.com/150"} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                        <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
+                          {product.imageUploadStatus === 'processing' ? (
+                            <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                              <div className="w-5 h-5 border-2 border-[#4379EE] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          ) : product.imageUploadStatus === 'failed' ? (
+                            <div className="w-full h-full flex items-center justify-center bg-red-50">
+                              <span className="text-red-500 text-lg font-bold">✕</span>
+                            </div>
+                          ) : (
+                            <img src={product.image || "https://via.placeholder.com/150"} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                          )}
+                          {product.imageUploadStatus === 'processing' && (
+                            <div className="absolute -bottom-0.5 left-0 right-0 h-1 bg-blue-100">
+                              <div className="h-full bg-[#4379EE] rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                            </div>
+                          )}
                         </div>
                       </td>
-                      <td className="p-5 font-bold text-[#202224]">{product.name}</td>
+                      <td className="p-5 font-bold text-[#202224]">
+                        <div className="flex items-center gap-2">
+                          {product.name}
+                          {product.imageUploadStatus === 'processing' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                              Uploading images
+                            </span>
+                          )}
+                          {product.imageUploadStatus === 'failed' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                              Upload failed
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-5 font-bold text-[#202224]">₹{Number(product.price).toLocaleString("en-IN")}</td>
                       <td className="p-5 text-center">
                         {product.coupons && product.coupons.length > 0 ? (

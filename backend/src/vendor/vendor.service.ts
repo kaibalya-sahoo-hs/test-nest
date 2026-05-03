@@ -4,6 +4,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { InjectQueue } from '@nestjs/bull';
+import * as Bull from 'bull';
 import { Product } from 'src/product/product.entity';
 import { CloudinaryService } from 'src/upload/upload.service';
 import { Like, Repository, IsNull, Not, In } from 'typeorm';
@@ -36,7 +38,7 @@ export class VendorService {
     @InjectRepository(Tag)
     private tagRepo: Repository<Tag>,
     private cloudinaryService: CloudinaryService,
-
+    @InjectQueue('image-upload') private imageUploadQueue: Bull.Queue,
     private jwtService: JwtService,
   ) {
     this.rzpX = new Razorpay({
@@ -192,25 +194,35 @@ export class VendorService {
       return { message: 'At least one product image is required', success: false };
     }
 
-    // Upload all images to Cloudinary
-    const imageUrls: string[] = [];
-    for (const file of files) {
-      const result = await this.cloudinaryService.uploadImage(file);
-      if (result?.url) {
-        imageUrls.push(result.url);
-      }
-    }
-
+    // Save the product immediately with processing status
     const newProduct = this.productRepo.create({
       ...productData,
       features: featuresArray,
       vendor: { id: userID },
       tags: allTags,
-      image: imageUrls[0] || '', // First image as thumbnail
-      images: imageUrls,
+      image: '', // Will be set by queue processor
+      images: [],
+      imageUploadStatus: 'processing',
     });
 
-    return await this.productRepo.save(newProduct);
+    const savedProduct = await this.productRepo.save(newProduct);
+
+    // Serialize file buffers and add to the queue
+    const serializedFiles = files.map(f => ({
+      buffer: Array.from(f.buffer),
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+    }));
+
+    await this.imageUploadQueue.add('upload-product-images', {
+      productId: savedProduct.id,
+      files: serializedFiles,
+    }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+    });
+
+    return { ...savedProduct, success: true, message: 'Product created. Images are being uploaded.' };
   }
 
   async getVendorDetails(id) {
@@ -405,45 +417,63 @@ export class VendorService {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    // Handle multi-image upload
-    if (files && files.length > 0) {
-      const imageUrls: string[] = [];
-      for (const file of files) {
-        const upload = await this.cloudinaryService.uploadImage(file);
-        if (upload?.url || upload?.secure_url) {
-          imageUrls.push(upload.secure_url || upload.url);
-        }
-      }
-      if (imageUrls.length > 0) {
-        updateData.image = imageUrls[0];
-        updateData.images = imageUrls;
-      }
-    }
-
-    // If existingImages are passed (frontend sends kept images), merge with new uploads
+    // Handle existing images that were kept by the frontend
+    let keptImages: string[] = [];
     if (updateData.existingImages) {
       try {
-        const existing = typeof updateData.existingImages === 'string'
+        keptImages = typeof updateData.existingImages === 'string'
           ? JSON.parse(updateData.existingImages)
           : updateData.existingImages;
-        const newImages = updateData.images || [];
-        updateData.images = [...existing, ...newImages];
-        if (updateData.images.length > 0) {
-          updateData.image = updateData.images[0];
-        }
       } catch (e) {
         // ignore parse errors
       }
       delete updateData.existingImages;
     }
 
-    // Replace tags completely with the new list (removes old tags)
-    product.tags = allTags;
-    // Remove tags from updateData to avoid TypeORM errors
-    delete updateData.tags;
-    Object.assign(product, updateData);
-    const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
-    return updatedProduct
+    // If new files are being uploaded, use the queue
+    if (files && files.length > 0) {
+      // Set kept images immediately, queue will append new ones
+      product.images = keptImages;
+      product.image = keptImages[0] || product.image || '';
+      product.imageUploadStatus = 'processing';
+
+      const serializedFiles = files.map(f => ({
+        buffer: Array.from(f.buffer),
+        originalname: f.originalname,
+        mimetype: f.mimetype,
+      }));
+
+      // Replace tags completely
+      product.tags = allTags;
+      delete updateData.tags;
+      delete updateData.images;
+      delete updateData.image;
+      Object.assign(product, updateData);
+      const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
+
+      await this.imageUploadQueue.add('upload-product-images', {
+        productId: updatedProduct.id,
+        files: serializedFiles,
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      });
+
+      return { ...updatedProduct, success: true, message: 'Product updated. New images are being uploaded.' };
+    } else {
+      // No new files — just update with kept images
+      if (keptImages.length > 0) {
+        updateData.images = keptImages;
+        updateData.image = keptImages[0];
+      }
+
+      // Replace tags completely with the new list (removes old tags)
+      product.tags = allTags;
+      delete updateData.tags;
+      Object.assign(product, updateData);
+      const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
+      return updatedProduct;
+    }
   }
 
   // Delete product

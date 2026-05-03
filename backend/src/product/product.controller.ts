@@ -34,6 +34,11 @@ export class ProductController {
         return await this.reviewService.getAllReviews(req.user.id, productId)
     }
 
+    @Get('search')
+    async searchProducts(@Query('q') query: string) {
+        return this.productService.searchProducts(query || '');
+    }
+
     @Get(':title/')
     async getProductById(@Param('title') title: string, @Query('vendor') vendor: string) {
         const product = await this.productService.findOne(title, vendor);

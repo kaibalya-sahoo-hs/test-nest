@@ -41,6 +41,9 @@ export class Product {
   @Column({ type: 'simple-json', nullable: true, default: '[]' })
   images: string[];
 
+  @Column({ default: 'completed' })
+  imageUploadStatus: string; // 'processing' | 'completed' | 'failed'
+
   @Column({ default: 0 })
   stock!: number;
 

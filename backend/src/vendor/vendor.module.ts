@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { VendorController } from './vendor.controller';
 import { VendorService } from './vendor.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bull';
 import { User } from 'src/users/users.entity';
 import { Product } from 'src/product/product.entity';
 import { ProductModule } from 'src/product/product.module';
@@ -16,7 +17,14 @@ import { VendorTransaction } from './vendorTransaction.entity';
 import { Tag } from 'src/product/tag.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw, VendorTransaction, Tag]), ProductModule, CloudinaryModule, MailModule, CouponModule], 
+  imports: [
+    TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw, VendorTransaction, Tag]),
+    BullModule.registerQueue({ name: 'image-upload' }),
+    ProductModule,
+    CloudinaryModule,
+    MailModule,
+    CouponModule,
+  ], 
   controllers: [VendorController],
   providers: [VendorService]
 })

@@ -52,6 +52,35 @@ export class ProductService {
     return product;
   }
 
+  // Search products by name and description for the public search bar
+  async searchProducts(query: string) {
+    try {
+      const trimmed = query.trim();
+      if (!trimmed) {
+        // Return all products if empty search
+        const products = await this.productRepo.find({
+          order: { createdAt: 'DESC' },
+          relations: ['vendor'],
+        });
+        return { success: true, products, query: '' };
+      }
+
+      const products = await this.productRepo.createQueryBuilder('p')
+        .leftJoinAndSelect('p.vendor', 'vendor')
+        .leftJoinAndSelect('p.tags', 'tags')
+        .where('p.name ILIKE :q', { q: `%${trimmed}%` })
+        .orWhere('p.description ILIKE :q', { q: `%${trimmed}%` })
+        .orWhere('tags.name ILIKE :q', { q: `%${trimmed}%` })
+        .orderBy('p.createdAt', 'DESC')
+        .getMany();
+
+      return { success: true, products, query: trimmed };
+    } catch (error) {
+      console.error('Search error:', error);
+      return { success: false, products: [], query, message: 'Search failed' };
+    }
+  }
+
   async getProductsByName(name: string) {
     try {
       const products = await this.productRepo.find({
@@ -60,9 +89,9 @@ export class ProductService {
       });
       const result = products.map((p) => {
         return {
-          vendorName: p.vendor?.name || 'Unknown',
+          vendor: p.vendor.name,
           productName: p.name,
-          productImage: p.image || ''
+          productImage: p.image
         }
       })
       return result;

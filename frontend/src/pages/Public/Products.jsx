@@ -6,7 +6,8 @@ import {
   FaIndianRupeeSign,
   FaStar,
 } from "react-icons/fa6";
-import { Link, useNavigate } from "react-router";
+import { FiSearch, FiX } from "react-icons/fi";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import api from "../../utils/api";
 import ProductFilterBar from "../../components/ProductFilterBar";
 
@@ -16,6 +17,9 @@ function Products() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [imageIndices, setImageIndices] = useState({});
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchQuery = searchParams.get("search") || "";
 
   // 1. Add Filter State
   const [filters, setFilters] = useState({
@@ -28,10 +32,20 @@ function Products() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/products");
-        console.log(response.data)
-        if (response.data.success) {
-          setProducts(response.data.data);
+        setError(null);
+
+        if (searchQuery) {
+          // Use search endpoint
+          const response = await api.get(`/products/search?q=${encodeURIComponent(searchQuery)}`);
+          if (response.data.success) {
+            setProducts(response.data.products);
+          }
+        } else {
+          // Use normal product list endpoint
+          const response = await api.get("/products");
+          if (response.data.success) {
+            setProducts(response.data.data);
+          }
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -41,7 +55,7 @@ function Products() {
       }
     };
     fetchProducts();
-  }, []);
+  }, [searchQuery]);
 
   // 2. Filter Logic (useMemo for performance)
   const filteredProducts = useMemo(() => {
@@ -75,6 +89,10 @@ function Products() {
     setFilters({ category: "", sort: "desc", rating: "" });
   };
 
+  const handleClearSearch = () => {
+    setSearchParams({});
+  };
+
   const getProductImages = (item) => {
     if (item.images && item.images.length > 0) return item.images;
     if (item.image) return [item.image];
@@ -101,6 +119,31 @@ function Products() {
 
   return (
     <div className="max-w-7xl mx-auto px-4">
+      {/* Search Results Banner */}
+      {searchQuery && (
+        <div className="mb-6 bg-gradient-to-r from-[#4379EE]/5 to-[#6C63FF]/5 border border-[#4379EE]/10 rounded-2xl px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#4379EE]/10 p-2.5 rounded-xl">
+              <FiSearch className="text-[#4379EE]" size={20} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Search results for</p>
+              <h2 className="text-lg font-bold text-[#202224]">"{searchQuery}"</h2>
+            </div>
+            <span className="ml-2 bg-[#4379EE] text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'}
+            </span>
+          </div>
+          <button
+            onClick={handleClearSearch}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all group"
+          >
+            <FiX size={16} className="text-gray-400 group-hover:text-red-400 transition-colors" />
+            Clear Search
+          </button>
+        </div>
+      )}
+
       {/* 3. Inject Filter UI */}
       <ProductFilterBar
         filters={filters}
@@ -111,15 +154,37 @@ function Products() {
       <div>
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border-2 border-dashed border-gray-200">
-            <h3 className="text-lg font-bold text-[#202224]">
-              No Products Match Your Filters
-            </h3>
-            <p className="text-gray-500 mb-6 text-sm text-center px-4">
-              Try adjusting your filters or resetting them.
-            </p>
-            <button onClick={handleReset} className="text-blue-500 underline">
-              Reset All
-            </button>
+            {searchQuery ? (
+              <>
+                <div className="bg-gray-100 p-4 rounded-full mb-4">
+                  <FiSearch size={32} className="text-gray-400" />
+                </div>
+                <h3 className="text-lg font-bold text-[#202224]">
+                  No results for "{searchQuery}"
+                </h3>
+                <p className="text-gray-500 mb-6 text-sm text-center px-4">
+                  Try searching with different keywords or browse all products.
+                </p>
+                <button
+                  onClick={handleClearSearch}
+                  className="bg-[#4379EE] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#3662c1] transition-all"
+                >
+                  Browse All Products
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-[#202224]">
+                  No Products Match Your Filters
+                </h3>
+                <p className="text-gray-500 mb-6 text-sm text-center px-4">
+                  Try adjusting your filters or resetting them.
+                </p>
+                <button onClick={handleReset} className="text-blue-500 underline">
+                  Reset All
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
@@ -161,6 +226,14 @@ function Products() {
                           {images.map((_, idx) => (
                             <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-[#4379EE] w-3' : 'bg-gray-300'}`} />
                           ))}
+                        </div>
+                      )}
+
+                      {/* Upload status badge */}
+                      {item.imageUploadStatus === 'processing' && (
+                        <div className="absolute top-2 right-2 bg-yellow-100 border border-yellow-300 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                          Uploading...
                         </div>
                       )}
                     </div>
