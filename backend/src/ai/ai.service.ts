@@ -79,6 +79,8 @@ export class AiService {
                                                 suggestion best vendors for a specific product 
                 - getproductsByName : Call this tool when user query for something like show me phones or watches 
 
+            Example 1: When user asks about show me hoodie or something you have to call the 'getproductsByName' function
+            Example 2: When user asks to sgeesut a watch or something like that you have to call the 'getTopVendorsByProductName' function
             
         `;
 
