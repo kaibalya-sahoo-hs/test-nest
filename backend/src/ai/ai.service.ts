@@ -41,7 +41,7 @@ export class AiService {
 
         const getproductsByName = tool(
             async ({productName}) => {
-                console.log('called')
+                console.log(productName)
                 return await this.productService.getProductsByName(productName)
             },
             {
@@ -59,7 +59,7 @@ export class AiService {
                 productName: z.string(),
                 vendorName: z.string(),
                 productImage: z.string()
-            })).optional().describe("Structured data when product/vendor info is found")
+            })).optional().describe("A RAW ARRAY of product objects. Do NOT return this as a string.")
         });
 
         const tools = [getTotalProducts, getTopVendorsByProductName, getproductsByName];
@@ -94,7 +94,7 @@ export class AiService {
                 const selectedTool = toolsByName[toolCall.name];
                 if (selectedTool && toolCall.id) {
                     const toolResult = await selectedTool.invoke(toolCall.args);
-                    const cleanContent = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
+                    const cleanContent =  typeof toolResult === 'string' ? toolResult :  JSON.stringify(toolResult);
                     messages.push({
                         role: 'tool',
                         content: cleanContent,
@@ -112,7 +112,6 @@ export class AiService {
                 `;
 
             messages.push({role: 'system', content: formattingInstruction})
-            // Step 3: Final call to generate structured output based on tool results
             const structuredModel = await model.withStructuredOutput(ResponseSchema);
             const finalResult = await structuredModel.invoke(messages);
             console.log(finalResult)

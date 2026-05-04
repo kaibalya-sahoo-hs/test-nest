@@ -89,7 +89,7 @@ export class ProductService {
       });
       const result = products.map((p) => {
         return {
-          vendor: p.vendor.name,
+          vendorName: p.vendor.name,
           productName: p.name,
           productImage: p.image
         }

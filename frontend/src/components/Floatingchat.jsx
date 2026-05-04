@@ -23,7 +23,7 @@ function FloatingChat() {
         const updatedMessages = [...messages, userMessage]
         setMessages(updatedMessages)
         try {
-            console.log(messages)
+            console.log(updatedMessages)
             const response = await api.post('/ai', { msg: updatedMessages })
             console.log(response.data)
             if (response.data.success) {
