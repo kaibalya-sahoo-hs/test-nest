@@ -72,6 +72,8 @@ Create a file named `.env` in the `backend/` folder:
 ```properties
 PORT=your_port
 
+GROQ_API_KEY=api_key_for_chatbot
+
 DB_NAME=postgres_db_name
 DB_PASS=postgres_db_password
 DB_USERNAME=postgres_db_username
