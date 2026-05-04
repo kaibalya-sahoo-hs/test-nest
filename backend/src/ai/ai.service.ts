@@ -112,7 +112,7 @@ export class AiService {
                     3. 'productData' must be a JSON ARRAY. 
                     4. NEVER wrap the array in quotes or make it a string.
                     5. 'textResponse' is MANDATORY. Do not leave it blank.
-                    6. if productData is an array with no element tell user that we dont have that in our store or something like that based on the user query
+                    6. IMPORTANT: if productData is an array with no element tell user that we dont have that in our store or something like that based on the user query
                     6. if no data of an Empty array is coming from database dont tell the user about random data just say product not found or tell something similar based on user query
                     7. MOST IMPORTANT: IF the tool returns a data you should made the data match with the provided structure 
                        That is {
