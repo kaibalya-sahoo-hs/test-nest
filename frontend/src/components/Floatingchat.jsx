@@ -23,7 +23,6 @@ function FloatingChat() {
         const updatedMessages = [...messages, userMessage]
         setMessages(updatedMessages)
         try {
-            console.log(updatedMessages)
             const response = await api.post('/ai', { msg: updatedMessages })
             console.log(response.data)
             if (response.data.success) {
@@ -131,7 +130,7 @@ function FloatingChat() {
                             <input
                                 type="text"
                                 value={input}
-                                
+                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Type your message..."
                                 className='w-full bg-gray-100 border-none rounded-full py-3 px-5 pr-12 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all'

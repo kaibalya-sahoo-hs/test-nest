@@ -147,11 +147,11 @@ function Index() {
     <div className="bg-[#F5F6FA] min-h-screen ">
 
       {/* ==================== BANNER CAROUSEL ==================== */}
-      <div className="relative w-full h-[220px] sm:h-[320px] rounded-2xl overflow-hidden mb-8 shadow-lg">
+      <div className="relative w-full h-[150px] sm:h-[320px] rounded-xl md:rounded-2xl overflow-hidden mb-8 shadow-lg">
         {banners.map((banner, idx) => (
           <div
             key={idx}
-            className={`absolute inset-0 bg-gradient-to-r ${banner.bg} flex items-center px-6 sm:px-14 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}
+            className={`w-full h-full absolute inset-0 bg-gradient-to-r ${banner.bg} flex items-center px-10 sm:px-14 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}
           >
             {/* Decorative SVG */}
             <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -162,12 +162,12 @@ function Index() {
               </svg>
             </div>
             <div className="relative z-10 text-white max-w-lg">
-              <p className="text-xs sm:text-sm font-medium mb-2 opacity-80 tracking-wide uppercase">Limited Time Offer</p>
-              <h2 className="text-2xl sm:text-4xl font-black mb-3 leading-tight">{banner.title}</h2>
-              <p className="text-sm sm:text-base mb-6 opacity-80">{banner.subtitle}</p>
+              <p className="text-[10px] sm:text-sm font-medium mb-2 opacity-80 tracking-wide uppercase">Limited Time Offer</p>
+              <h2 className="text-lg sm:text-4xl font-black mb-3 leading-tight">{banner.title}</h2>
+              <p className="text-[10px] sm:text-base mb-6 opacity-80">{banner.subtitle}</p>
               <button
                 onClick={() => navigate('/products')}
-                className="text-white px-6 py-3 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-95 flex items-center gap-2"
+                className="text-white px-2 py-1 sm:px-6 sm:py-3 rounded sm:rounded-xl font-bold text-[10px] sm:text-sm transition-all hover:brightness-110 active:scale-95 flex items-center gap-2"
                 style={{ backgroundColor: banner.accent }}
               >
                 {banner.cta} <FaArrowRight size={12} />
@@ -182,28 +182,28 @@ function Index() {
             <button
               key={idx}
               onClick={() => setCurrentBanner(idx)}
-              className={`h-2 rounded-full transition-all cursor-pointer ${idx === currentBanner ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+              className={`hidden sm:block h-2 rounded-full transition-all cursor-pointer ${idx === currentBanner ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
             />
           ))}
         </div>
 
         {/* Arrows */}
-        <button onClick={() => setCurrentBanner(prev => (prev - 1 + banners.length) % banners.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
-          <FaAngleLeft size={18} />
+        <button onClick={() => setCurrentBanner(prev => (prev - 1 + banners.length) % banners.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 sm:p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
+          <FaAngleLeft className='text-[8px] sm:text-lg lg:text-2xl'/>
         </button>
-        <button onClick={() => setCurrentBanner(prev => (prev + 1) % banners.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
-          <FaAngleRight size={18} />
+        <button onClick={() => setCurrentBanner(prev => (prev + 1) % banners.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-1 sm:p-2 rounded-full text-white backdrop-blur-sm transition-all z-20 cursor-pointer">
+          <FaAngleRight className='text-[8px] sm:text-lg lg:text-2xl' />
         </button>
       </div>
 
       {/* ==================== PROMOTIONAL GRID ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-10">
-        <div className="md:col-span-2 relative rounded-2xl bg-gradient-to-r from-[#1a1a2e] to-[#16213e] overflow-hidden group min-h-[280px] flex items-center">
-          <div className="relative z-10 p-8 sm:p-12">
+        <div className="md:col-span-2 relative rounded-xl bg-gradient-to-r from-[#1a1a2e] to-[#16213e] overflow-hidden group min-h-[120px]  sm:min-h-[280px] flex items-center">
+          <div className="relative z-10 p-4 sm:p-12">
             <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-2 inline-block">Trending Now</span>
-            <h2 className="text-white text-2xl sm:text-3xl font-black mb-3 leading-tight">Premium Electronics<br />Collection</h2>
+            <h2 className="text-white text-md sm:text-3xl font-black mb-3 leading-tight">Premium Electronics<br />Collection</h2>
             <p className="text-gray-400 text-sm mb-6 max-w-[300px]">Explore the latest gadgets from top brands.</p>
-            <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+            <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-2 sm:px-5 py-1 sm:py-2 rounded sm:rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
               Shop Now <FaArrowRight size={12} />
             </button>
           </div>
@@ -211,22 +211,22 @@ function Index() {
         </div>
 
         <div className="grid grid-rows-2 gap-4 lg:gap-6">
-          <div className="relative bg-gradient-to-br from-black to-gray-900 rounded-2xl p-6 overflow-hidden flex flex-col justify-center">
+          <div className="relative bg-gradient-to-br from-black to-gray-900 rounded-xl md:rounded-2xl  p-6 overflow-hidden flex flex-col justify-center">
             <div className="relative z-10">
               <span className="text-yellow-500 text-[10px] font-bold uppercase tracking-widest">Hot Deal</span>
               <h3 className="text-white text-xl font-black mt-1 mb-3 leading-tight">Summer<br />Essentials</h3>
-              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-5 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-2 sm:px-5 py-1 sm:py-2 rounded sm:rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
                 Shop Now <FaArrowRight size={10} />
               </button>
             </div>
             <div className="absolute top-3 right-3 bg-yellow-400 text-black font-black px-2.5 py-0.5 text-xs rounded-lg">29% OFF</div>
           </div>
 
-          <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 overflow-hidden flex items-center">
+          <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl md:rounded-2xl p-6 overflow-hidden flex items-center">
             <div className="relative z-10 flex-1">
               <h3 className="text-white text-xl font-black mb-1 leading-tight">Accessories<br />& More</h3>
-              <p className="text-blue-400 font-bold text-sm mb-3">Starting ₹299</p>
-              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-5 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
+              <p className="text-blue-400 font-bold sm:text-sm mb-3">Starting ₹299</p>
+              <button onClick={() => navigate('/products')} className="bg-[#4379EE] hover:bg-[#3662c1] text-white px-2 sm:px-5 py-1 sm:py-2 rounded sm:rounded-lg font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
                 Shop Now <FaArrowRight size={10} />
               </button>
             </div>

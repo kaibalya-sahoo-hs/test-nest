@@ -152,6 +152,7 @@ function Nav() {
   ];
 
   const hideChatOn = ['/checkout', '/payment', '/login', '/admin', '/vendor'];
+  const showChatOn = ['/cart']
   const shouldShowChat = !hideChatOn.includes(location.pathname)
 
   let navLinks = [];
@@ -159,12 +160,12 @@ function Nav() {
     navLinks = isAdmin ? adminLinks : isVendor ? vendorLinks : userLinks;
   }
   return (
-    <div className="min-h-screen bg-[#F5F6FA] ">
+    <div className=" min-h-screen bg-[#F5F6FA] ">
       {/* --- TOP NAVBAR --- */}
-      <nav className="flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
+      <nav className="grow flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
         <div className="flex items-center gap-3">
           {/* Hamburger Button — visible on mobile/tablet only */}
-          <button
+          {user && <button
             data-hamburger
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
@@ -175,10 +176,10 @@ function Nav() {
             ) : (
               <FiMenu className="w-6 h-6 text-[#202224]" />
             )}
-          </button>
+          </button>}
 
           <span
-            className="text-2xl font-bold tracking-tight cursor-pointer"
+            className="text-lg sm:text-2xl font-bold tracking-tight cursor-pointer"
             onClick={() => {
               navigate(user?.role === "admin" ? "/admin/dashboard" : "/");
             }}
@@ -216,7 +217,7 @@ function Nav() {
                 aria-label="cart"
                 onClick={() => navigate("/cart")}
               >
-                <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-[#4379EE]" />
+                <FaShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-[#4379EE]" />
                 {cart.items && cart.items.length > 0 && (
                   <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-[#F93C65] text-white text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-white">
                     {cart.items.length}
@@ -313,14 +314,14 @@ function Nav() {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleLoginPress()}
-                  className="bg-[#4379EE] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#3662c1] transition-all"
+                  className="bg-[#4379EE] text-white px-2  sm:px-6 sm:py-2 rounded sm:rounded-lg font-bold text-xs sm:text-sm hover:bg-[#3662c1] transition-all"
                   aria-label="login btn"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate("/vendor/login")}
-                  className="bg-white text-[#4379EE] border border-[#4379EE] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all"
+                  className="bg-white text-[#4379EE] border border-[#4379EE] px-2 py-1 sm:px-4 sm:py-2 rounded sm:rounded-lg font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all"
                 >
                   Seller Login
                 </button>
@@ -371,7 +372,7 @@ function Nav() {
             </div>
 
             {/* Main Navigation */}
-            <nav className="flex-grow overflow-y-auto pt-4">
+            <nav className="overflow-y-auto pt-4">
               {navLinks.map((link) => (
                 <div key={link.path} className="relative flex items-center">
                   <NavLink
@@ -417,7 +418,7 @@ function Nav() {
         <main
           className={`flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="w-[94vw] mx-auto">
             <Outlet />
             {shouldShowChat &&
              <Floatingchat/>
