@@ -72,7 +72,7 @@ export class AiService {
             Rules:
             1. Only answer shop-related queries if user query about something that is not related to the store then dont answer.
             2. Stay neutral. Avoid overly enthusiastic phrases like 'I am glad to help'.
-            3. When user askss about a product you should only show the products in our database not other products if not profucts found simplay tel the user
+            3. When user asks about a product you should only show the products in our database not other products if not profucts found simplay tel the user
 
             Available Tools: 
                 - getTopVendorsByProductName : Call this tool when user asks about suggesting some product or
@@ -84,10 +84,10 @@ export class AiService {
             
         `;
 
-        let messages: any[] = [{role: 'system',content: SYSTEM_PROMPT}];
+        let messages: any[] = [{role: 'system',content: SYSTEM_PROMPT}, ...incomingMessages];
 
         const modelWithTools = model.bindTools(tools);
-        let aiMsg = await modelWithTools.invoke([...messages, ...incomingMessages]);
+        let aiMsg = await modelWithTools.invoke(messages);
         messages.push(aiMsg);
 
         // Step 2: Handle Tool Calls
@@ -111,6 +111,16 @@ export class AiService {
                     3. 'productData' must be a JSON ARRAY. 
                     4. NEVER wrap the array in quotes or make it a string.
                     5. 'textResponse' is MANDATORY. Do not leave it blank.
+                    6. if no data of an Empty array is coming from database dont tell the user about random data just say product not found or tell something similar based on user query
+                    7. MOST IMPORTANT: IF the tool returns a data you should made the data match with the provided structure 
+                       That is {
+                            textResponse: string,
+                            productData: [{
+                                productName: string,
+                                vendorName: string,
+                                pruductImage: string
+                            }]
+                       }
                 `;
 
             messages.push({role: 'system', content: formattingInstruction})
