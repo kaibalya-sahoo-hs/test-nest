@@ -11,6 +11,7 @@ import {
   FaTruck,
   FaUndo,
   FaTag,
+  FaHashtag,
 } from "react-icons/fa";
 import api from "../utils/api";
 import { useCart } from "../context/CartContext";
@@ -276,17 +277,28 @@ function ProductPage() {
               <h1 className="text-4xl sm:text-3xl font-extrabold text-[#202224] leading-tight mb-2">
                 {product.name}
               </h1>
-
-              <div className="text-sm mb-4">
+             
+              <div className="text-sm">
                 <span className="text-gray-500">by </span>
                 <button className="text-blue-600 font-medium hover:underline">{product.vendor?.name}</button>
               </div>
+
+               {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 ">
+                  {product.tags.map((tag, idx) => (
+                    <span key={idx} className="inline-flex items-center gap-1 px-1 py-1 text-gray-400 rounded-full text-xs font-bold">
+                      <FaHashtag size={12} /> {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
 
               {/* Prices */}
 
               <div className="flex justify-start items-center">
                 <span className="text-gray-500">MRP: </span>
-                <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-light" />{(Number(product.price) + Number(product.price * 0.1)).toLocaleString('en-IN')}</span>
+                <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-extralight" />{(Number(product.price) + Number(product.price * 0.1)).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
@@ -307,15 +319,7 @@ function ProductPage() {
                 }
               </ul>
 
-              {product.tags && product.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {product.tags.map((tag, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
-                      <FaTag size={8} /> {tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              
 
               {/* Add to Cart / Quantity Controls */}
               {product && product.stock > 0 ? cartItem ? (

@@ -46,7 +46,7 @@ export class ProductService {
 
   // Find one by ID
   async findOne(title: string, vendor): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { name: title, vendor: { name: vendor } }, relations: ['vendor', 'reviews'] });
+    const product = await this.productRepo.findOne({ where: { name: title, vendor: { name: vendor } }, relations: ['vendor', 'reviews', 'tags'] });
     if (!product)
       throw new NotFoundException(`Product not found`);
     return product;
