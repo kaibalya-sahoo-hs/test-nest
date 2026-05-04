@@ -46,7 +46,7 @@ function FloatingChat() {
         <div className='fixed right-6 bottom-6 z-50 flex flex-col items-end font-sans'>
             {/* Chat Window */}
             {chatOpen && (
-                <div className='w-screen sm:w-96 h-screen sm:h-[500px] mb-4 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300'>
+                <div className='w-96 h-[500px] mb-4 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300'>
 
                     {/* Header */}
                     <div className='bg-blue-600 p-4 text-white flex justify-between items-center shadow-md'>
