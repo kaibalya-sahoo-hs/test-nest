@@ -10,4 +10,7 @@ export class Member {
 
   @Column()
   designation: string;
+
+  @Column()
+  random: string
 }

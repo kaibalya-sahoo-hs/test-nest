@@ -3,7 +3,6 @@ import * as dotenv from 'dotenv';
 import { join } from 'path';
 
 dotenv.config();
-
 export default new DataSource({
   type: 'postgres',
   host: 'localhost',
@@ -11,6 +10,6 @@ export default new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  entities: [join(__dirname, '**/*.entity{.ts,.js}')],
-  migrations: [join(__dirname ,'src/db/migrations/*.ts')],
+  entities: [join(process.cwd(), '**/*.entity{.ts,.js}')],
+  migrations: [join(process.cwd() ,'src/db/migrations/*.ts')],
 });
