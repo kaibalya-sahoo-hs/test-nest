@@ -40,7 +40,9 @@ export class ProductService {
 
   // Find one by ID
   async findOne(title: string, vendor): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { name: title, vendor: {name: vendor} }, relations: ['vendor', 'reviews'] });
+    const formattedTitle = title.replace(/-/g, ' ').trim();
+    const fromattedVendor = vendor.replace(/-/g, ' ').trim();
+    const product = await this.productRepo.findOne({ where: { name: formattedTitle, vendor: {name: fromattedVendor} }, relations: ['vendor', 'reviews'] });
     if (!product)
       throw new NotFoundException(`Product not found`);
     return product;
@@ -84,7 +86,8 @@ export class ProductService {
   }
 
   async getSimilarSuggestions(productName: string) {
-    const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })
+    const formattedName = productName.replace(/-/g, ' ').trim();
+    const product = await this.productRepo.findOne({ where: { name: formattedName }, relations: ['tags', 'vendor'] })
 
     if (!product) {
       throw new NotFoundException('Product not found')
