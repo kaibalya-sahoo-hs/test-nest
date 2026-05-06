@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { CartItem } from './cart_items.entity';
 import { Cart } from './cart.entity';
 import { Product } from 'src/product/product.entity';
+import { ProductVariant } from 'src/product/productVariant.entity';
 
 @Injectable()
 export class CartService {
@@ -17,6 +18,8 @@ export class CartService {
     private readonly cartRepo: Repository<Cart>,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private readonly productVariantRepo: Repository<ProductVariant>,
     @InjectRepository(CartItem)
     private cartItemsRepo: Repository<CartItem>,
     private readonly couponsService: CouponsService,
@@ -59,7 +62,7 @@ export class CartService {
   /**
    * Add or Increment Item in Cart
    */
-  async addToCart(userId: number, productId: string, quantity: number = 1) {
+  async addToCart(userId: number, productId: string, productVariantId: string, quantity: number = 1) {
     let cart = await this.cartRepo.findOne({
       where: {
         user: { id: userId },
@@ -74,7 +77,16 @@ export class CartService {
     const product = await this.productRepo.findOne({
       where: { id: productId },
     });
-    const productStock = product?.stock;
+
+    const variant = await this.productVariantRepo.findOne({
+      where: { id: productVariantId },
+    });
+
+    if (!variant) {
+      throw new NotFoundException('Product variant not found')
+    }
+
+    const productStock = variant?.stock;
 
     if (!product) return { message: 'Product not found', success: false };
     if (productStock && productStock < 1) {
@@ -93,7 +105,7 @@ export class CartService {
         quantity,
       });
     }
-    product.stock -= 1;
+    variant.stock -= 1;
 
     await this.productRepo.save(product);
 
@@ -107,6 +119,7 @@ export class CartService {
   async updateQuantityByProduct(
     userId: number,
     productId: string,
+    productVariantId: string,
     quantity: number,
   ) {
     const cart = await this.cartRepo.findOne({
@@ -132,15 +145,23 @@ export class CartService {
     if (!product) {
       return { message: 'Product not found', success: false };
     }
-    const productStock = product?.stock;
+
+    const variant = await this.productVariantRepo.findOne({
+      where: { id: productVariantId },
+    });
+
+    if (!variant) {
+      throw new NotFoundException('Product variant not found')
+    }
+    const productStock = variant?.stock;
 
     if (quantity < 1) {
       cartItem.quantity = 1;
     }
     if (cartItem?.quantity > quantity) {
-      product.stock = productStock + 1;
+      variant.stock = productStock + 1;
     } else {
-      product.stock = productStock - 1;
+      variant.stock = productStock - 1;
     }
 
     cartItem.quantity = quantity;
@@ -205,7 +226,7 @@ export class CartService {
     return this.getMyCart(userId);
   }
 
-  async removeItemByProduct(userId: number, productId: string) {
+  async removeItemByProduct(userId: number, productId: string, productVariantId: string) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
       relations: ['coupon', 'coupon.products', 'coupon.vendor', 'cartItems', 'cartItems.product', 'cartItems.product.vendor'],
@@ -263,9 +284,16 @@ export class CartService {
       throw new NotFoundException('Product not found');
     }
 
-    let updatedStock = cartItem.quantity + product.stock;
-    product.stock = updatedStock;
-    await this.productRepo.save(product);
+    const variant = await this.productVariantRepo.findOne({
+      where: { id: productVariantId },
+    });
+    if (!variant) {
+      throw new NotFoundException('Product variant not found');
+    }
+
+    let updatedStock = cartItem.quantity + variant.stock;
+    variant.stock = updatedStock;
+    await this.productVariantRepo.save(variant);
 
     const result = await this.cartItemsRepo.delete({
       product: productId as any,
@@ -304,25 +332,30 @@ export class CartService {
       if (!product) {
         throw new NotFoundException('Product not found');
       }
-
+      const variant = await this.productVariantRepo.findOne({
+        where: { id: guestItem.variantId },
+      });
+      if (!variant) {
+        throw new NotFoundException('Product variant not found');
+      }
       if (product)
         if (existingItem) {
           console.log(existingItem.quantity, guestItem.quantity)
           existingItem.quantity += guestItem.quantity;
 
-          product.stock -= guestItem.quantity;
-          await this.productRepo.save(product);
+          variant.stock -= guestItem.quantity;
+          await this.productVariantRepo.save(variant);
           console.log(existingItem.quantity)
           await this.cartItemsRepo.save(existingItem);
         } else {
           // Create new entry
-          if (product.stock < guestItem.quantity) {
-            guestItem.quantity = product.stock;
-            product.stock = 0;
+          if (variant.stock < guestItem.quantity) {
+            guestItem.quantity = variant.stock;
+            variant.stock = 0;
           } else {
-            product.stock -= guestItem.quantity;
+            variant.stock -= guestItem.quantity;
           }
-          await this.productRepo.save(product);
+          await this.productVariantRepo.save(variant);
           const newItem = this.cartItemsRepo.create({
             cart: { id: cart?.id },
             product: { id: guestItem.id },

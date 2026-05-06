@@ -40,13 +40,21 @@ export class ProductService {
   async findAll(): Promise<Product[]> {
     return await this.productRepo.find({
       order: { createdAt: 'DESC' },
-      relations: ['vendor'] // Show newest first
+      relations: ['vendor', 'variants'] // Show newest first
     });
+  }
+
+  async getProductVariants(productId: string) {
+    const product = await this.productRepo.findOne({ where: { id: productId }, relations: ['variants'] });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${productId} not found`);
+    }
+    return {variants: product.variants || []};
   }
 
   // Find one by ID
   async findOne(title: string, vendor): Promise<Product> {
-    const product = await this.productRepo.findOne({ where: { name: title, vendor: { name: vendor } }, relations: ['vendor', 'reviews', 'tags'] });
+    const product = await this.productRepo.findOne({ where: { name: title, vendor: { name: vendor } }, relations: ['vendor', 'reviews', 'tags', 'variants'] });
     if (!product)
       throw new NotFoundException(`Product not found`);
     return product;
@@ -91,7 +99,7 @@ export class ProductService {
         return {
           vendorName: p.vendor.name,
           productName: p.name,
-          productImage: p.image
+          productImage: p.variants[0]?.image 
         }
       })
       return result;
@@ -100,7 +108,6 @@ export class ProductService {
       return { message: 'Error while searching', success: false };
     }
   }
-
 
   async getProducts(
     filters: {
@@ -174,7 +181,7 @@ export class ProductService {
         const matchedProducts = (vendor.products || [])
           .filter(p => p.name && p.name.toLowerCase().includes(searchLower))
           .slice(0, 4)
-          .map(p => ({ id: p.id, name: p.name, image: p.image, price: p.price }));
+          .map(p => ({ id: p.id, name: p.name, image:p.variants[0].image, price: p.price }));
 
         return {
           vendorId: vendor.id,

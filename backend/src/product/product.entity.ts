@@ -15,6 +15,7 @@ import {
 import { Tag } from './tag.entity';
 import { Coupon } from 'src/coupon/coupon.entity';
 import { Review } from 'src/review/review.entity';
+import { ProductVariant } from './productVariant.entity';
 
 @Entity('products')
 export class Product {
@@ -34,24 +35,8 @@ export class Product {
   @Column({ type: 'float', default: 0 })
   rating!: number;
 
-  // Storing the URL or Cloudinary ID of the image
-  @Column({ nullable: true })
-  image!: string;
-
-  @Column({ type: 'simple-json', nullable: true, default: '[]' })
-  images: string[];
-
-  @Column({ default: 'completed' })
-  imageUploadStatus: string; // 'processing' | 'completed' | 'failed'
-
-  @Column({ default: 0 })
-  stock!: number;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @OneToMany(() => ProductVariant, (variant) => variant.product, { cascade: true })
+  variants: ProductVariant[];
 
   @ManyToOne(() => User, (vendor) => vendor.products, {onDelete: 'CASCADE'})
   vendor!: User;
@@ -73,4 +58,10 @@ export class Product {
 
   @ManyToMany(() => Coupon, (coupon) => coupon.products, {onDelete: 'CASCADE'})
   coupons: Coupon[]
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

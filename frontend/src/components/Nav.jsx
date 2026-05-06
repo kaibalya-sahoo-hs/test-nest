@@ -186,7 +186,7 @@ function Nav() {
           <span
             className="text-lg sm:text-2xl font-bold tracking-tight cursor-pointer"
             onClick={() => {
-              navigate(user?.role === "admin" ? "/admin/dashboard" : "/");
+              navigate(user?.role === "admin" ? "/admin/dashboard" : (user?.role === "vendor" ? "/vendor/dashboard" : "/products"));
             }}
           >
             <span className="text-[#4379EE]">Swift</span>Cart
@@ -425,7 +425,7 @@ function Nav() {
         >
           <div className={`${isDashboardAndProfilePaths ? 'w-[100%]' :'w-[90vw]'} mx-auto`}>
             <Outlet />
-            {shouldShowChat &&
+            {shouldShowChat && (user?.role === 'guest' || !user)  &&
              <Floatingchat/>
             }
             

@@ -28,11 +28,12 @@ export class CartController {
   async addToCart(
     @Req() req,
     @Body('productId') productId: string, // Match your Entity type (string/uuid)
+    @Body('productVariantId') productVariantId: string,
     @Body('quantity') quantity?: number,
   ) {
     const userId = req.user.id;
     console.log(userId);
-    return await this.cartService.addToCart(userId, productId, quantity || 1);
+    return await this.cartService.addToCart(userId, productId, productVariantId, quantity || 1);
   }
 
   @Delete('coupon')
@@ -45,9 +46,9 @@ export class CartController {
   
   @Delete(':id')
   @UseGuards(AuthGuard)
-  async removeItem(@Req() req, @Param('id') cartItemId: string) {
+  async removeItem(@Req() req, @Param('id') cartItemId: string, @Body('productVariantId') productVariantId: string) {
     const userId = req.user.id;
-    await this.cartService.removeItemByProduct(userId, cartItemId);
+    await this.cartService.removeItemByProduct(userId, cartItemId, productVariantId);
     return { message: 'Item removed from cart', success: true };
   }
 
@@ -57,12 +58,14 @@ export class CartController {
     @Req() req,
     @Param('id') cartItemId: string,
     @Body('quantity') quantity: number,
+    @Body('productVariantId') productVariantId: string,
     @Body('coupon') coupon?: string,
   ) {
     const userId = req.user.id;
     return await this.cartService.updateQuantityByProduct(
       userId,
       cartItemId,
+      productVariantId,
       quantity,
     );
   }

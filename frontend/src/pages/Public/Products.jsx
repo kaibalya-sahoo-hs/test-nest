@@ -44,6 +44,7 @@ function Products() {
           // Use normal product list endpoint
           const response = await api.get("/products");
           if (response.data.success) {
+            console.log(response.data.data)
             setProducts(response.data.data);
           }
         }
@@ -94,7 +95,12 @@ function Products() {
   };
 
   const getProductImages = (item) => {
-    if (item.images && item.images.length > 0) return item.images;
+    if (item.variants && item.variants.length > 0) {
+      const firstVariant = item.variants[0];
+      if (firstVariant.images && firstVariant.images.length > 0) {
+        return firstVariant.images;
+      }
+    }
     if (item.image) return [item.image];
     return ["https://via.placeholder.com/200"];
   };

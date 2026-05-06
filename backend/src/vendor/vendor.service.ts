@@ -20,6 +20,8 @@ import { User } from 'src/users/users.entity';
 import { retry } from 'rxjs';
 import { CreateProductDto } from 'src/product/product.dto';
 import { Tag } from 'src/product/tag.entity';
+import { ProductVariant } from 'src/product/productVariant.entity';
+import { success } from 'zod';
 
 @Injectable()
 export class VendorService {
@@ -37,6 +39,8 @@ export class VendorService {
     private userRepo: Repository<User>,
     @InjectRepository(Tag)
     private tagRepo: Repository<Tag>,
+    @InjectRepository(ProductVariant)
+    private productVariantRepo: Repository<ProductVariant>,
     private cloudinaryService: CloudinaryService,
     @InjectQueue('image-upload') private imageUploadQueue: Bull.Queue,
     private jwtService: JwtService,
@@ -158,56 +162,76 @@ export class VendorService {
     files: Express.Multer.File[],
     userID,
   ) {
-  // 1️⃣ Normalize tags (trim, lowercase, filter empty)
-  const normalizedTags = productData.tags
-    .split(',')
-    .map(tag => tag.trim().toLowerCase())
-    .filter(tag => tag.length > 0);
+    // 1️⃣ Normalize tags (trim, lowercase, filter empty)
+    const normalizedTags = productData.tags
+      .split(',')
+      .map(tag => tag.trim().toLowerCase())
+      .filter(tag => tag.length > 0);
 
-  // 2️⃣ Find existing tags
-  const existingTags = normalizedTags.length > 0
-    ? await this.tagRepo.find({
+    // 2️⃣ Find existing tags
+    const existingTags = normalizedTags.length > 0
+      ? await this.tagRepo.find({
         where: {
           name: In(normalizedTags),
         },
       })
-    : [];
+      : [];
 
-  const existingNames = existingTags.map(t => t.name);
+    const existingNames = existingTags.map(t => t.name);
 
-  const newTagNames = normalizedTags.filter(
-    tag => !existingNames.includes(tag)
-  );
+    const newTagNames = normalizedTags.filter(
+      tag => !existingNames.includes(tag)
+    );
 
-  const newTags = newTagNames.map(name =>
-    this.tagRepo.create({ name })
-  );
+    const newTags = newTagNames.map(name =>
+      this.tagRepo.create({ name })
+    );
 
+    const savedNewTags = await this.tagRepo.save(newTags);
+
+    const allTags = [...existingTags, ...savedNewTags];
 
     const featuresArray = productData.features.split(",")
-
-  const savedNewTags = await this.tagRepo.save(newTags);
-
-  const allTags = [...existingTags, ...savedNewTags];
-
-    if (!files || files.length === 0) {
-      return { message: 'At least one product image is required', success: false };
-    }
-
-    // Save the product immediately with processing status
+    
     const newProduct = this.productRepo.create({
       ...productData,
       features: featuresArray,
       vendor: { id: userID },
       tags: allTags,
-      image: '', // Will be set by queue processor
-      images: [],
-      imageUploadStatus: 'processing',
     });
 
     const savedProduct = await this.productRepo.save(newProduct);
 
-    // Serialize file buffers and add to the queue
+    return { ...savedProduct, success: true, message: 'Product created' };
+  }
+
+  async addVeriant(productId, variantOptions, files){
+    const product = await this.productRepo.findOne({where: {id: productId}})
+    const variantName = `${product?.name.toLowerCase()}_${variantOptions.color.toLowerCase()}_${variantOptions.size.toLowerCase()}`
+
+
+    if(!product){
+      throw new NotFoundException('Product not found')
+    }
+    
+    if (!files || files.length === 0) {
+      return { message: 'At least one product image is required', success: false };
+    }
+
+    const variant = await this.productVariantRepo.create({
+      name: variantName,
+      price: variantOptions.price,
+      color: variantOptions.color,
+      size: variantOptions.size,
+      product: {id: productId},
+      stock: variantOptions.stock,
+      image: '',
+      images: [],
+      imageUploadStatus: 'uploading'
+    })
+
+    const savedVariant = await this.productVariantRepo.save(variant)
+
     const serializedFiles = files.map(f => ({
       buffer: Array.from(f.buffer),
       originalname: f.originalname,
@@ -215,14 +239,25 @@ export class VendorService {
     }));
 
     await this.imageUploadQueue.add('upload-product-images', {
-      productId: savedProduct.id,
+      productId: product?.id,
+      productVariantId: savedVariant.id,
       files: serializedFiles,
     }, {
       attempts: 3,
       backoff: { type: 'exponential', delay: 2000 },
     });
 
-    return { ...savedProduct, success: true, message: 'Product created. Images are being uploaded.' };
+
+    return {variant: savedVariant, success: true}
+  }
+
+  async removeVariant(variantId){
+    const variant = await this.productVariantRepo.findOne({where: {id: variantId}})
+    if(!variant){
+      throw new NotFoundException('Variant not found')
+    }
+    await this.productVariantRepo.remove(variant)
+    return {message: 'Variant removed', success: true}
   }
 
   async getVendorDetails(id) {
@@ -230,9 +265,9 @@ export class VendorService {
     return { ...vendor };
   }
 
-  async getVedorStatus(id){
+  async getVedorStatus(id) {
     const vendor = await this.getVendorDetails(id)
-    return {vendorStatus: vendor.vendorStatus}
+    return { vendorStatus: vendor.vendorStatus }
   }
 
   async getOrders(vendorId) {
@@ -299,19 +334,19 @@ export class VendorService {
     const allDelivered = siblings.every((s) => s.status === 'delivered');
     const allProcessing = siblings.every((s) => s.status === 'processing')
     const allShipped = siblings.every((s) => s.status === 'shipped')
-    
+
     if (allDelivered) {
       parentOrderStatus = 'delivered'
-    }else if(allShipped){
+    } else if (allShipped) {
       parentOrderStatus = 'shipped'
-    }else{
+    } else {
       parentOrderStatus = 'processing'
     }
     // If all sub-orders of parent are delivered, update parent to delivered
     // if (newStatus === 'delivered' && order.parentOrder) {
     // }
 
-    await this.orderRepo.update({id: order.parentOrder.id}, {status: parentOrderStatus})
+    await this.orderRepo.update({ id: order.parentOrder.id }, { status: parentOrderStatus })
 
     return {
       success: true,
@@ -355,7 +390,7 @@ export class VendorService {
     const products = await this.productRepo.find({
       where: { vendor: { id: userId } },
       order: { createdAt: 'DESC' },
-      relations: ['tags', 'coupons']
+      relations: ['tags', 'coupons', 'variants']
     });
 
     return products;
@@ -391,10 +426,10 @@ export class VendorService {
 
     const existingTags = normalizedTags.length > 0
       ? await this.tagRepo.find({
-          where: {
-            name: In(normalizedTags),
-          },
-        })
+        where: {
+          name: In(normalizedTags),
+        },
+      })
       : [];
 
     const existingNames = existingTags.map(t => t.name);
@@ -412,7 +447,7 @@ export class VendorService {
     const allTags = [...existingTags, ...savedNewTags];
 
     const featuresArray = updateData.features.split(',')
-    const product = await this.productRepo.findOne({where: {id: id}, relations: ['tags'] },);
+    const product = await this.productRepo.findOne({ where: { id: id }, relations: ['tags'] },);
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
@@ -430,50 +465,50 @@ export class VendorService {
       delete updateData.existingImages;
     }
 
-    // If new files are being uploaded, use the queue
-    if (files && files.length > 0) {
-      // Set kept images immediately, queue will append new ones
-      product.images = keptImages;
-      product.image = keptImages[0] || product.image || '';
-      product.imageUploadStatus = 'processing';
+    // // If new files are being uploaded, use the queue
+    // if (files && files.length > 0) {
+    //   // Set kept images immediately, queue will append new ones
+    //   product.images = keptImages;
+    //   product.image = keptImages[0] || product.image || '';
+    //   product.imageUploadStatus = 'processing';
 
-      const serializedFiles = files.map(f => ({
-        buffer: Array.from(f.buffer),
-        originalname: f.originalname,
-        mimetype: f.mimetype,
-      }));
+    //   const serializedFiles = files.map(f => ({
+    //     buffer: Array.from(f.buffer),
+    //     originalname: f.originalname,
+    //     mimetype: f.mimetype,
+    //   }));
 
-      // Replace tags completely
-      product.tags = allTags;
-      delete updateData.tags;
-      delete updateData.images;
-      delete updateData.image;
-      Object.assign(product, updateData);
-      const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
+    //   // Replace tags completely
+    //   product.tags = allTags;
+    //   delete updateData.tags;
+    //   delete updateData.images;
+    //   delete updateData.image;
+    //   Object.assign(product, updateData);
+    //   const updatedProduct = await this.productRepo.save({ ...product, features: featuresArray });
 
-      await this.imageUploadQueue.add('upload-product-images', {
-        productId: updatedProduct.id,
-        files: serializedFiles,
-      }, {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 2000 },
-      });
+    //   await this.imageUploadQueue.add('upload-product-images', {
+    //     productId: updatedProduct.id,
+    //     files: serializedFiles,
+    //   }, {
+    //     attempts: 3,
+    //     backoff: { type: 'exponential', delay: 2000 },
+    //   });
 
-      return { ...updatedProduct, success: true, message: 'Product updated. New images are being uploaded.' };
-    } else {
-      // No new files — just update with kept images
-      if (keptImages.length > 0) {
-        updateData.images = keptImages;
-        updateData.image = keptImages[0];
-      }
+    //   return { ...updatedProduct, success: true, message: 'Product updated. New images are being uploaded.' };
+    // } else {
+    //   // No new files — just update with kept images
+    //   if (keptImages.length > 0) {
+    //     updateData.images = keptImages;
+    //     updateData.image = keptImages[0];
+    //   }
 
-      // Replace tags completely with the new list (removes old tags)
-      product.tags = allTags;
-      delete updateData.tags;
-      Object.assign(product, updateData);
-      const updatedProduct = await this.productRepo.save({...product, features: featuresArray});
-      return updatedProduct;
-    }
+    //   // Replace tags completely with the new list (removes old tags)
+    //   product.tags = allTags;
+    //   delete updateData.tags;
+    //   Object.assign(product, updateData);
+    //   const updatedProduct = await this.productRepo.save({ ...product, features: featuresArray });
+    //   return updatedProduct;
+    // }
   }
 
   // Delete product

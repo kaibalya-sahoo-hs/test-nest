@@ -183,27 +183,6 @@ export class AdminService {
     }
   }
 
-  async uploadProductImage(id: string, image: any) {
-    try {
-      const product = await this.productRepo.findOneBy({ id });
-
-      if (!product) {
-        throw new NotFoundException(`Product with ID ${id} not found`);
-      }
-
-      const result = await this.cloudinaryService.uploadImage(image);
-
-      if (result?.url) {
-        product.image = result?.url;
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.log(error);
-      return { message: 'Error while uplaoding the image', success: false };
-    }
-  }
-
   // =================== VENDOR MANAGEMENT ===================
 
   async findAllVendors(status?: string) {

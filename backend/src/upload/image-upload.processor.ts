@@ -4,18 +4,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../product/product.entity';
 import { CloudinaryService } from './upload.service';
+import { ProductVariant } from 'src/product/productVariant.entity';
 
 @Processor('image-upload')
 export class ImageUploadProcessor {
   constructor(
     @InjectRepository(Product)
     private productRepo: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private productVariantRepo: Repository<ProductVariant>,
     private cloudinaryService: CloudinaryService,
   ) {}
 
   @Process('upload-product-images')
   async handleUpload(job: Bull.Job) {
-    const { productId, files } = job.data;
+    const { productId, productVariantId, files } = job.data;
 
     try {
       const imageUrls: string[] = [];
@@ -41,16 +44,16 @@ export class ImageUploadProcessor {
       }
 
       // Update the product with the uploaded images
-      const product = await this.productRepo.findOne({ where: { id: productId } });
-      if (product) {
+      const productVariant = await this.productVariantRepo.findOne({ where: { id: productVariantId } });
+      if (productVariant) {
         // Merge with any existing images (in case of updates)
-        const existingImages = product.images || [];
+        const existingImages = productVariant.images || [];
         const allImages = [...existingImages, ...imageUrls];
 
-        product.images = allImages;
-        product.image = allImages[0] || product.image || '';
-        product.imageUploadStatus = 'completed';
-        await this.productRepo.save(product);
+        productVariant.images = allImages;
+        productVariant.image = allImages[0] || productVariant.image || '';
+        productVariant.imageUploadStatus = 'completed';
+        await this.productVariantRepo.save(productVariant);
       }
 
       return { success: true, imageUrls };
@@ -59,10 +62,10 @@ export class ImageUploadProcessor {
 
       // Mark the product as failed
       try {
-        const product = await this.productRepo.findOne({ where: { id: productId } });
-        if (product) {
-          product.imageUploadStatus = 'failed';
-          await this.productRepo.save(product);
+        const productVariant = await this.productVariantRepo.findOne({ where: { id: productVariantId } });
+        if (productVariant) {
+          productVariant.imageUploadStatus = 'failed';
+          await this.productVariantRepo.save(productVariant);
         }
       } catch (e) {
         console.error('Failed to update product status:', e);

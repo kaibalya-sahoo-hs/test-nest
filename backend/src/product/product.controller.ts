@@ -28,6 +28,10 @@ export class ProductController {
         }
     }
 
+    @Get('variants/:id')
+    async getProductVariants(@Param('id') productId: string) {
+        return await this.productService.getProductVariants(productId);
+    }
     @Get('reviews')
     @UseGuards(AuthGuard)
     async getAllreviews(@Query('pid') productId: string, @Req() req){

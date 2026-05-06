@@ -48,7 +48,12 @@ function ProductPage() {
 
   // Get all images (use images array if available, fallback to single image)
   const getImages = () => {
-    if (product?.images && product.images.length > 0) return product.images;
+    if (product?.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      if (firstVariant.images && firstVariant.images.length > 0) {
+        return firstVariant.images;
+      }
+    }
     if (product?.image) return [product.image];
     return ["https://rukminim2.flixcart.com/image/480/640/xif0q/smartwatch/c/y/h/-original-imagte6zvcbtz7z8.jpeg?q=90"];
   };
@@ -243,7 +248,7 @@ function ProductPage() {
                 className="h-full w-full object-contain mix-blend-multiply transition-all duration-300"
               />
               {/* Navigation arrows */}
-              {/* {images.length > 1 && (
+              {images.length > 1 && (
                 <>
                   <button
                     onClick={() => setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
@@ -258,7 +263,7 @@ function ProductPage() {
                     <FaChevronRight size={14} />
                   </button>
                 </>
-              )} */}
+              )}
               {/* Image counter */}
               {images.length > 1 && (
                 <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -361,7 +366,20 @@ function ProductPage() {
             </div>
           </div>
         </div>
+<div className="">
+{product.variants && product.variants.length > 0 && (
+  <div className="mt-10 flex">
+    {product.variants.map((variant, idx) => (
+      <div key={idx} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
+        <div className="flex flex-col sm:flex-row gap-4 items-center h-20 w-20">
+        <img src={variant.image} alt={variant.name} className="w-full h-full"/>
 
+        </div>
+      </div>
+    ))}
+    </div>
+)}
+</div>
         {/* Tabs */}
         <div className="md:mt-20 mt-8 w-full ">
           <div role="tablist" aria-label="Product tabs" className="flex gap-6 md:gap-15 mb-4 border-b-1 border-b-gray-300 w-full">

@@ -15,10 +15,11 @@ import { CouponModule } from 'src/coupon/coupon.module';
 import { Withdraw } from 'src/withdraw/withdraw.entity';
 import { VendorTransaction } from './vendorTransaction.entity';
 import { Tag } from 'src/product/tag.entity';
+import { ProductVariant } from 'src/product/productVariant.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw, VendorTransaction, Tag]),
+    TypeOrmModule.forFeature([User, Product, Order, Vendor, Withdraw, VendorTransaction, Tag, ProductVariant]),
     BullModule.registerQueue({ name: 'image-upload' }),
     ProductModule,
     CloudinaryModule,

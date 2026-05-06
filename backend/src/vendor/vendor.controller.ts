@@ -116,6 +116,19 @@ export class VendorController {
     return await this.vendorService.updateProduct(id, body, files);
   }
 
+  @Post('products/:id/variants')
+  // @UseGuards(VendorGuard)
+  @UseInterceptors(FilesInterceptor('files' ))
+  async addVariant(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() body: any,
+    @UploadedFile() file: File,
+  ) {
+    const files = (req as any).files || (file ? [file] : []);
+    return await this.vendorService.addVeriant(id, body, files);
+  }
+
   @Patch('orders/:id/status')
   @UseGuards(VendorGuard)
   updateOrderStatus(

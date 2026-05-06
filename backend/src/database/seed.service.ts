@@ -303,15 +303,11 @@ export class SeedService {
       const product = this.productRepo.create({
         name: data.name,
         description: data.description,
-        price: data.price,
-        stock: data.stock,
         category: data.category,
-        image: data.image,
         vendor: vendor,
         features: data.features,
         // Map indices to actual saved tag entities
         tags: data.tagIndices.map(index => savedTags[index]),
-        images: [data.image], // Matching your simple-json column
         rating: 4.5,
       });
 

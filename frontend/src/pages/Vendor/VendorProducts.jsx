@@ -151,15 +151,16 @@ function VendorProducts() {
                 <th className="p-5 text-xs font-bold text-gray-500 uppercase">Image</th>
                 <th className="p-5 text-xs font-bold text-gray-500 uppercase">Product Name</th>
                 <th className="p-5 text-xs font-bold text-gray-500 uppercase">Price</th>
+                <th className="p-5 text-xs font-bold text-gray-500 uppercase text-center">Variants</th>
                 <th className="p-5 text-xs font-bold text-gray-500 uppercase text-center">Coupons</th>
                 <th className="p-5 text-xs font-bold text-gray-500 uppercase text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan="6" className="p-20 text-center text-gray-400">Loading inventory...</td></tr>
+                <tr><td colSpan="7" className="p-20 text-center text-gray-400">Loading inventory...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan="6" className="p-20 text-center text-gray-400">No products found.</td></tr>
+                <tr><td colSpan="7" className="p-20 text-center text-gray-400">No products found.</td></tr>
               ) : (
                 products.map((product, idx) => (
                   <React.Fragment key={product.id}>
@@ -176,7 +177,7 @@ function VendorProducts() {
                               <span className="text-red-500 text-lg font-bold">✕</span>
                             </div>
                           ) : (
-                            <img src={product.image || "https://via.placeholder.com/150"} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                            <img src={product.variants[0]?.image || "https://via.placeholder.com/150"} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                           )}
                           {product.imageUploadStatus === 'processing' && (
                             <div className="absolute -bottom-0.5 left-0 right-0 h-1 bg-blue-100">
@@ -203,13 +204,26 @@ function VendorProducts() {
                       </td>
                       <td className="p-5 font-bold text-[#202224]">₹{Number(product.price).toLocaleString("en-IN")}</td>
                       <td className="p-5 text-center">
-                        {product.coupons && product.coupons.length > 0 ? (
+                        {product.variants && product.variants.length > 0 ? (
                           <button
                             onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
                             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4379EE] bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all"
                           >
-                            {product.coupons.length} coupon{product.coupons.length > 1 ? 's' : ''}
+                            {product.variants.length} variant{product.variants.length > 1 ? 's' : ''}
                             {expandedProduct === product.id ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">None</span>
+                        )}
+                      </td>
+                      <td className="p-5 text-center">
+                        {product.coupons && product.coupons.length > 0 ? (
+                          <button
+                            onClick={() => setExpandedProduct(expandedProduct === `coupon-${product.id}` ? null : `coupon-${product.id}`)}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4379EE] bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all"
+                          >
+                            {product.coupons.length} coupon{product.coupons.length > 1 ? 's' : ''}
+                            {expandedProduct === `coupon-${product.id}` ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
                           </button>
                         ) : (
                           <span className="text-xs text-gray-400">None</span>
@@ -226,10 +240,71 @@ function VendorProducts() {
                         </div>
                       </td>
                     </tr>
-                    {/* Expandable coupon row */}
-                    {expandedProduct === product.id && product.coupons && product.coupons.length > 0 && (
+                    {/* Expandable variants row */}
+                    {expandedProduct === product.id && product.variants && product.variants.length > 0 && (
                       <tr>
-                        <td colSpan="6" className="px-5 py-3 bg-gray-50/50">
+                        <td colSpan="7" className="px-5 py-4 bg-blue-50/30">
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-bold text-[#202224] mb-3">Available Variants</h4>
+                            {product.variants.map(variant => (
+                              <div key={variant.id} className="bg-white rounded-lg p-4 border border-gray-200 flex items-center justify-between hover:border-blue-300 transition-colors">
+                                <div className="flex items-center gap-4 flex-1">
+                                  {variant.image && (
+                                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                                      <img src={variant.image} alt={`${variant.color}-${variant.size}`} className="w-full h-full object-cover" />
+                                    </div>
+                                  )}
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="font-mono text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                        {variant.color}
+                                      </span>
+                                      <span className="font-mono text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">
+                                        {variant.size}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4 text-xs">
+                                      {variant.price && (
+                                        <div>
+                                          <p className="text-gray-500">Price</p>
+                                          <p className="font-bold">₹{Number(variant.price).toLocaleString("en-IN")}</p>
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className="text-gray-500">Stock</p>
+                                        <p className={`font-bold ${variant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                          {variant.stock} units
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="text-gray-500">Status</p>
+                                        {variant.imageUploadStatus === 'processing' && (
+                                          <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                                            Processing
+                                          </span>
+                                        )}
+                                        {variant.imageUploadStatus === 'completed' && (
+                                          <span className="text-xs font-bold text-green-600">✓ Ready</span>
+                                        )}
+                                        {variant.imageUploadStatus === 'failed' && (
+                                          <span className="text-xs font-bold text-red-600">✕ Failed</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Expandable coupon row */}
+                    {expandedProduct === `coupon-${product.id}` && product.coupons && product.coupons.length > 0 && (
+                      <tr>
+                        <td colSpan="7" className="px-5 py-3 bg-gray-50/50">
                           <div className="space-y-2">
                             {product.coupons.map(coupon => (
                               <div key={coupon.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
@@ -279,6 +354,16 @@ function VendorProducts() {
 /* MODAL WITH MULTI-IMAGE UPLOAD */
 const ProductModal = ({ onClose, onSave, initialData }) => {
   const [files, setFiles] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [tagInput, setTagInput] = useState('');
+  const [featureInput, setfeatureInput] = useState('')
+  const [variantFormOpen, setVariantFromOpen] = useState(false)
+
+  const [tags, setTags] = useState(
+    initialData?.tags && Array.isArray(initialData.tags) && initialData.tags.length > 0
+      ? initialData.tags.map(tag => ({ id: tag.id, name: tag.name }))
+      : []
+  );
   const [existingImages, setExistingImages] = useState(
     initialData?.images && initialData.images.length > 0
       ? initialData.images
@@ -295,15 +380,6 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
       ? initialData.features.map(f => (typeof f === 'string' ? f : f.name || String(f)))
       : []
   });
-  const [errors, setErrors] = useState({});
-
-  const [tagInput, setTagInput] = useState('');
-  const [featureInput, setfeatureInput] = useState('')
-  const [tags, setTags] = useState(
-    initialData?.tags && Array.isArray(initialData.tags) && initialData.tags.length > 0
-      ? initialData.tags.map(tag => ({ id: tag.id, name: tag.name }))
-      : []
-  );
 
   // Generate previews for new files
   const newPreviews = files.map(f => URL.createObjectURL(f));
@@ -328,6 +404,11 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     if (tags.length < 5) newErrors.tags = "Minimum 5 tags are required";
 
     if(formData.features.length < 3) newErrors.features = "Minimum 3 features are required"
+
+    // Validate variants for both create and update
+    if ((!initialData.variants || initialData.variants.length === 0)) {
+      newErrors.variants = "At least one variant is required";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -445,6 +526,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     }
   };
 
+
   const ErrorMsg = ({ msg }) => msg ? (
     <p className="text-[10px] text-red-500 font-bold ml-1 mt-1">{msg}</p>
   ) : null;
@@ -457,53 +539,94 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Multi-Image Upload Area */}
-          <div>
-            <div className="flex items-center gap-1 mb-2">
-              <label className="text-xs font-bold text-gray-500 uppercase">Product Images</label>
-              <FaAsterisk size={10} className="text-red-500"/>
-              <span className="text-[10px] text-gray-400 ml-2">({totalImages}/5)</span>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-[#202224]">Product Variants</h3>
+                {errors.variants && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">{errors.variants}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setVariantFromOpen(true)}
+                className="flex items-center gap-2 bg-blue-50 text-[#4379EE] px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all text-xs font-bold"
+              >
+                <FaPlus size={12} /> Add Variant
+              </button>
             </div>
-
-            {/* Image Grid */}
-            <div className="grid grid-cols-5 gap-3 mb-3">
-              {/* Existing images */}
-              {existingImages.map((img, idx) => (
-                <div key={`existing-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 group">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs group-hover:opacity-100 transition-opacity"
-                  >✕</button>
-                  {idx === 0 && <span className="absolute w-full bottom-0 left-0 bg-[#4379EE] text-white text-[13px] px-1.5 py-0.5 ">Thumbnail</span>}
-                </div>
-              ))}
-
-              {/* New file previews */}
-              {newPreviews.map((preview, idx) => (
-                <div key={`new-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border-2 border-blue-200 group">
-                  <img src={preview} alt="" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeNewFile(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  >✕</button>
-                  <span className="absolute bottom-1 left-1 bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded-md font-bold">NEW</span>
-                </div>
-              ))}
-
-              {/* Upload button */}
-              {totalImages < 5 && (
-                <label className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-all ${errors.image ? 'border-red-400' : 'border-gray-200'}`}>
-                  <FiUploadCloud size={20} className="text-gray-400 mb-1" />
-                  <span className="text-[9px] text-gray-400 font-bold">ADD</span>
-                  <input type="file" className="hidden" accept="image/*" multiple onChange={handleFileChange} />
-                </label>
-              )}
-            </div>
-            <ErrorMsg msg={errors.image} />
+            
+            {initialData && initialData.variants && initialData.variants.length > 0 ? (
+              <div className="space-y-2">
+                {initialData.variants.map((variant) => (
+                  <div key={variant.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 hover:border-blue-300 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-mono text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            {variant.color}
+                          </span>
+                          <span className="font-mono text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">
+                            {variant.size}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-2">{variant.name}</p>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          {variant.price && (
+                            <div>
+                              <p className="text-gray-500 text-xs">Price</p>
+                              <p className="font-bold text-[#202224]">₹{Number(variant.price).toLocaleString("en-IN")}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-gray-500 text-xs">Stock</p>
+                            <p className={`font-bold ${variant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {variant.stock} units
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs">Status</p>
+                            <div className="flex items-center gap-1">
+                              {variant.imageUploadStatus === 'processing' && (
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                                  Processing
+                                </span>
+                              )}
+                              {variant.imageUploadStatus === 'completed' && (
+                                <span className="text-xs font-bold text-green-600">✓ Ready</span>
+                              )}
+                              {variant.imageUploadStatus === 'failed' && (
+                                <span className="text-xs font-bold text-red-600">✕ Failed</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {variant.image && (
+                        <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                          <img src={variant.image} alt={`${variant.color}-${variant.size}`} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                <p className="text-gray-500 text-sm mb-3">No variants added yet</p>
+                {initialData && <button
+                  type="button"
+                  onClick={() => setVariantFromOpen(true)}
+                  className="inline-flex items-center gap-2 bg-[#4379EE] text-white px-4 py-2 rounded-lg hover:bg-[#3768D1] transition-all text-sm font-bold"
+                >
+                  <FaPlus size={14} /> {initialData ? "Create First Variant" : "Add Variant"}
+                </button>}
+              </div>
+            )}
           </div>
+          
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 col-span-2">
@@ -517,25 +640,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               />
               <ErrorMsg msg={errors.name} />
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price (₹)</label>
-                <FaAsterisk size={10} className="text-red-500"/>
-              </div>
-              <input placeholder="price" type="number" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none ${errors.price ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                value={formData.price}
-                onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if (errors.price) setErrors({ ...errors, price: null }); }}
-              />
-              <ErrorMsg msg={errors.price} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock Count</label>
-              <input placeholder="stock" type="number" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none ${errors.stock ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                value={formData.stock}
-                onChange={(e) => { setFormData({ ...formData, stock: e.target.value }); if (errors.stock) setErrors({ ...errors, stock: null }); }}
-              />
-              <ErrorMsg msg={errors.stock} />
-            </div>
+            
             <div className="space-y-2 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Tags</label>
@@ -553,7 +658,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                 </button>
               </div>
               {errors.tags && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.tags}</p>}
-              <div className="flex flex-wrap gap-2 mt-2 min-h-[32px]">
+              <div className="flex flex-wrap gap-2 mt-2 min-h-8">
                 {tags.map((tag, index) => (
                   <div key={index} className="flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full text-xs font-bold transition-all hover:bg-blue-100">
                     <span>{tag.name}</span>
@@ -591,7 +696,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                   Add
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2 mt-2 min-h-[32px]">
+              <div className="flex flex-wrap gap-2 mt-2 min-h-8">
                 {formData.features.map((feat, index) => {
                   const display = typeof feat === 'string' ? feat : feat.name || String(feat);
                   return (
@@ -614,9 +719,265 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
             </button>
           </div>
         </form>
+        <div>
+          {variantFormOpen && initialData && (
+            <ProductVariantModal 
+              productId={initialData.id}
+              onClose={() => setVariantFromOpen(false)}
+              onSave={() => {
+                // Refetch the product to get updated variants
+                setVariantFromOpen(false);
+                // Trigger parent onSave to refresh product list
+                setTimeout(() => {
+                  onSave();
+                }, 500);
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
 };
+
+const ProductVariantModal = ({ productId, onClose, onSave }) => {
+  const [variantFiles, setVariantFiles] = useState([]);
+  const [variantErrors, setVariantErrors] = useState({});
+  const [variantUploading, setVariantUploading] = useState(false);
+  
+  const colors = ['Red', 'Blue', 'Green', 'Black', 'White', 'Yellow', 'Purple', 'Orange', 'Pink', 'Gray'];
+  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '32', '34', '36', '38', '40', '42'];
+
+  const [variantData, setVariantData] = useState({
+    color: '',
+    size: '',
+    price: '',
+    stock: 0,
+  });
+
+  const variantPreviews = variantFiles.map(f => URL.createObjectURL(f));
+
+  const validateVariant = () => {
+    let newErrors = {};
+
+    if (!variantData.color.trim()) newErrors.color = "Color is required";
+    if (!variantData.size.trim()) newErrors.size = "Size is required";
+    if (variantFiles.length === 0) newErrors.images = "At least one variant image is required";
+    if (!variantData.price || variantData.price <= 0) newErrors.price = "Price must be greater than 0";
+    if (variantData.stock === "" || variantData.stock < 0) newErrors.stock = "Stock cannot be negative";
+
+    setVariantErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleVariantFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    const remaining = 5 - variantPreviews.length;
+    
+    if (remaining <= 0) {
+      toast.error("Maximum 5 images allowed per variant");
+      return;
+    }
+
+    const filesToAdd = selectedFiles.slice(0, remaining);
+    setVariantFiles(prev => [...prev, ...filesToAdd]);
+    if (variantErrors.images) setVariantErrors({ ...variantErrors, images: null });
+  };
+
+  const removeVariantFile = (index) => {
+    setVariantFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVariantSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateVariant()) return;
+    
+    setVariantUploading(true);
+
+    const formData = new FormData();
+    formData.append("color", variantData.color);
+    formData.append("size", variantData.size);
+    formData.append("price", variantData.price);
+    formData.append("stock", variantData.stock);
+
+    for (const file of variantFiles) {
+      formData.append("files", file);
+    }
+
+    try {
+      await api.post(`/vendor/products/${productId}/variants`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Variant created successfully!");
+      setVariantFiles([]);
+      setVariantData({ color: '', size: '', price: '', stock: 0 });
+      onSave();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to create variant");
+    } finally {
+      setVariantUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 overflow-y-auto max-h-[95vh]">
+        <h2 className="text-2xl font-bold text-[#202224] mb-6">Add Product Variant</h2>
+
+        <form onSubmit={handleVariantSubmit} className="space-y-6">
+          
+          {/* Image Upload Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1">
+              <label className="text-xs font-bold text-gray-500 uppercase">Variant Images</label>
+              <FaAsterisk size={10} className="text-red-500"/>
+            </div>
+            
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors cursor-pointer bg-gray-50/50"
+              onClick={() => document.getElementById('variant-file-input').click()}
+            >
+              <FiUploadCloud size={32} className="text-gray-400 mx-auto mb-2"/>
+              <p className="text-sm font-bold text-gray-600 mb-1">Click to upload or drag and drop</p>
+              <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB (Max 5 images)</p>
+              <input
+                id="variant-file-input"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleVariantFileChange}
+                className="hidden"
+              />
+            </div>
+
+            {variantErrors.images && <p className="text-[10px] text-red-500 font-bold">{variantErrors.images}</p>}
+
+            {/* Image Previews */}
+            {variantPreviews.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {variantPreviews.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img src={preview} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                    <button
+                      type="button"
+                      onClick={() => removeVariantFile(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Color and Size Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Color</label>
+                <FaAsterisk size={10} className="text-red-500"/>
+              </div>
+              <select
+                value={variantData.color}
+                onChange={(e) => {
+                  setVariantData({ ...variantData, color: e.target.value });
+                  if (variantErrors.color) setVariantErrors({ ...variantErrors, color: null });
+                }}
+                className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${variantErrors.color ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+              >
+                <option value="">Select a color</option>
+                {colors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+              {variantErrors.color && <p className="text-[10px] text-red-500 font-bold">{variantErrors.color}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Size</label>
+                <FaAsterisk size={10} className="text-red-500"/>
+              </div>
+              <select
+                value={variantData.size}
+                onChange={(e) => {
+                  setVariantData({ ...variantData, size: e.target.value });
+                  if (variantErrors.size) setVariantErrors({ ...variantErrors, size: null });
+                }}
+                className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${variantErrors.size ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+              >
+                <option value="">Select a size</option>
+                {sizes.map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+              {variantErrors.size && <p className="text-[10px] text-red-500 font-bold">{variantErrors.size}</p>}
+            </div>
+          </div>
+
+          {/* Price and Stock Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Variant Price</label>
+                <FaAsterisk size={10} className="text-red-500"/>
+              </div>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Enter price"
+                value={variantData.price}
+                onChange={(e) => {
+                  setVariantData({ ...variantData, price: e.target.value });
+                  if (variantErrors.price) setVariantErrors({ ...variantErrors, price: null });
+                }}
+                className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${variantErrors.price ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+              />
+              {variantErrors.price && <p className="text-[10px] text-red-500 font-bold">{variantErrors.price}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Stock Quantity</label>
+                <FaAsterisk size={10} className="text-red-500"/>
+              </div>
+              <input
+                type="number"
+                placeholder="Enter stock"
+                value={variantData.stock}
+                onChange={(e) => {
+                  setVariantData({ ...variantData, stock: Math.max(0, Number(e.target.value) || 0) });
+                  if (variantErrors.stock) setVariantErrors({ ...variantErrors, stock: null });
+                }}
+                className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${variantErrors.stock ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+              />
+              {variantErrors.stock && <p className="text-[10px] text-red-500 font-bold">{variantErrors.stock}</p>}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 mt-8">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 font-bold text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={variantUploading}
+              className="bg-[#4379EE] text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-[#3768D1] transition-all disabled:opacity-50"
+            >
+              {variantUploading ? "Creating..." : "Create Variant"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default VendorProducts;
