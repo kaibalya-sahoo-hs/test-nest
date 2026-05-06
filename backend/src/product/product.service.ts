@@ -101,34 +101,96 @@ export class ProductService {
     }
   }
 
-  async getTopVendorsByProductName(productName: string) {
-    const results = await this.userRepo.createQueryBuilder('vendor')
-      .innerJoinAndSelect('vendor.products', 'product')
-      .where('LOWER(product.name) LIKE LOWER(:name)', { name: `%${productName}%` })
-      .getMany();
-    if (results.length === 0) return [];
 
-    // 2. Map through vendors to attach their total order counts
-    const finalReport = await Promise.all(results.map(async (vendor) => {
-      const orderCount = await this.orderRepo.count({
-        where: { vendor: { id: vendor.id } },
-      });
+  async getProducts(
+    filters: {
+      name?: string,
+      minAmount?: number,
+      maxAmount?: number,
+      features?: string[]
+    }
+  ) {
+    try {
+      let qb = await this.productRepo.createQueryBuilder('product')
+        .leftJoinAndSelect('product.vendor', 'vendor')
 
-      return {
-        vendorId: vendor.id,
-        vendorName: vendor.name,
-        totalOrders: orderCount,
-        // Returning the details of the products that matched
-        products: vendor.products.map(p => ({
-          id: p.id,
-          name: p.name,
-          image: p.image,
-          price: p.price
-        }))
-      };
-    }));
+      if (filters.name) {
+        console.log(filters.name)
+        qb.andWhere('product.name ILIKE :name', { name: `%${filters.name}%` })
+      }
 
-    return finalReport.sort((a, b) => b.totalOrders - a.totalOrders);
+
+      if (filters.maxAmount !== undefined && filters.maxAmount !== null) {
+        qb.andWhere('product.price <= :maxPrice', { maxPrice: filters.maxAmount });
+      }
+
+      if (filters.minAmount !== undefined && filters.minAmount !== null) {
+        qb.andWhere('product.price >= :minPrice', { minPrice: filters.minAmount });
+      }
+
+      if (filters.features && filters.features.length > 0) {
+        filters.features.forEach((word, index) => {
+          const paramName = `featureWord${index}`;
+          qb.andWhere(
+            `EXISTS (
+              SELECT 1 FROM unnest(product.features) as feature 
+              WHERE feature ILIKE :${paramName}
+      )`,
+            { [paramName]: `%${word}%` }
+          );
+        });
+      }
+
+      return qb.getMany()
+    } catch (error) {
+      console.log('Error while searching ', error);
+      return { message: 'Error while searching', success: false };
+    }
+  }
+
+  async getTopVendorsByProductName(filters?: { productName?: string; limit?: number }) {
+    try {
+      const name = (filters?.productName || '').trim();
+      if (!name) return [];
+
+      const vendorLimit = Math.max(1, Math.min(filters?.limit ?? 5, 50));
+      const searchParam = `%${name.toLowerCase()}%`;
+
+      const vendors = await this.userRepo.createQueryBuilder('vendor')
+        .innerJoinAndSelect('vendor.products', 'product')
+        .where('LOWER(product.name) LIKE :name', { name: searchParam })
+        .limit(filters?.limit ?? 5)
+        .getMany()
+
+      if (vendors.length === 0) return [];
+
+      const searchLower = name.toLowerCase();
+
+      const finalReport = await Promise.all(vendors.map(async (vendor) => {
+        const orderCount = await this.orderRepo.count({
+          where: { vendor: { id: vendor.id } },
+        });
+
+        const matchedProducts = (vendor.products || [])
+          .filter(p => p.name && p.name.toLowerCase().includes(searchLower))
+          .slice(0, 4)
+          .map(p => ({ id: p.id, name: p.name, image: p.image, price: p.price }));
+
+        return {
+          vendorId: vendor.id,
+          vendorName: vendor.name,
+          totalOrders: orderCount,
+          products: matchedProducts,
+        };
+      }));
+
+      console.log(finalReport)
+      return finalReport
+        .sort((a, b) => b.totalOrders - a.totalOrders)
+    } catch (error) {
+      console.error('getTopVendorsByProductName error:', error);
+      return [];
+    }
   }
 
   // Edit / Update product
@@ -155,7 +217,7 @@ export class ProductService {
     return { deleted: true };
   }
 
-  
+
 
   async getSimilarSuggestions(productName: string) {
     const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })

@@ -27,30 +27,42 @@ export class AiService {
         );
 
         const getTopVendorsByProductName = tool(
-            async ({ productName }) => {
-                const result = await this.productService.getTopVendorsByProductName(productName);
-                console.log(result)
+            async ({ filters }) => {
+                const result = await this.productService.getTopVendorsByProductName(filters);
                 return JSON.stringify(result); // Tools must return strings
             },
             {
                 name: "getTopVendorsByProductName",
                 description: "Finds top vendors for a product. Returns vendor names, product details, and total order counts.",
-                schema: z.object({ productName: z.string() }),
+                schema: z.object({ filters: z.object({
+                    productName: z.string().optional(),
+                    limit: z.number().optional()
+                }).optional() }),
             }
         );
 
-        const getproductsByName = tool(
-            async ({productName}) => {
-                console.log(productName)
-                return await this.productService.getProductsByName(productName)
-            },
-            {
-                name: "getproductsByName",
-                description: "this tool is used to find the products by the product name",
-                schema: z.object({productName: z.string()})
-            }
-        )
+        const getProducts = tool(({ filter }) => {
+            const f = filter || {};
+            const sanitized = {
+                name: f.name ?? undefined,
+                minAmount: (typeof f.minAmount === 'number') ? f.minAmount : undefined,
+                maxAmount: (typeof f.maxAmount === 'number') ? f.maxAmount : undefined,
+                features: Array.isArray(f.features) ? f.features : undefined,
+            };
 
+            return this.productService.getProducts(sanitized);
+        }, {
+            name: "getProducts",
+            description: "Finds products based on filters. Returns product names, vendor names, and images.",
+            schema: z.object({
+                filter: z.object({
+                    name: z.string().nullable().optional(),
+                    minAmount: z.number().nullable().optional(),
+                    maxAmount: z.number().nullable().optional(),
+                    features: z.array(z.string()).nullable().optional()
+                }).nullable().optional()
+            }),
+        })
         // 3. Define the Structured Response Schema
         // Changed to allow for an array of products/vendors since the tool returns a list
         const ResponseSchema = z.object({
@@ -59,13 +71,13 @@ export class AiService {
                 productName: z.string(),
                 vendorName: z.string(),
                 productImage: z.string()
-            })).optional().describe("A RAW ARRAY of product objects. Do NOT return this as a string.")
+            })).optional().describe("A RAW ARRAY of product objects. Do NOT return this as a string."),
         });
 
-        const tools = [getTotalProducts, getTopVendorsByProductName, getproductsByName];
-        const toolsByName = { getTotalProducts, getTopVendorsByProductName, getproductsByName };
+        const tools = [getTopVendorsByProductName, getProducts];
+        const toolsByName = { getTopVendorsByProductName, getProducts };
 
-        const SYSTEM_PROMPT =`
+        const SYSTEM_PROMPT = `
             You are a neutral customer service assistant for SwiftCart.
             YOu have to maintain a friendly conversation with the user. 
 
@@ -73,19 +85,23 @@ export class AiService {
             1. Only answer shop-related queries if user query about something that is not related to the store then dont answer.
             2. Stay neutral. Avoid overly enthusiastic phrases like 'I am glad to help'.
             3. When user asks about a product you should only show the products in our database not other products if not profucts found simplay tel the user
-            4. When listing a product, pick the top 2 features from the features array and include them in your textResponse to make the product sound more appealing.
 
             Available Tools: 
                 - getTopVendorsByProductName : Call this tool when user asks about suggesting some product or
-                                                suggestion best vendors for a specific product 
-                - getproductsByName : Call this tool when user query for something like show me phones or watches 
+                                                suggestion best vendors for a specific product
+                                                
+                                            Example: User: Suggest me a good watch
+                                                     AI: To find the best watches, I will check our top vendors for watches.
+                                                     (Call the tool 'getTopVendorsByProductName' with parameters {filter: {productName: 'watch'}})
+                - getProducts : Call this tool when user query for some product or ask to find some product with specific filters like minAmount, features
+                                Example 1 - user asks about laptop under 200000 and should has 144hz display then the tool call should be with parameters  {name: 'laptop', maxAmount: 200000, features: ['144hz', 'display']}
+                                Example 2 -If user asks about show me watches then the tool call should be with parameters {filter: {name: 'watch'}}
 
-            Example 1: When user asks about show me hoodie or something you have to call the 'getproductsByName' function
-            Example 2: When user asks to sgeesut a watch or something like that you have to call the 'getTopVendorsByProductName' function
-            
-        `;
 
-        let messages: any[] = [{role: 'system',content: SYSTEM_PROMPT}, ...incomingMessages];
+
+        `;  
+
+        let messages: any[] = [{ role: 'system', content: SYSTEM_PROMPT }, ...incomingMessages];
 
         const modelWithTools = model.bindTools(tools);
         let aiMsg = await modelWithTools.invoke(messages);
@@ -95,9 +111,10 @@ export class AiService {
         if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
             for (const toolCall of aiMsg.tool_calls) {
                 const selectedTool = toolsByName[toolCall.name];
+                console.log(toolCall)
                 if (selectedTool && toolCall.id) {
                     const toolResult = await selectedTool.invoke(toolCall.args);
-                    const cleanContent =  typeof toolResult === 'string' ? toolResult :  JSON.stringify(toolResult);
+                    const cleanContent = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
                     messages.push({
                         role: 'tool',
                         content: cleanContent,
@@ -111,24 +128,24 @@ export class AiService {
                     2. Map that data to the 'productData' field.
                     3. 'productData' must be a JSON ARRAY. 
                     4. NEVER wrap the array in quotes or make it a string.
-                    5. 'textResponse' is MANDATORY. Do not leave it blank.
-                    6. IMPORTANT: if productData is an array with no element tell user that we dont have that in our store or something like that based on the user query
-                    6. if no data of an Empty array is coming from database dont tell the user about random data just say product not found or tell something similar based on user query
-                    7. MOST IMPORTANT: IF the tool returns a data you should made the data match with the provided structure 
-                       That is {
-                            textResponse: string,
-                            productData: [{
+                    5.  When using the extract tool, you must put all output—including the textResponse and the productData—inside the tool arguments. Do not provide a text response outside of the tool.
+                    6. 'textResponse' is MANDATORY. Do not leave it blank.
+                    7. IMPORTANT: if productData is an array with no element tell user that we dont have that in our store or something like that based on the user query
+                    8. If no data of an Empty array is coming from database dont tell the user about random data just say product not found or tell something similar based on user query
+                    9. MOST IMPORTANT:If use got data then You should made the data returned by the tool match with the provided structure 
+                    That is {
+                            textResponse: string, // Mandatory
+                            productData: [{       // Optional but if tool returns data then this field must be present and must be an array of objects
                                 productName: string,
                                 vendorName: string,
                                 pruductImage: string
                             }]
-                       }
+                    }
                 `;
 
-            messages.push({role: 'system', content: formattingInstruction})
+            messages.push({ role: 'system', content: formattingInstruction })
             const structuredModel = await model.withStructuredOutput(ResponseSchema);
             const finalResult = await structuredModel.invoke(messages);
-            console.log(finalResult)
             return {
                 success: true,
                 message: finalResult.textResponse,

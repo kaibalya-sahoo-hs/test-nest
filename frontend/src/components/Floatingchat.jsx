@@ -23,8 +23,8 @@ function FloatingChat() {
         const updatedMessages = [...messages, userMessage]
         setMessages(updatedMessages)
         try {
+            console.log(updatedMessages)
             const response = await api.post('/ai', { msg: updatedMessages })
-            console.log(response.data)
             if (response.data.success) {
                 setMessages(prevMsg => [...prevMsg, { role: 'ai', content: response.data.message, productData: response.data.data }])
             }

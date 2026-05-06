@@ -128,8 +128,8 @@ function VendorManagement() {
   };
 
   return (
-    <div className="bg-[#F5F6FA] min-h-screen">
-      <div className="max-w-6xl mx-auto">
+    <div className=" bg-[#F5F6FA] min-h-screen">
+      <div className="lg:w-[75vw] w-screen mx-auto">
         {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>

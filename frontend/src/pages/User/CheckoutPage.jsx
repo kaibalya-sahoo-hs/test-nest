@@ -55,7 +55,7 @@ function CheckoutPage() {
     try {
       window.scrollTo({ top: 0, behavior: "auto" });
     } catch (err) {
-      // ignore if not running in browser context
+
     }
   }, []);
 
@@ -126,12 +126,27 @@ function CheckoutPage() {
 
   const handlePayment = async () => {
     try {
-      setLoading(true)
       if (!defaultAddress) {
         toast.error("No deafult address selected");
-        setLoading(false)
         return;
       }
+
+      if (!billing.name || !billing.phoneNumber || !billing.streetAddress || !billing.postalCode) {
+        toast.error('Please fill name, phone, street and postal code');
+        return;
+      }
+
+      if (billing.name.trim() === "" || billing.streetAddress.trim() === "" || billing.email.trim() === "" || billing.country.trim() === "" || billing.city.trim() === "" || billing.state.trim() === "") {
+        toast.error("fields cannot be empty")
+        return
+      }
+
+      if (billing.postalCode.length != 6) {
+        toast.error('Postal code must be exactly 6 digits')
+        return
+      }
+      setLoading(true)
+
       if (user) {
         if (!defaultAddress) {
           toast.error("Please add a default shipping address to proceed");
@@ -320,10 +335,10 @@ function CheckoutPage() {
               <span>Delivery Fee</span>
               <span className="text-green-500 font-bold">FREE</span>
             </div>
-            
-            {cart.discount && Number(cart.discount) > 0 &&  <div className="flex justify-between text-gray-500 text-sm mb-6">
+
+            {cart.discount && Number(cart.discount) > 0 && <div className="flex justify-between text-gray-500 text-sm mb-6">
               <span>Discount</span>
-              <span className="text-green-500 font-semibold">{"-"+cart?.discount.toLocaleString('en-IN')}</span>
+              <span className="text-green-500 font-semibold">{"-" + cart?.discount.toLocaleString('en-IN')}</span>
             </div>}
 
             <div className="mb-6">

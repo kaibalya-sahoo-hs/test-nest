@@ -152,9 +152,14 @@ function Nav() {
   ];
 
   const hideChatOn = ['/checkout', '/payment', '/login', '/admin', '/vendor'];
-  const showChatOn = ['/cart']
   const shouldShowChat = !hideChatOn.includes(location.pathname)
 
+  const hideHambrgrPaths = ['/cart', '/products', '/checkout', ]
+  const hideHambrgr = hideHambrgrPaths.some(path => location.pathname.startsWith(path))
+  
+  const dashboardAndProfilePaths = ['/profile', '/admin', '/vendor']
+  const isDashboardAndProfilePaths = dashboardAndProfilePaths.some(path => location.pathname.startsWith(path))
+  
   let navLinks = [];
   if (user) {
     navLinks = isAdmin ? adminLinks : isVendor ? vendorLinks : userLinks;
@@ -164,8 +169,8 @@ function Nav() {
       {/* --- TOP NAVBAR --- */}
       <nav className="grow flex items-center justify-between bg-white px-4 sm:px-8 py-3 border-b border-gray-100 fixed top-0 right-0 left-0 z-50">
         <div className="flex items-center gap-3">
-          {/* Hamburger Button — visible on mobile/tablet only */}
-          {user && <button
+          {/* Hamburger Button */}
+          {!hideHambrgr && location.pathname != '/' && <button
             data-hamburger
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
@@ -416,9 +421,9 @@ function Nav() {
 
         {/* --- MAIN CONTENT AREA --- */}
         <main
-          className={`flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
+          className={` flex-1 ${user && !productPaths && cartPath && !otherPaths && !checkoutPath && "lg:ml-64"} min-h-[calc(100vh-64px)] p-4 sm:p-6 lg:p-8 transition-all duration-300`}
         >
-          <div className="w-[94vw] mx-auto">
+          <div className={`${isDashboardAndProfilePaths ? 'w-[100%]' :'w-[90vw]'} mx-auto`}>
             <Outlet />
             {shouldShowChat &&
              <Floatingchat/>

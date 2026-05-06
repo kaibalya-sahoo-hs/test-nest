@@ -211,7 +211,7 @@ const CouponManagementPage = () => {
     ) : null;
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen w-[90vw] lg:w-[75vw]">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-[#111827]">Coupon Management</h1>
@@ -226,7 +226,7 @@ const CouponManagementPage = () => {
             </div>
 
             {/* Coupon Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="w-full rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left table-auto">
                         <thead className="bg-gray-50/80 border-b border-gray-100">
