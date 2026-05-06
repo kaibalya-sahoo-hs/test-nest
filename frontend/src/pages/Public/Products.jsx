@@ -126,9 +126,11 @@ function Products() {
             {filteredProducts.map((item) => {
               const images = getProductImages(item);
               const currentIndex = imageIndices[item.id] || 0;
+              const slug = encodeURIComponent((item.name || '').replace(/\s+/g, '-'));
+              const vendorSlug = encodeURIComponent((item.vendor?.name || '').replace(/\s+/g, '-'));
 
               return (
-                <Link key={item.id} to={`/products/${item.name}?vendor=${item.vendor.name}`}>
+                <Link key={item.id} to={{ pathname: `/products/${slug}`, search: `?vendor=${vendorSlug}` }} className="group">
                   <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 relative group">
                     <div className="relative flex justify-center items-center mb-6">
                       {images.length > 1 && (

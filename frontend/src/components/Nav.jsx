@@ -192,7 +192,6 @@ function Nav() {
               value={searchedValue}
               onChange={(e) => setSearchedValue(e.target.value)}
               onKeyDown={(e) => {
-                console.log("first") 
                 if(e.key == "Enter"){
                   navigate('/products')
                 }}}
