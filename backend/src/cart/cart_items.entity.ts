@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Up
 import { User } from '../users/users.entity'
 import { Product } from '../product/product.entity'
 import { Cart } from './cart.entity';
+import { ProductVariant } from 'src/product/productVariant.entity';
 
 @Entity('cart_items')
 export class CartItem {
@@ -16,6 +17,9 @@ export class CartItem {
 
     @ManyToOne(() => Product, {onDelete: 'CASCADE'})
     product: Product;
+
+    @ManyToOne(()=> ProductVariant, {nullable: true, onDelete: 'CASCADE'})
+    variant: ProductVariant;
 
     @CreateDateColumn()
     createdAt: Date;

@@ -162,13 +162,11 @@ export class VendorService {
     files: Express.Multer.File[],
     userID,
   ) {
-    // 1️⃣ Normalize tags (trim, lowercase, filter empty)
     const normalizedTags = productData.tags
       .split(',')
       .map(tag => tag.trim().toLowerCase())
       .filter(tag => tag.length > 0);
 
-    // 2️⃣ Find existing tags
     const existingTags = normalizedTags.length > 0
       ? await this.tagRepo.find({
         where: {
@@ -194,13 +192,42 @@ export class VendorService {
     const featuresArray = productData.features.split(",")
     
     const newProduct = this.productRepo.create({
-      ...productData,
+      name: productData.name,
+      description: productData.description,
       features: featuresArray,
       vendor: { id: userID },
       tags: allTags,
     });
 
     const savedProduct = await this.productRepo.save(newProduct);
+
+    const newVariant = this.productVariantRepo.create({
+      name: `${productData.name.toLowerCase()}_${productData.color.toLowerCase()}_${productData.size.toLowerCase()}`,
+      color: productData?.color,
+      size: productData?.size,
+      price: productData.price,
+      product: savedProduct,
+      stock: Number(productData.stock),
+      image: '',
+      images: [],
+      imageUploadStatus: 'uploading'
+    })
+
+    const savedVariant = await this.productVariantRepo.save(newVariant)
+    const serializedFiles = files.map(f => ({
+      buffer: Array.from(f.buffer),
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+    }));
+
+    await this.imageUploadQueue.add('upload-product-images', {
+      productId: savedProduct?.id,
+      productVariantId: savedVariant.id,
+      files: serializedFiles,
+    }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+    });
 
     return { ...savedProduct, success: true, message: 'Product created' };
   }
@@ -213,6 +240,7 @@ export class VendorService {
     if(!product){
       throw new NotFoundException('Product not found')
     }
+    console.log(files)
     
     if (!files || files.length === 0) {
       return { message: 'At least one product image is required', success: false };
@@ -232,6 +260,7 @@ export class VendorService {
 
     const savedVariant = await this.productVariantRepo.save(variant)
 
+    
     const serializedFiles = files.map(f => ({
       buffer: Array.from(f.buffer),
       originalname: f.originalname,

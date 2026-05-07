@@ -45,6 +45,7 @@ export class ImageUploadProcessor {
 
       // Update the product with the uploaded images
       const productVariant = await this.productVariantRepo.findOne({ where: { id: productVariantId } });
+      console.log('productvariant', productVariant )
       if (productVariant) {
         // Merge with any existing images (in case of updates)
         const existingImages = productVariant.images || [];

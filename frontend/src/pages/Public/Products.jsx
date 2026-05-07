@@ -78,8 +78,15 @@ function Products() {
 
     // Sort by Price
     result.sort((a, b) => {
-      const priceA = Number(a.price);
-      const priceB = Number(b.price);
+      const getPriceForSort = (product) => {
+        if (product.variants && product.variants.length > 0) {
+          const prices = product.variants.map(v => Number(v.price));
+          return Math.min(...prices); // Use minimum price for sorting
+        }
+        return Number(product.price);
+      };
+      const priceA = getPriceForSort(a);
+      const priceB = getPriceForSort(b);
       return filters.sort === "asc" ? priceA - priceB : priceB - priceA;
     });
 
@@ -103,6 +110,19 @@ function Products() {
     }
     if (item.image) return [item.image];
     return ["https://via.placeholder.com/200"];
+  };
+
+  const getProductPriceRange = (item) => {
+    if (item.variants && item.variants.length > 0) {
+      const prices = item.variants.map(v => Number(v.price));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      if (minPrice === maxPrice) {
+        return `₹${minPrice.toLocaleString("en-IN")}`;
+      }
+      return `₹${minPrice.toLocaleString("en-IN")} - ₹${maxPrice.toLocaleString("en-IN")}`;
+    }
+    return `₹${Number(item.price).toLocaleString("en-IN")}`;
   };
 
   const cycleImage = (e, productId, direction, images) => {
@@ -251,7 +271,7 @@ function Products() {
                         </h3>
                         <p className="text-[#4379EE] font-bold flex items-center">
                           <FaIndianRupeeSign />
-                          {Number(item.price).toLocaleString("en-IN")}
+                          {getProductPriceRange(item)}
                         </p>
                       </div>
                     </div>

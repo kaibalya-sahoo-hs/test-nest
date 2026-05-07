@@ -37,6 +37,7 @@ function ProductPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   const suggestRef = useRef(null);
 
@@ -49,6 +50,7 @@ function ProductPage() {
   // Get all images (use images array if available, fallback to single image)
   const getImages = () => {
     if (product?.variants && product.variants.length > 0) {
+      console.log(product.variants)
       const firstVariant = product.variants[0];
       if (firstVariant.images && firstVariant.images.length > 0) {
         return firstVariant.images;
@@ -68,12 +70,12 @@ function ProductPage() {
     product &&
     cart.items.find((itm) => itm?.product.id === product.id);
 
-  const handleAddtoCart = async (product) => {
+  const handleAddtoCart = async (product, variantId) => {
     if (product.stock < 1) {
       toast.error("Sorry, this product is out of stock.");
       return;
     }
-    const data = await addToCart(product);
+    const data = await addToCart(product, variantId);
     toast.success("Item added to the cart");
   };
 
@@ -168,6 +170,10 @@ function ProductPage() {
         if (response.data.success) {
           setProduct(response.data.product);
           setSelectedImageIndex(0);
+          // Set the first variant as selected by default
+          if (response.data.product.variants && response.data.product.variants.length > 0) {
+            setSelectedVariant(response.data.product.variants[0]);
+          }
           await fetchProductReviews(response.data.product.id);
         }
       } catch (err) {
@@ -210,6 +216,7 @@ function ProductPage() {
     );
 
   const images = getImages();
+  console.log(images)
 
   return (
     <div className="bg-[#F5F6FA] min-h-fit overflow-x-hidden">
@@ -224,7 +231,7 @@ function ProductPage() {
             <div className="">
               {images.length > 1 && (
                 <div className="flex flex-col gap-1 mr-4 overflow-x-auto w-full pb-2 justify-center">
-                  {images.map((img, idx) => (
+                  {selectedVariant.images?.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImageIndex(idx)}
@@ -243,7 +250,7 @@ function ProductPage() {
             <div className="w-80 h-80 md:w-[560px] md:h-125 overflow-hidden relative bg-white rounded-2xl  border border-gray-100 shadow-sm w-full flex flex-wrap items-center justify-center">
 
               <img
-                src={images[selectedImageIndex]}
+                src={selectedVariant.images?.[selectedImageIndex]}
                 alt={product.name}
                 className="h-full w-full object-contain mix-blend-multiply transition-all duration-300"
               />
@@ -303,14 +310,14 @@ function ProductPage() {
 
               <div className="flex justify-start items-center">
                 <span className="text-gray-500">MRP: </span>
-                <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-extralight" />{(Number(product.price) + Number(product.price * 0.1)).toLocaleString('en-IN')}</span>
+                <span className="text-gray-400 flex justify-center items-center"><FaRupeeSign size={14} className="font-extralight" />{selectedVariant ? (Number(selectedVariant.price) + Number(selectedVariant.price * 0.1)).toLocaleString('en-IN') : (Number(product.price) + Number(product.price * 0.1)).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex items-end gap-4 mb-6">
                 <div className="flex items-baseline gap-2">
                   <div className="text-3xl font-bold text-gray-500">Price:</div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-black flex justify-center items-center"><FaRupeeSign size={25} />{Number(product.price).toLocaleString('en-IN')}</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold text-black flex justify-center items-center"><FaRupeeSign size={25} />{selectedVariant ? Number(selectedVariant.price).toLocaleString('en-IN') : Number(product.price).toLocaleString('en-IN')}</div>
                 </div>
-                <div className="text-sm text-gray-500">{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
+                <div className="text-sm text-gray-500">{selectedVariant && selectedVariant.stock > 0 ? 'In Stock' : product.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
               </div>
 
               {/* Feature bullets (compact) */}
@@ -324,10 +331,8 @@ function ProductPage() {
                 }
               </ul>
 
-              
-
               {/* Add to Cart / Quantity Controls */}
-              {product && product.stock > 0 ? cartItem ? (
+              {selectedVariant && selectedVariant.stock > 0 ? cartItem ? (
                 <div className="flex flex-col gap-3 w-fit">
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-xl text-gray-500">Quantity</span>
@@ -358,28 +363,50 @@ function ProductPage() {
                 <button
                   aria-label="add to cart"
                   className="w-fit sm:w-fit bg-[#473BF0] px-6 py-4 rounded-md text-base font-bold text-white cursor-pointer hover:bg-[#3768D1] transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
-                  onClick={() => handleAddtoCart(product)}
+                  onClick={() => handleAddtoCart(product, selectedVariant.id)}
                 >
                   <FaShoppingCart /> Add to Cart
                 </button>
               ) : null}
+
+              {/* Variant Selection */}
+              
+              
             </div>
           </div>
         </div>
-<div className="">
-{product.variants && product.variants.length > 0 && (
-  <div className="mt-10 flex">
-    {product.variants.map((variant, idx) => (
-      <div key={idx} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
-        <div className="flex flex-col sm:flex-row gap-4 items-center h-20 w-20">
-        <img src={variant.image} alt={variant.name} className="w-full h-full"/>
+        {product && product.variants && product.variants.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-[#202224] mb-3">Select Variant</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {product.variants.map((variant, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedVariant(variant)}
+                        className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          selectedVariant?.id === variant.id
+                            ? 'border-[#4379EE] bg-blue-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-[#4379EE]'
+                        }`}
+                      >
+                        {variant.image && (
+                          <img
+                            src={variant.image}
+                            alt={`${variant.color}-${variant.size}`}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )}
+                        <div className="text-xs text-center">
+                          <p className="font-bold text-gray-700">{variant.color}</p>
+                          <p className="text-gray-500">{variant.size}</p>
+                          <p className="font-bold text-[#4379EE]">₹{Number(variant.price).toLocaleString('en-IN')}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        </div>
-      </div>
-    ))}
-    </div>
-)}
-</div>
         {/* Tabs */}
         <div className="md:mt-20 mt-8 w-full ">
           <div role="tablist" aria-label="Product tabs" className="flex gap-6 md:gap-15 mb-4 border-b-1 border-b-gray-300 w-full">

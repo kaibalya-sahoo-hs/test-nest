@@ -28,10 +28,6 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
-  // Use 'decimal' for currency to avoid floating-point math errors
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price!: number;
-
   @Column({ type: 'float', default: 0 })
   rating!: number;
 

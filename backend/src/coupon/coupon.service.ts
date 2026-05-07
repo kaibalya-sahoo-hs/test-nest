@@ -53,7 +53,7 @@ export class CouponsService {
         cart.discount = 0;
 
         const subTotal = cart.cartItems.reduce((sum, item) => {
-            return sum + item.product.price * item.quantity;
+            return sum + item.variant.price * item.quantity;
         }, 0);
         cart.totalAmount = subTotal;
         cart.discountedAmount = subTotal;

@@ -51,8 +51,8 @@ export const CartProvider = ({ children }) => {
   };
 
   // 2. ADD TO CART
-  const addToCart = async (product) => {
-
+  const addToCart = async (product, variantId) => {
+    console.log(variantId)
     if(product.stock < 1) {
       toast.error("Sorry, this product is out of stock.");
       return;
@@ -61,7 +61,7 @@ export const CartProvider = ({ children }) => {
     const user = getUser();
     if (user) {
       try {
-        const res = await api.post("/cart/add", { productId: product.id });
+        const res = await api.post("/cart/add", { productId: product.id, productVariantId: variantId });
         setCart(res.data.cart);
       } catch (err) {
         toast.error("Failed to add to cart");

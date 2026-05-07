@@ -28,6 +28,15 @@ export class CreateProductDto {
   category?: string;
 
   @IsOptional()
+  color: string
+  
+  @IsOptional()
+  size: string
+
+  @IsOptional()
+  stock: number
+
+  @IsOptional()
   tags: string
 
   @IsString()

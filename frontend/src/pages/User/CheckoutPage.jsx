@@ -120,7 +120,7 @@ function CheckoutPage() {
   // Calculate Total
   const totalAmount =
     cart.items?.reduce(
-      (acc, item) => acc + item.product.price * item.quantity,
+      (acc, item) => acc + (item.variant?.price || item.product.price) * item.quantity,
       0,
     ) || 0;
 

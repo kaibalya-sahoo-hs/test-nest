@@ -89,6 +89,19 @@ function VendorProducts() {
     }
   };
 
+  const getProductPriceRange = (product) => {
+    if (product.variants && product.variants.length > 0) {
+      const prices = product.variants.map(v => Number(v.price));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      if (minPrice === maxPrice) {
+        return `₹${minPrice.toLocaleString("en-IN")}`;
+      }
+      return `₹${minPrice.toLocaleString("en-IN")} - ₹${maxPrice.toLocaleString("en-IN")}`;
+    }
+    return `₹${Number(product.price).toLocaleString("en-IN")}`;
+  };
+
   const handleEdit = (id) => {
     const product = products.find((p) => p.id === id);
     setEditingProduct(product);
@@ -202,7 +215,7 @@ function VendorProducts() {
                           )}
                         </div>
                       </td>
-                      <td className="p-5 font-bold text-[#202224]">₹{Number(product.price).toLocaleString("en-IN")}</td>
+                      <td className="p-5 font-bold text-[#202224]">₹{Number(product.variants[0]?.price).toLocaleString("en-IN")}</td>
                       <td className="p-5 text-center">
                         {product.variants && product.variants.length > 0 ? (
                           <button
@@ -358,6 +371,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   const [tagInput, setTagInput] = useState('');
   const [featureInput, setfeatureInput] = useState('')
   const [variantFormOpen, setVariantFromOpen] = useState(false)
+  const [deletingVariantId, setDeletingVariantId] = useState(null);
 
   const [tags, setTags] = useState(
     initialData?.tags && Array.isArray(initialData.tags) && initialData.tags.length > 0
@@ -376,6 +390,8 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     category: initialData?.category || "",
     stock: initialData?.stock || 0,
     description: initialData?.description || "",
+    color: initialData?.color || "",
+    size: initialData?.size || "",
     features: initialData?.features && Array.isArray(initialData.features)
       ? initialData.features.map(f => (typeof f === 'string' ? f : f.name || String(f)))
       : []
@@ -403,10 +419,10 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
     if (tags.length < 5) newErrors.tags = "Minimum 5 tags are required";
 
-    if(formData.features.length < 3) newErrors.features = "Minimum 3 features are required"
+    if (formData.features.length < 3) newErrors.features = "Minimum 3 features are required"
 
     // Validate variants for both create and update
-    if ((!initialData.variants || initialData.variants.length === 0)) {
+    if (initialData && (!initialData.variants || initialData.variants.length === 0)) {
       newErrors.variants = "At least one variant is required";
     }
 
@@ -415,14 +431,24 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   };
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    const remaining = 5 - totalImages;
-    if (remaining <= 0) {
-      toast.error("Maximum 5 images allowed");
-      return;
+    if (initialData) {
+      const selectedFiles = Array.from(e.target.files);
+      const remaining = 5 - totalImages;
+      if (remaining <= 0) {
+        toast.error("Maximum 5 images allowed");
+        return;
+      }
+      const filesToAdd = selectedFiles.slice(0, remaining);
+      setFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      const selectedFile = e.target.files[0];
+      if (!selectedFile) return;
+      if (!selectedFile.type.startsWith("image/")) {
+        toast.error("Please select a valid image file");
+        return;
+      }
+      setFiles([selectedFile]);
     }
-    const filesToAdd = selectedFiles.slice(0, remaining);
-    setFiles(prev => [...prev, ...filesToAdd]);
     if (errors.image) setErrors({ ...errors, image: null });
   };
 
@@ -432,6 +458,23 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
 
   const removeNewFile = (index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVariantDelete = async (variantId) => {
+    if (!window.confirm("Are you sure you want to delete this variant?")) return;
+
+    setDeletingVariantId(variantId);
+    try {
+      await api.delete(`/vendor/products/${initialData.id}/variants/${variantId}`);
+      toast.success("Variant deleted successfully");
+      // Update the initialData variants list
+      initialData.variants = initialData.variants.filter(v => v.id !== variantId);
+      setDeletingVariantId(null);
+      onSave();
+    } catch (err) {
+      setDeletingVariantId(null);
+      toast.error(err.response?.data?.message || "Failed to delete variant");
+    }
   };
 
   const handleButtonClick = (e) => {
@@ -455,24 +498,24 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   };
 
 
-    const handleAddFeature = (e) => {
-      e.preventDefault();
-      let featureError = "";
-      const trimmed = featureInput.trim();
+  const handleAddFeature = (e) => {
+    e.preventDefault();
+    let featureError = "";
+    const trimmed = featureInput.trim();
 
-      if (!trimmed) featureError = "Feature cannot be empty";
-      else if (trimmed.length < 5) featureError = "A feature should be at least 5 characters long";
-      else if (formData.features.some(f => f === trimmed)) featureError = "This feature already exist"
+    if (!trimmed) featureError = "Feature cannot be empty";
+    else if (trimmed.length < 5) featureError = "A feature should be at least 5 characters long";
+    else if (formData.features.some(f => f === trimmed)) featureError = "This feature already exist"
 
-      if (featureError) {
-        setErrors({ ...errors, features: featureError });
-        return;
-      }
+    if (featureError) {
+      setErrors({ ...errors, features: featureError });
+      return;
+    }
 
-      setFormData((prev) => ({ ...prev, features: [...prev.features, trimmed] }));
-      setfeatureInput("");
-      setErrors({ ...errors, features: null });
-    };
+    setFormData((prev) => ({ ...prev, features: [...prev.features, trimmed] }));
+    setfeatureInput("");
+    setErrors({ ...errors, features: null });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -487,7 +530,10 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     data.append("stock", formData.stock);
     data.append("description", formData.description);
     data.append("tags", formattedtags);
-    data.append("features", formData.features)
+    data.append("color", formData.color);
+    data.append("size", formData.size);
+    data.append("features", formData.features);
+
 
     // Append new files
     for (const file of files) {
@@ -539,7 +585,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -548,91 +594,119 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                   <p className="text-[10px] text-red-500 font-bold mt-1">{errors.variants}</p>
                 )}
               </div>
-              <button
+              {initialData && <button
                 type="button"
-                onClick={() => setVariantFromOpen(true)}
+                onClick={() => setVariantFromOpen({ mode: 'create' })}
                 className="flex items-center gap-2 bg-blue-50 text-[#4379EE] px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-all text-xs font-bold"
               >
                 <FaPlus size={12} /> Add Variant
-              </button>
+              </button>}
+
             </div>
-            
-            {initialData && initialData.variants && initialData.variants.length > 0 ? (
-              <div className="space-y-2">
-                {initialData.variants.map((variant) => (
-                  <div key={variant.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 hover:border-blue-300 transition-colors">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-mono text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            {variant.color}
-                          </span>
-                          <span className="font-mono text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">
-                            {variant.size}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600 mb-2">{variant.name}</p>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          {variant.price && (
-                            <div>
-                              <p className="text-gray-500 text-xs">Price</p>
-                              <p className="font-bold text-[#202224]">₹{Number(variant.price).toLocaleString("en-IN")}</p>
+            {initialData && initialData.variants ?
+              <div>
+                {initialData.variants.length > 0 ? (
+                  <div className="space-y-2">
+                    {initialData.variants.map((variant) => (
+                      <div key={variant.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 hover:border-blue-300 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-mono text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                {variant.color}
+                              </span>
+                              <span className="font-mono text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">
+                                {variant.size}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-2">{variant.name}</p>
+                            <div className="grid grid-cols-3 gap-4 text-sm">
+                              {variant.price && (
+                                <div>
+                                  <p className="text-gray-500 text-xs">Price</p>
+                                  <p className="font-bold text-[#202224]">₹{Number(variant.price).toLocaleString("en-IN")}</p>
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-gray-500 text-xs">Stock</p>
+                                <p className={`font-bold ${variant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {variant.stock} units
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs">Status</p>
+                                <div className="flex items-center gap-1">
+                                  {variant.imageUploadStatus === 'processing' && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                                      Processing
+                                    </span>
+                                  )}
+                                  {variant.imageUploadStatus === 'completed' && (
+                                    <span className="text-xs font-bold text-green-600">✓ Ready</span>
+                                  )}
+                                  {variant.imageUploadStatus === 'failed' && (
+                                    <span className="text-xs font-bold text-red-600">✕ Failed</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {variant.image && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                              <img src={variant.image} alt={`${variant.color}-${variant.size}`} className="w-full h-full object-cover" />
                             </div>
                           )}
-                          <div>
-                            <p className="text-gray-500 text-xs">Stock</p>
-                            <p className={`font-bold ${variant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {variant.stock} units
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs">Status</p>
-                            <div className="flex items-center gap-1">
-                              {variant.imageUploadStatus === 'processing' && (
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
-                                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
-                                  Processing
-                                </span>
-                              )}
-                              {variant.imageUploadStatus === 'completed' && (
-                                <span className="text-xs font-bold text-green-600">✓ Ready</span>
-                              )}
-                              {variant.imageUploadStatus === 'failed' && (
-                                <span className="text-xs font-bold text-red-600">✕ Failed</span>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setVariantFromOpen({ mode: 'edit', variant })}
+                              className="p-2 text-gray-400 hover:text-[#4379EE] hover:bg-blue-50 rounded-lg transition-all"
+                              title="Edit variant"
+                            >
+                              <FiEdit size={18} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleVariantDelete(variant.id)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                              title="Delete variant"
+                            >
+                              <FiTrash2 size={18} />
+                            </button>
                           </div>
                         </div>
                       </div>
-                      {variant.image && (
-                        <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
-                          <img src={variant.image} alt={`${variant.color}-${variant.size}`} className="w-full h-full object-cover" />
-                        </div>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="text-center py-8 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                    <p className="text-gray-500 text-sm mb-3">No variants added yet</p>
+                    {initialData && <button
+                      type="button"
+                      onClick={() => setVariantFromOpen({ mode: 'create' })}
+                      className="inline-flex items-center gap-2 bg-[#4379EE] text-white px-4 py-2 rounded-lg hover:bg-[#3768D1] transition-all text-sm font-bold"
+                    >
+                      <FaPlus size={14} /> {initialData ? "Create First Variant" : "Add Variant"}
+                    </button>}
+                  </div>
+                )}
+              </div> :
+              <div className="p-4 border-2 border-dashed rounded-xl">
+                <label className="block text-sm font-bold mb-2">Main Product Image</label>
+                <input type="file" onChange={handleFileChange} className="text-xs" />
+                {files.length > 0 && <p className="mt-2 text-xs text-green-600">File selected: {files[0].name}</p>}
               </div>
-            ) : (
-              <div className="text-center py-8 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-                <p className="text-gray-500 text-sm mb-3">No variants added yet</p>
-                {initialData && <button
-                  type="button"
-                  onClick={() => setVariantFromOpen(true)}
-                  className="inline-flex items-center gap-2 bg-[#4379EE] text-white px-4 py-2 rounded-lg hover:bg-[#3768D1] transition-all text-sm font-bold"
-                >
-                  <FaPlus size={14} /> {initialData ? "Create First Variant" : "Add Variant"}
-                </button>}
-              </div>
-            )}
+            }
+
           </div>
-          
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product name</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <input placeholder="title" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.name ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
                 value={formData.name}
@@ -640,11 +714,11 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               />
               <ErrorMsg msg={errors.name} />
             </div>
-            
+
             <div className="space-y-2 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Tags</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <div className="flex gap-2 relative items-center">
                 <input placeholder="Minimum 5 tags are required" value={tagInput}
@@ -668,22 +742,81 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                 {tags.length === 0 && !errors.tags && <p className="text-xs text-gray-400 italic ml-1">No tags added yet</p>}
               </div>
             </div>
+            {!initialData && (
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price</label>
+                  <FaAsterisk size={10} className="text-red-500" />
+                </div>
+                <input placeholder="price" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.price ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  value={formData.price}
+                  type="number"
+                  onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if (errors.price) setErrors({ ...errors, price: null }); }}
+                />
+                <ErrorMsg msg={errors.price} />
+              </div>
+            )}
+            {!initialData && (
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
+                  <FaAsterisk size={10} className="text-red-500" />
+                </div>
+                <input placeholder="stock" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.stock ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  value={formData.stock}
+                  type="number"
+                  onChange={(e) => { setFormData({ ...formData, stock: e.target.value }); if (errors.stock) setErrors({ ...errors, stock: null }); }}
+                />
+                <ErrorMsg msg={errors.stock} />
+              </div>
+            )}
+
+            {!initialData && (
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Color</label>
+                  <FaAsterisk size={10} className="text-red-500" />
+                </div>
+                <input placeholder="Color" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.color ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  value={formData.color}
+                  type="text"
+                  onChange={(e) => { setFormData({ ...formData, color: e.target.value }); if (errors.color) setErrors({ ...errors, color: null }); }}
+                />
+                <ErrorMsg msg={errors.color} />
+              </div>
+            )}
+
+            {!initialData && (
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Size</label>
+                  <FaAsterisk size={10} className="text-red-500" />
+                </div>
+                <input placeholder="Size" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.size ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  value={formData.size}
+                  type="text"
+                  onChange={(e) => { setFormData({ ...formData, size: e.target.value }); if (errors.size) setErrors({ ...errors, size: null }); }}
+                />
+                <ErrorMsg msg={errors.size} />
+              </div>
+            )}
+
             <div className="space-y-1 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Description</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <textarea placeholder="Describe your product (min 10 characters)" rows="3"
                 className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none resize-none ${errors.description ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
                 value={formData.description}
                 onChange={(e) => { setFormData({ ...formData, description: e.target.value }); if (errors.description) setErrors({ ...errors, description: null }); }}
               />
-              <ErrorMsg msg={errors.description}/>
+              <ErrorMsg msg={errors.description} />
             </div>
             <div className="space-y-2 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Features</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <div className="flex gap-2 items-center relative">
                 <input placeholder="Add at least 3 features" value={featureInput}
@@ -708,8 +841,8 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                 })}
                 {formData.features.length === 0 && !errors.features && <p className="text-xs text-gray-400 italic ml-1">No features added yet</p>}
               </div>
-              <ErrorMsg msg={errors.features}/>
-          </div>
+              <ErrorMsg msg={errors.features} />
+            </div>
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
@@ -721,8 +854,9 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
         </form>
         <div>
           {variantFormOpen && initialData && (
-            <ProductVariantModal 
+            <ProductVariantModal
               productId={initialData.id}
+              variantToEdit={variantFormOpen.mode === 'edit' ? variantFormOpen.variant : null}
               onClose={() => setVariantFromOpen(false)}
               onSave={() => {
                 // Refetch the product to get updated variants
@@ -740,20 +874,26 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   );
 };
 
-const ProductVariantModal = ({ productId, onClose, onSave }) => {
+const ProductVariantModal = ({ productId, onClose, onSave, variantToEdit }) => {
   const [variantFiles, setVariantFiles] = useState([]);
   const [variantErrors, setVariantErrors] = useState({});
   const [variantUploading, setVariantUploading] = useState(false);
-  
+
   const colors = ['Red', 'Blue', 'Green', 'Black', 'White', 'Yellow', 'Purple', 'Orange', 'Pink', 'Gray'];
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '32', '34', '36', '38', '40', '42'];
 
   const [variantData, setVariantData] = useState({
-    color: '',
-    size: '',
-    price: '',
-    stock: 0,
+    color: variantToEdit?.color || '',
+    size: variantToEdit?.size || '',
+    price: variantToEdit?.price || '',
+    stock: variantToEdit?.stock || 0,
   });
+
+  const [existingVariantImages, setExistingVariantImages] = useState(
+    variantToEdit?.images && variantToEdit.images.length > 0
+      ? variantToEdit.images
+      : variantToEdit?.image ? [variantToEdit.image] : []
+  );
 
   const variantPreviews = variantFiles.map(f => URL.createObjectURL(f));
 
@@ -762,7 +902,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
 
     if (!variantData.color.trim()) newErrors.color = "Color is required";
     if (!variantData.size.trim()) newErrors.size = "Size is required";
-    if (variantFiles.length === 0) newErrors.images = "At least one variant image is required";
+    if (!variantToEdit && variantFiles.length === 0) newErrors.images = "At least one variant image is required";
     if (!variantData.price || variantData.price <= 0) newErrors.price = "Price must be greater than 0";
     if (variantData.stock === "" || variantData.stock < 0) newErrors.stock = "Stock cannot be negative";
 
@@ -773,7 +913,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
   const handleVariantFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     const remaining = 5 - variantPreviews.length;
-    
+
     if (remaining <= 0) {
       toast.error("Maximum 5 images allowed per variant");
       return;
@@ -788,10 +928,14 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
     setVariantFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const removeExistingVariantImage = (index) => {
+    setExistingVariantImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleVariantSubmit = async (e) => {
     e.preventDefault();
     if (!validateVariant()) return;
-    
+
     setVariantUploading(true);
 
     const formData = new FormData();
@@ -804,18 +948,32 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
       formData.append("files", file);
     }
 
+    // For update: send existing images that were kept
+    if (variantToEdit) {
+      formData.append("existingImages", JSON.stringify(existingVariantImages));
+    }
+
     try {
-      await api.post(`/vendor/products/${productId}/variants`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("Variant created successfully!");
+      if (variantToEdit) {
+        // Update existing variant
+        await api.patch(`/vendor/products/${productId}/variants/${variantToEdit.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Variant updated successfully!");
+      } else {
+        // Create new variant
+        await api.post(`/vendor/products/${productId}/variants`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Variant created successfully!");
+      }
       setVariantFiles([]);
       setVariantData({ color: '', size: '', price: '', stock: 0 });
       onSave();
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to create variant");
+      toast.error(err.response?.data?.message || "Failed to save variant");
     } finally {
       setVariantUploading(false);
     }
@@ -824,21 +982,23 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 overflow-y-auto max-h-[95vh]">
-        <h2 className="text-2xl font-bold text-[#202224] mb-6">Add Product Variant</h2>
+        <h2 className="text-2xl font-bold text-[#202224] mb-6">
+          {variantToEdit ? 'Edit Product Variant' : 'Add Product Variant'}
+        </h2>
 
         <form onSubmit={handleVariantSubmit} className="space-y-6">
-          
+
           {/* Image Upload Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-1">
               <label className="text-xs font-bold text-gray-500 uppercase">Variant Images</label>
-              <FaAsterisk size={10} className="text-red-500"/>
+              <FaAsterisk size={10} className="text-red-500" />
             </div>
-            
+
             <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors cursor-pointer bg-gray-50/50"
               onClick={() => document.getElementById('variant-file-input').click()}
             >
-              <FiUploadCloud size={32} className="text-gray-400 mx-auto mb-2"/>
+              <FiUploadCloud size={32} className="text-gray-400 mx-auto mb-2" />
               <p className="text-sm font-bold text-gray-600 mb-1">Click to upload or drag and drop</p>
               <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB (Max 5 images)</p>
               <input
@@ -854,10 +1014,23 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
             {variantErrors.images && <p className="text-[10px] text-red-500 font-bold">{variantErrors.images}</p>}
 
             {/* Image Previews */}
-            {variantPreviews.length > 0 && (
+            {(variantPreviews.length > 0 || existingVariantImages.length > 0) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {existingVariantImages.map((image, index) => (
+                  <div key={`existing-${index}`} className="relative group">
+                    <img src={image} alt={`Existing ${index}`} className="w-full h-24 object-cover rounded-lg border border-green-200 bg-green-50" />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingVariantImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                    <span className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded font-bold">Existing</span>
+                  </div>
+                ))}
                 {variantPreviews.map((preview, index) => (
-                  <div key={index} className="relative group">
+                  <div key={`new-${index}`} className="relative group">
                     <img src={preview} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
                     <button
                       type="button"
@@ -866,6 +1039,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
                     >
                       ✕
                     </button>
+                    <span className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded font-bold">New</span>
                   </div>
                 ))}
               </div>
@@ -877,7 +1051,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase">Color</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <select
                 value={variantData.color}
@@ -898,7 +1072,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase">Size</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <select
                 value={variantData.size}
@@ -922,7 +1096,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase">Variant Price</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <input
                 type="number"
@@ -941,7 +1115,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase">Stock Quantity</label>
-                <FaAsterisk size={10} className="text-red-500"/>
+                <FaAsterisk size={10} className="text-red-500" />
               </div>
               <input
                 type="number"
@@ -971,7 +1145,7 @@ const ProductVariantModal = ({ productId, onClose, onSave }) => {
               disabled={variantUploading}
               className="bg-[#4379EE] text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-[#3768D1] transition-all disabled:opacity-50"
             >
-              {variantUploading ? "Creating..." : "Create Variant"}
+              {variantUploading ? "Processing..." : variantToEdit ? "Update Variant" : "Create Variant"}
             </button>
           </div>
         </form>

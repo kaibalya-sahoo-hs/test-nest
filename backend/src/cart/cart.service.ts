@@ -28,13 +28,14 @@ export class CartService {
   async getMyCart(userId: number) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
-      relations: ['cartItems', 'cartItems.product', 'coupon', 'coupon.products', 'coupon.vendor'],
+      relations: ['cartItems', 'cartItems.product','cartItems.variant' ,'coupon', 'coupon.products', 'coupon.vendor'],
     });
 
     const subTotal =
       cart?.cartItems.reduce((sum, item) => {
-        return sum + item.product.price * item.quantity;
+        return sum + item.variant.price * item.quantity;
       }, 0) || 0;
+
 
     let discount = cart?.discount || 0;
     let totalAmount = subTotal;
@@ -68,6 +69,8 @@ export class CartService {
         user: { id: userId },
       },
     });
+
+    console.log(productVariantId)
 
     if (!cart) {
       cart = this.cartRepo.create({ user: { id: userId } });
@@ -108,8 +111,8 @@ export class CartService {
     variant.stock -= 1;
 
     await this.productRepo.save(product);
-
-    await this.cartItemsRepo.save(cartItem);
+    const savedVariant = await this.productVariantRepo.save(variant);
+    await this.cartItemsRepo.save({...cartItem, variant: savedVariant});
     return this.getMyCart(userId);
   }
 
@@ -176,7 +179,7 @@ export class CartService {
       const coupon = cart.coupon;
 
       const totalAmount = cart.cartItems.reduce((acc, item) => {
-        return acc + item.quantity * item.product.price
+        return acc + item.quantity * item.variant.price
       }, 0)
 
       // Determine which items the coupon applies to based on scope
@@ -198,7 +201,7 @@ export class CartService {
         let discount = 0;
 
         const eligibleSubtotal = validItems.reduce((sum, item) => {
-          return sum + item.quantity * Number(item.product.price);
+          return sum + item.quantity * Number(item.variant.price);
         }, 0);
 
         if (coupon.type === 'percentage') {
@@ -382,7 +385,7 @@ export class CartService {
     cart.discount = 0;
 
     const subTotal = cart.cartItems.reduce((sum, item) => {
-      return sum + item.product.price * item.quantity;
+      return sum + item.variant.price * item.quantity;
     }, 0);
     cart.totalAmount = subTotal;
     cart.discountedAmount = subTotal;

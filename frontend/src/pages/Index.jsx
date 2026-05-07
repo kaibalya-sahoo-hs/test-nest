@@ -91,6 +91,19 @@ function Index() {
     }
   };
 
+  const getProductPriceRange = (product) => {
+    if (product.variants && product.variants.length > 0) {
+      const prices = product.variants.map(v => Number(v.price));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      if (minPrice === maxPrice) {
+        return `₹${minPrice.toLocaleString("en-IN")}`;
+      }
+      return `₹${minPrice.toLocaleString("en-IN")} - ₹${maxPrice.toLocaleString("en-IN")}`;
+    }
+    return `₹${Number(product.price).toLocaleString("en-IN")}`;
+  };
+
   const features = [
     { icon: <LuTruck size={28} />, title: "Fast Delivery", desc: "Within 24 hours" },
     { icon: <LuRotateCcw size={28} />, title: "Easy Returns", desc: "24-hour return policy" },
@@ -124,7 +137,7 @@ function Index() {
         <p className="text-xs text-gray-400 line-clamp-1 mb-3">{item.vendor?.storeName || 'Marketplace'}</p>
         <div className="flex justify-between items-center">
           <span className="text-base font-black text-[#4379EE] flex items-center">
-            <FaRupeeSign className="text-xs" />{Number(item.price).toLocaleString('en-IN')}
+            <FaRupeeSign className="text-xs" />{getProductPriceRange(item)}
           </span>
         </div>
       </div>

@@ -181,7 +181,7 @@ export class ProductService {
         const matchedProducts = (vendor.products || [])
           .filter(p => p.name && p.name.toLowerCase().includes(searchLower))
           .slice(0, 4)
-          .map(p => ({ id: p.id, name: p.name, image:p.variants[0].image, price: p.price }));
+          .map(p => ({ id: p.id, name: p.name, image:p.variants[0].image }));
 
         return {
           vendorId: vendor.id,

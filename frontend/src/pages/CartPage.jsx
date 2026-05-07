@@ -140,7 +140,7 @@ const CartPage = () => {
 
               {/* Price */}
               <div className="col-span-2 text-center">
-                <div className="text-[#4379EE] font-extrabold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{Number(item.product?.price).toLocaleString('en-IN')}</div>
+                <div className="text-[#4379EE] font-extrabold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{Number(item.variant?.price || item.product?.price).toLocaleString('en-IN')}</div>
               </div>
 
               {/* Quantity */}
@@ -152,7 +152,7 @@ const CartPage = () => {
 
               {/* Total + remove */}
               <div className="col-span-2 flex items-center justify-center">
-                <div className="text-sm font-bold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{(Number(item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
+                <div className="text-sm font-bold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{(Number(item.variant?.price || item.product?.price) * item.quantity).toLocaleString('en-IN')}</div>
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-center">
                 <button onClick={() => removeItem(item.product.id, couponInput)} className="text-gray-300 hover:text-red-500 rounded-full p-2 cursor-pointer" aria-label="remove item"><RxCross1 size={18} /></button>
