@@ -526,7 +526,7 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     data.append("size", formData.size);
     data.append("features", formData.features);
 
-
+    console.log(data);
     // Append new files
     for (const file of files) {
       data.append("files", file);

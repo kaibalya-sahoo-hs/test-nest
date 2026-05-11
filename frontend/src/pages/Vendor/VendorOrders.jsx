@@ -178,7 +178,7 @@ const VendorOrders = () => {
                             {order.items.slice(0, 3).map((item, idx) => (
                               <img
                                 key={idx}
-                                src={item.product?.image}
+                                src={item.variant?.image}
                                 alt=""
                                 className="w-8 h-8 rounded-lg object-cover border-2 border-white bg-gray-100"
                               />
@@ -236,12 +236,12 @@ const VendorOrders = () => {
                                 <div className="space-y-3">
                                   {order.items.map((item, idx) => (
                                     <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100">
-                                      <img src={item.product?.image} alt="" className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
+                                      <img src={item.variant?.image} alt="" className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-[#202224] truncate">{item.product?.name}</p>
-                                        <p className="text-xs text-gray-400">Qty: {item.quantity} × ₹{Number(item.product?.price).toLocaleString('en-IN')}</p>
+                                        <p className="text-xs text-gray-400">Qty: {item.quantity} × ₹{Number(item.variant?.price).toLocaleString('en-IN')}</p>
                                       </div>
-                                      <p className="text-sm font-bold text-[#202224]">₹{(item.product?.price * item.quantity).toLocaleString('en-IN')}</p>
+                                      <p className="text-sm font-bold text-[#202224]">₹{(item.variant?.price * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
                                   ))}
                                 </div>

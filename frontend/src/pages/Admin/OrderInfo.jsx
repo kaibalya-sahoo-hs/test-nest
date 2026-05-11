@@ -130,16 +130,16 @@ function OrderInfo() {
                                         <tr key={item.id} className="text-sm hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <img src={item.product?.image} alt="" className="w-10 h-10 rounded-lg border border-gray-100 object-cover flex-shrink-0" />
+                                                    <img src={item.variant?.image} alt="" className="w-10 h-10 rounded-lg border border-gray-100 object-cover flex-shrink-0" />
                                                     <div className="min-w-0">
                                                         <p className="font-bold text-gray-800 text-sm truncate max-w-[200px]">{item.product?.name}</p>
                                                         <p className="text-[10px] text-gray-400">by {item.product?.vendor?.storeName || item.product?.vendor?.name || 'Unknown'}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right text-gray-600 font-medium">₹{Number(item.product?.price).toLocaleString('en-IN')}</td>
+                                            <td className="px-6 py-4 text-right text-gray-600 font-medium">₹{Number(item.variant?.price).toLocaleString('en-IN')}</td>
                                             <td className="px-6 py-4 text-center font-bold text-gray-600">×{item.quantity}</td>
-                                            <td className="px-6 py-4 text-right font-black text-gray-900">₹{(item.quantity * Number(item.product?.price)).toLocaleString('en-IN')}</td>
+                                            <td className="px-6 py-4 text-right font-black text-gray-900">₹{(item.quantity * Number(item.variant?.price)).toLocaleString('en-IN')}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -197,7 +197,7 @@ function OrderInfo() {
                                             <div className="flex gap-2 mt-4 pl-16">
                                                 {sub.items.map((item, i) => (
                                                     <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-100">
-                                                        <img src={item.product?.image} alt="" className="w-7 h-7 rounded object-cover" />
+                                                        <img src={item.variant?.image} alt="" className="w-7 h-7 rounded object-cover" />
                                                         <div className="min-w-0">
                                                             <p className="text-[10px] font-bold text-gray-700 truncate max-w-[100px]">{item.product?.name}</p>
                                                             <p className="text-[9px] text-gray-400">×{item.quantity}</p>

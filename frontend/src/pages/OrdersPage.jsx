@@ -218,6 +218,8 @@ function OrdersPage() {
   const fetchOrders = async () => {
     try {
       const { data } = await api.get('/users/my-orders');
+      console.log(data)
+
       if (data.success) setOrders(data.orders);
     } catch (error) {
       console.error("Error fetching orders:", error);

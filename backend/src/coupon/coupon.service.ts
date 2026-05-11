@@ -33,7 +33,6 @@ export class CouponsService {
             console.log(savedCart)
             return { success: true, message: 'Coupon applied successfully', savedCart }
         } catch (error) {
-            console.log("Error while applying coupon", error)
             const msg = error?.response?.message || error?.message || 'Error while applying coupon';
             return { message: msg, success: false }
         }

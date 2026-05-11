@@ -129,12 +129,11 @@ export class PaymentService {
     // Calculate total before discount (sum of all items)
     let totalDiscount = 0;
     const totalBeforeDiscount = cartItems.reduce(
-      (sum, i) => sum + i.product.price * i.quantity,
+      (sum, i) => sum + i.variant.price * i.quantity,
       0,
     );
 
     totalDiscount = totalBeforeDiscount - amount; // difference is the discount applied
-
     let masterOrder: Order;
     if (existingPendingOrder) {
       masterOrder = existingPendingOrder;
@@ -203,7 +202,7 @@ export class PaymentService {
     // Create sub-orders per vendor with proper coupon splitting
     for (const [vendorId, items] of vendorGroups) {
       const subTotal = items.reduce(
-        (sum, i) => sum + i.product.price * i.quantity,
+        (sum, i) => sum + i.variant.price * i.quantity,
         0,
       );
 

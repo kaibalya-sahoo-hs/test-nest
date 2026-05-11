@@ -98,8 +98,8 @@ export class UserService{
                     id: item.id,
                     quantity: item.quantity,
                     productName: item.product.name,
-                    productImage: item.product.image,
-                    priceAtPurchase: item.product.price,
+                    productImage: item.variant.image,
+                    priceAtPurchase: item.variant.price,
                     vendorName: item.product.vendor?.storeName || 'Marketplace',
                 }))
             }));
@@ -144,8 +144,8 @@ export class UserService{
                     id: item.id,
                     quantity: item.quantity,
                     productName: item.product.name,
-                    productImage: item.product.image,
-                    priceAtPurchase: item.product.price,
+                    productImage: item.variant.image,
+                    priceAtPurchase: item.variant.price,
                     vendorName: item.product.vendor?.storeName || 'Marketplace',
                 })),
                 subOrders: subOrders.map(sub => ({
@@ -156,9 +156,9 @@ export class UserService{
                     discount: sub.discount,
                     items: sub.items.map(item => ({
                         productName: item.product.name,
-                        productImage: item.product.image,
+                        productImage: item.variant.image,
                         quantity: item.quantity,
-                        price: item.product.price,
+                        price: item.variant.price,
                     })),
                 })),
             };

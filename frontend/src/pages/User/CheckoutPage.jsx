@@ -151,6 +151,7 @@ function CheckoutPage() {
           toast.error("Please add a default shipping address to proceed");
           return;
         }
+        console.log(cart.discountedAmount)
         const response = await api.post('/payment/create-order', {
           coupon: cart.coupon ? cart.coupon.code : null,
           amount: cart.discountedAmount,

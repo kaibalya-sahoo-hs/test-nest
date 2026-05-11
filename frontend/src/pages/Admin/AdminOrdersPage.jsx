@@ -138,10 +138,10 @@ function AdminOrdersPage() {
                         <div className="space-y-1.5 max-w-[280px]">
                           {order.items.slice(0, 2).map((item) => (
                             <div key={item.id} className="flex items-center gap-2.5">
-                              <img src={item.product?.image} alt="" className="w-9 h-9 rounded-lg border border-gray-100 object-cover flex-shrink-0" />
+                              <img src={item.variant?.image} alt="" className="w-9 h-9 rounded-lg border border-gray-100 object-cover flex-shrink-0" />
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-gray-800 truncate">{item.product?.name}</p>
-                                <p className="text-[10px] text-gray-400">Qty: {item.quantity} × ₹{Number(item.product?.price).toLocaleString('en-IN')}</p>
+                                <p className="text-[10px] text-gray-400">Qty: {item.quantity} × ₹{Number(item.variant?.price).toLocaleString('en-IN')}</p>
                               </div>
                             </div>
                           ))}
@@ -204,7 +204,7 @@ function AdminOrdersPage() {
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex -space-x-1.5">
                     {order.items.slice(0, 3).map((item, i) => (
-                      <img key={i} src={item.product?.image} alt="" className="w-9 h-9 rounded-lg border-2 border-white object-cover" />
+                      <img key={i} src={item.variant?.image} alt="" className="w-9 h-9 rounded-lg border-2 border-white object-cover" />
                     ))}
                   </div>
                   <div className="flex-1 min-w-0">

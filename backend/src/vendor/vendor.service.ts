@@ -365,6 +365,7 @@ export class VendorService {
       relations: ['user', 'deliveryAddress'],
       order: { createdAt: 'DESC' },
     });
+    console.log(orders)
     return orders;
   }
 
