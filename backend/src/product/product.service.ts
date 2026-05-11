@@ -227,7 +227,7 @@ export class ProductService {
 
 
   async getSimilarSuggestions(productName: string) {
-    const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor'] })
+    const product = await this.productRepo.findOne({ where: { name: productName }, relations: ['tags', 'vendor', 'variants'] })
 
     if (!product) {
       throw new NotFoundException('Product not found')
@@ -245,6 +245,7 @@ export class ProductService {
       const tagMatches = await this.productRepo.createQueryBuilder('p')
         .leftJoinAndSelect('p.tags', 'tags')
         .leftJoinAndSelect('p.vendor', 'vendor')
+        .leftJoinAndSelect('p.variants', 'variants')
         .where('p.id != :productId', { productId: product.id })
         .andWhere('tags.name ILIKE :keyword', { keyword: `%${keyWords}%` })
         .take(limit)
@@ -269,6 +270,7 @@ export class ProductService {
         try {
           const descMatches = await this.productRepo.createQueryBuilder('p')
             .leftJoinAndSelect('p.vendor', 'vendor')
+            .leftJoinAndSelect('p.variants', 'variants')
             .where('p.id NOT IN (:...ids)', { ids: existingIds })
             .andWhere(new Brackets(qb => {
               descKeywords.forEach((word, index) => {
@@ -310,6 +312,7 @@ export class ProductService {
     if (keywords.length > 0) {
       related = await this.productRepo.createQueryBuilder('p')
         .leftJoinAndSelect('p.vendor', 'vendor')
+        .leftJoinAndSelect('p.variants', 'variants')
         .where('p.id NOT IN (:...ids)', { ids: allExcludeIds })
         .andWhere(new Brackets(qb => {
           keywords.forEach((word, index) => {
@@ -327,6 +330,7 @@ export class ProductService {
 
       const additionalProducts = await this.productRepo.createQueryBuilder('p')
         .leftJoinAndSelect('p.vendor', 'vendor')
+        .leftJoinAndSelect('p.variants', 'variants')
         .where('p.id NOT IN (:...ids)', { ids: existingIds })
         .take(limit - related.length)
         .getMany();

@@ -20,8 +20,9 @@ export const CartProvider = ({ children }) => {
 
   // Helper: Calculate totals for Guest Mode locally
   const calculateGuestTotals = (items) => {
+    console.log(items)
     const subTotal = items.reduce((acc, item) => {
-      return acc + Number(item.price || item.product?.price) * item.quantity;
+      return acc + Number(item.variant?.price) * item.quantity;
     }, 0);
     return {
       items,
@@ -40,7 +41,6 @@ export const CartProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.get(`/cart`);
-      console.log(data);
       setCart(data.cart);
       return data.cart;
     } catch (err) {
@@ -52,9 +52,10 @@ export const CartProvider = ({ children }) => {
 
   // 2. ADD TO CART
   const addToCart = async (product, variantId) => {
-    console.log(variantId)
-    if(product.stock < 1) {
-      toast.error("Sorry, this product is out of stock.");
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    console.log(selectedVariant)
+    if (!selectedVariant || selectedVariant.stock < 1) {
+      toast.error("Sorry, this specific variant is out of stock.");
       return;
     }
 
@@ -67,7 +68,6 @@ export const CartProvider = ({ children }) => {
         toast.error("Failed to add to cart");
       }
     } else {
-      console.log(cart);
       let newItems = [...cart.items];
       // Look for product.id inside the nested structure
       const existing = newItems.find((item) => item.product.id === product.id);
@@ -76,7 +76,8 @@ export const CartProvider = ({ children }) => {
         existing.quantity += 1;
       } else {
         newItems.push({
-          product: { ...product }, // Wrap it!
+          product: { ...product }, 
+          variant: { ...selectedVariant },
           quantity: 1,
         });
       }
@@ -105,7 +106,6 @@ export const CartProvider = ({ children }) => {
         const res = await api.patch(`/cart/${productId}`, {
           quantity: newQuantity,
         });
-        console.log(res.data.cart)
         setCart(res.data.cart);
       } catch (err) {
         toast.error("Update failed");
@@ -116,7 +116,6 @@ export const CartProvider = ({ children }) => {
         return;
       }
       const newItems = cart.items.map((item) => {
-        console.log(item);
         return item.product.id === productId
           ? { ...item, quantity: newQuantity }
           : item;
@@ -140,7 +139,6 @@ export const CartProvider = ({ children }) => {
         toast.error("Removal failed");
       }
     } else {
-      console.log("Trigreed");
       const newItems = cart.items.filter(
         (item) => item.product.id !== productId,
       );
@@ -158,6 +156,7 @@ export const CartProvider = ({ children }) => {
       const itemsToSync = localCart.items.map((item) => ({
         id: item.product.id,
         quantity: item.quantity,
+        variantId: item.variant.id,
       }));
       try {
         const res = await api.post("/cart/sync", { items: itemsToSync });

@@ -129,6 +129,30 @@ export class VendorController {
     return await this.vendorService.addVeriant(id, body, files);
   }
 
+  @Patch('products/:id/variants/:variantId')
+  @UseGuards(VendorGuard)
+  @UseInterceptors(FilesInterceptor('files', 5))
+  async updateVariant(
+    @Param('id') id: string,
+    @Param('variantId') variantId: string,
+    @Req() req,
+    @Body() body: any,
+    @UploadedFile() file: File,
+  ) {
+    const files = (req as any).files || (file ? [file] : []);
+    return await this.vendorService.updateVariant(id, variantId, body, files);
+  }
+
+  @Delete('products/:id/variants/:variantId')
+  @UseGuards(VendorGuard)
+  async deleteVariant(
+    @Param('id') id: string,
+    @Param('variantId') variantId: string,
+    @Req() req,
+  ) {
+    return await this.vendorService.removeVariant(variantId);
+  }
+
   @Patch('orders/:id/status')
   @UseGuards(VendorGuard)
   updateOrderStatus(

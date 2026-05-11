@@ -70,7 +70,6 @@ export class CartService {
       },
     });
 
-    console.log(productVariantId)
 
     if (!cart) {
       cart = this.cartRepo.create({ user: { id: userId } });
@@ -104,6 +103,7 @@ export class CartService {
     } else {
       cartItem = this.cartItemsRepo.create({
         product: { id: productId },
+        variant: {id: productVariantId},
         cart: { id: cart.id },
         quantity,
       });
@@ -111,8 +111,8 @@ export class CartService {
     variant.stock -= 1;
 
     await this.productRepo.save(product);
-    const savedVariant = await this.productVariantRepo.save(variant);
-    await this.cartItemsRepo.save({...cartItem, variant: savedVariant});
+    await this.productVariantRepo.save(variant);
+    const saevdCartItem = await this.cartItemsRepo.save(cartItem);
     return this.getMyCart(userId);
   }
 
@@ -127,7 +127,7 @@ export class CartService {
   ) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
-      relations: ['cartItems', 'cartItems.product', 'cartItems.product.vendor', 'coupon', 'coupon.products', 'coupon.vendor'],
+      relations: ['cartItems', 'cartItems.product','cartItems.variant' ,'cartItems.product.vendor', 'coupon', 'coupon.products', 'coupon.vendor'],
     });
 
     if (!cart) {
@@ -343,12 +343,10 @@ export class CartService {
       }
       if (product)
         if (existingItem) {
-          console.log(existingItem.quantity, guestItem.quantity)
           existingItem.quantity += guestItem.quantity;
 
           variant.stock -= guestItem.quantity;
           await this.productVariantRepo.save(variant);
-          console.log(existingItem.quantity)
           await this.cartItemsRepo.save(existingItem);
         } else {
           // Create new entry
@@ -363,6 +361,7 @@ export class CartService {
             cart: { id: cart?.id },
             product: { id: guestItem.id },
             quantity: guestItem.quantity,
+            variant: { id: guestItem.variantId },
           });
           await this.cartItemsRepo.save(newItem);
         }
@@ -374,7 +373,7 @@ export class CartService {
   async removeCoupon(userId: number) {
     const cart = await this.cartRepo.findOne({
       where: { user: { id: userId } },
-      relations: ['cartItems', 'cartItems.product', 'coupon'],
+      relations: ['cartItems', 'cartItems.product', 'coupon', 'cartItems.variant'],
     });
 
     if (!cart) {

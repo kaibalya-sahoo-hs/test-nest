@@ -50,10 +50,9 @@ function ProductPage() {
   // Get all images (use images array if available, fallback to single image)
   const getImages = () => {
     if (product?.variants && product.variants.length > 0) {
-      console.log(product.variants)
       const firstVariant = product.variants[0];
-      if (firstVariant.images && firstVariant.images.length > 0) {
-        return firstVariant.images;
+      if (selectedVariant && selectedVariant.images && firstVariant.images.length > 0) {
+        return selectedVariant.images;
       }
     }
     if (product?.image) return [product.image];
@@ -166,7 +165,6 @@ function ProductPage() {
       try {
         setLoading(true);
         const response = await api.get(`/products/${title}?vendor=${vendor}`);
-        console.log(response)
         if (response.data.success) {
           setProduct(response.data.product);
           setSelectedImageIndex(0);
@@ -216,7 +214,6 @@ function ProductPage() {
     );
 
   const images = getImages();
-  console.log(images)
 
   return (
     <div className="bg-[#F5F6FA] min-h-fit overflow-x-hidden">
@@ -579,15 +576,15 @@ function ProductPage() {
                     className="w-[180px] sm:w-[230px] rounded-lg transition-all duration-300 cursor-pointer"
                   >
                     <div className=" overflow-hidden rounded-xl bg-gray-50 mb-3">
-                      <img src={item.image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover transition-transform duration-300" />
+                      <img src={item.variants[0].image || 'https://via.placeholder.com/300'} alt={item.name} className="w-full h-[180px] sm:h-70 object-cover transition-transform duration-300" />
                     </div>
 
                     <div className="flex flex-col justify-between items-center gap-4">
                       <div className="flex items-center text-center gap-4">
                         <div className="text-base font-bold flex items-center gap-1">
-                          <FaRupeeSign className="text-sm" />{Number(item.price).toLocaleString('en-IN')}
+                          <FaRupeeSign className="text-sm" />{Number(item.variants[0].price).toLocaleString('en-IN')}
                         </div>
-                        <div className="text-xs text-gray-400 font-bold flex items-center gap-1"> <FaRupeeSign className="text-xs" /> {(Number(item.price) + Number(item.price) * 0.1).toLocaleString('en-IN')}</div>
+                        <div className="text-xs text-gray-400 font-bold flex items-center gap-1"> <FaRupeeSign className="text-xs" /> {(Number(item.variants[0].price) + Number(item.variants[0].price) * 0.1).toLocaleString('en-IN')}</div>
                       </div>
 
                       <h3 className="text-md font-semibold text-[#202224] line-clamp-1">{item.name}</h3>

@@ -125,7 +125,7 @@ function Index() {
       className="flex-shrink-0 w-[200px] sm:w-[230px] bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-blue-100 transition-all duration-300 cursor-pointer group"
     >
       <div className="h-40 w-full overflow-hidden bg-gray-50 relative" onClick={() => navigate(`/products/${item.name}?vendor=${item.vendor.name}`)}>
-        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        <img src={item.variants[0]?.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         {item.stock < 1 && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span className="text-white text-xs font-bold bg-red-500 px-3 py-1 rounded-full">Sold Out</span>
@@ -209,7 +209,6 @@ function Index() {
         </button>
       </div>
 
-      {/* ==================== PROMOTIONAL GRID ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-10">
         <div className="md:col-span-2 relative rounded-xl bg-gradient-to-r from-[#1a1a2e] to-[#16213e] overflow-hidden group min-h-[120px]  sm:min-h-[280px] flex items-center">
           <div className="relative z-10 p-4 sm:p-12">

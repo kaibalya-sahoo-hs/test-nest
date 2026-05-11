@@ -201,13 +201,15 @@ export class VendorService {
 
     const savedProduct = await this.productRepo.save(newProduct);
 
+    const color = productData?.color || 'Default';
+    const size = productData?.size || 'One Size';
     const newVariant = this.productVariantRepo.create({
-      name: `${productData.name.toLowerCase()}_${productData.color.toLowerCase()}_${productData.size.toLowerCase()}`,
-      color: productData?.color,
-      size: productData?.size,
+      name: `${productData.name.toLowerCase()}_${color.toLowerCase()}_${size.toLowerCase()}`,
+      color: color,
+      size: size,
       price: productData.price,
       product: savedProduct,
-      stock: Number(productData.stock),
+      stock: Number(productData.stock || 0),
       image: '',
       images: [],
       imageUploadStatus: 'uploading'
@@ -287,6 +289,64 @@ export class VendorService {
     }
     await this.productVariantRepo.remove(variant)
     return {message: 'Variant removed', success: true}
+  }
+
+  async updateVariant(productId: string, variantId: string, variantOptions: any, files: Express.Multer.File[]) {
+    const product = await this.productRepo.findOne({where: {id: productId}})
+    if(!product){
+      throw new NotFoundException('Product not found')
+    }
+
+    const variant = await this.productVariantRepo.findOne({where: {id: variantId}})
+    if(!variant){
+      throw new NotFoundException('Variant not found')
+    }
+
+    // Update variant properties
+    variant.color = variantOptions.color || variant.color;
+    variant.size = variantOptions.size || variant.size;
+    variant.price = variantOptions.price || variant.price;
+    variant.stock = variantOptions.stock !== undefined ? variantOptions.stock : variant.stock;
+    variant.name = `${product?.name.toLowerCase()}_${variantOptions.color.toLowerCase()}_${variantOptions.size.toLowerCase()}`;
+
+    // Handle existing images that were kept by the frontend
+    let keptImages: string[] = [];
+    if (variantOptions.existingImages) {
+      try {
+        keptImages = typeof variantOptions.existingImages === 'string'
+          ? JSON.parse(variantOptions.existingImages)
+          : variantOptions.existingImages;
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+
+    // If there are new files, queue them for upload
+    if (files && files.length > 0) {
+      variant.images = keptImages;
+      variant.imageUploadStatus = 'uploading';
+
+      const serializedFiles = files.map(f => ({
+        buffer: Array.from(f.buffer),
+        originalname: f.originalname,
+        mimetype: f.mimetype,
+      }));
+
+      await this.imageUploadQueue.add('upload-product-images', {
+        productId: product?.id,
+        productVariantId: variant.id,
+        files: serializedFiles,
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      });
+    } else {
+      // If no new files, just keep existing images
+      variant.images = keptImages;
+    }
+
+    const updatedVariant = await this.productVariantRepo.save(variant);
+    return {variant: updatedVariant, success: true, message: 'Variant updated successfully'}
   }
 
   async getVendorDetails(id) {

@@ -410,16 +410,18 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
     if (!formData.name.trim()) newErrors.name = "Product name is required";
     else if (formData.name.length < 3) newErrors.name = "Name must be at least 3 characters";
 
-    if (!formData.price || formData.price <= 0) newErrors.price = "Price must be greater than 0";
-
-    if (formData.stock === "" || formData.stock < 0) newErrors.stock = "Stock cannot be negative";
-
     if (!formData.description.trim()) newErrors.description = "Description is required";
     else if (formData.description.trim().length < 10) newErrors.description = "Description must be at least 10 characters";
 
     if (tags.length < 5) newErrors.tags = "Minimum 5 tags are required";
 
     if (formData.features.length < 3) newErrors.features = "Minimum 3 features are required"
+
+    // Price and stock validation only for new products
+    if (!initialData) {
+      if (!formData.price || formData.price <= 0) newErrors.price = "Price must be greater than 0";
+      if (formData.stock === "" || formData.stock < 0) newErrors.stock = "Stock cannot be negative";
+    }
 
     // Validate variants for both create and update
     if (initialData && (!initialData.variants || initialData.variants.length === 0)) {
@@ -431,24 +433,14 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
   };
 
   const handleFileChange = (e) => {
-    if (initialData) {
-      const selectedFiles = Array.from(e.target.files);
-      const remaining = 5 - totalImages;
-      if (remaining <= 0) {
-        toast.error("Maximum 5 images allowed");
-        return;
-      }
-      const filesToAdd = selectedFiles.slice(0, remaining);
-      setFiles(prev => [...prev, ...filesToAdd]);
-    } else {
-      const selectedFile = e.target.files[0];
-      if (!selectedFile) return;
-      if (!selectedFile.type.startsWith("image/")) {
-        toast.error("Please select a valid image file");
-        return;
-      }
-      setFiles([selectedFile]);
+    const selectedFiles = Array.from(e.target.files);
+    const remaining = 5 - totalImages;
+    if (remaining <= 0) {
+      toast.error("Maximum 5 images allowed");
+      return;
     }
+    const filesToAdd = selectedFiles.slice(0, remaining);
+    setFiles(prev => [...prev, ...filesToAdd]);
     if (errors.image) setErrors({ ...errors, image: null });
   };
 
@@ -692,10 +684,41 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
                   </div>
                 )}
               </div> :
-              <div className="p-4 border-2 border-dashed rounded-xl">
-                <label className="block text-sm font-bold mb-2">Main Product Image</label>
-                <input type="file" onChange={handleFileChange} className="text-xs" />
-                {files.length > 0 && <p className="mt-2 text-xs text-green-600">File selected: {files[0].name}</p>}
+              <div className="space-y-3">
+                <label className="block text-sm font-bold">Product Images (Max 5)</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors cursor-pointer bg-gray-50/50"
+                  onClick={() => document.getElementById('file-input').click()}
+                >
+                  <FiUploadCloud size={32} className="text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-gray-600 mb-1">Click to upload or drag and drop</p>
+                  <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB (Max 5 images)</p>
+                  <input
+                    id="file-input"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+                {files.length > 0 && <p className="mt-2 text-xs text-green-600">Files selected: {files.length}</p>}
+                {/* Image Previews */}
+                {files.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {newPreviews.map((preview, index) => (
+                      <div key={`new-${index}`} className="relative group">
+                        <img src={preview} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                        <button
+                          type="button"
+                          onClick={() => removeNewFile(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             }
 
@@ -715,104 +738,110 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               <ErrorMsg msg={errors.name} />
             </div>
 
-            <div className="space-y-2 col-span-2">
-              <div className="flex items-center gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Tags</label>
-                <FaAsterisk size={10} className="text-red-500" />
+            {!initialData && (
+              <div className="space-y-1 col-span-2">
+                <div className="flex items-center gap-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Tags</label>
+                  <FaAsterisk size={10} className="text-red-500" />
+                </div>
+                <div className="flex gap-2 relative items-center">
+                  <input placeholder="Minimum 5 tags are required" value={tagInput}
+                    className={`flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.tags ? 'ring-2 ring-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    onChange={(e) => { setTagInput(e.target.value); if (errors.tags) setErrors({ ...errors, tags: null }); }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleButtonClick(e)}
+                  />
+                  <button type="button" onClick={handleButtonClick}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 absolute right-2 text-sm font-bold transition-transform active:scale-90">
+                    Add
+                  </button>
+                </div>
+                {errors.tags && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.tags}</p>}
+                <div className="flex flex-wrap gap-2 mt-2 min-h-8">
+                  {tags.map((tag, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full text-xs font-bold transition-all hover:bg-blue-100">
+                      <span>{tag.name}</span>
+                      <button type="button" onClick={() => setTags(tags.filter((_, i) => i !== index))} className="hover:text-red-500 transition-colors">✕</button>
+                    </div>
+                  ))}
+                  {tags.length === 0 && !errors.tags && <p className="text-xs text-gray-400 italic ml-1">No tags added yet</p>}
+                </div>
               </div>
-              <div className="flex gap-2 relative items-center">
-                <input placeholder="Minimum 5 tags are required" value={tagInput}
-                  className={`flex-1 p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.tags ? 'ring-2 ring-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
-                  onChange={(e) => { setTagInput(e.target.value); if (errors.tags) setErrors({ ...errors, tags: null }); }}
-                  onKeyPress={(e) => e.key === 'Enter' && handleButtonClick(e)}
-                />
-                <button type="button" onClick={handleButtonClick}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 absolute right-2 text-sm font-bold transition-transform active:scale-90">
-                  Add
-                </button>
-              </div>
-              {errors.tags && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.tags}</p>}
-              <div className="flex flex-wrap gap-2 mt-2 min-h-8">
-                {tags.map((tag, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full text-xs font-bold transition-all hover:bg-blue-100">
-                    <span>{tag.name}</span>
-                    <button type="button" onClick={() => setTags(tags.filter((_, i) => i !== index))} className="hover:text-red-500 transition-colors">✕</button>
+            )}
+
+            {!initialData && (
+              <>
+                <div className="space-y-1 col-span-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price</label>
                   </div>
-                ))}
-                {tags.length === 0 && !errors.tags && <p className="text-xs text-gray-400 italic ml-1">No tags added yet</p>}
-              </div>
-            </div>
-            {!initialData && (
+                  <input placeholder="price" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.price ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    value={formData.price}
+                    type="number"
+                    onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if (errors.price) setErrors({ ...errors, price: null }); }}
+                  />
+                  <ErrorMsg msg={errors.price} />
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
+                  </div>
+                  <input placeholder="stock" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.stock ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    value={formData.stock}
+                    type="number"
+                    onChange={(e) => { setFormData({ ...formData, stock: e.target.value }); if (errors.stock) setErrors({ ...errors, stock: null }); }}
+                  />
+                  <ErrorMsg msg={errors.stock} />
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">Color (Optional)</label>
+                  </div>
+                  <input placeholder="Color" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.color ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    value={formData.color}
+                    type="text"
+                    onChange={(e) => { setFormData({ ...formData, color: e.target.value }); if (errors.color) setErrors({ ...errors, color: null }); }}
+                  />
+                  <ErrorMsg msg={errors.color} />
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">Size (Optional)</label>
+                  </div>
+                  <input placeholder="Size" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.size ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    value={formData.size}
+                    type="text"
+                    onChange={(e) => { setFormData({ ...formData, size: e.target.value }); if (errors.size) setErrors({ ...errors, size: null }); }}
+                  />
+                  <ErrorMsg msg={errors.size} />
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Description</label>
+                    <FaAsterisk size={10} className="text-red-500" />
+                  </div>
+                  <textarea placeholder="Describe your product (min 10 characters)" rows="3"
+                    className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none resize-none ${errors.description ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                    value={formData.description}
+                    onChange={(e) => { setFormData({ ...formData, description: e.target.value }); if (errors.description) setErrors({ ...errors, description: null }); }}
+                  />
+                  <ErrorMsg msg={errors.description} />
+                </div>
+              </>
+            )}
+            {initialData && (
               <div className="space-y-1 col-span-2">
                 <div className="flex items-center gap-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Price</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Description</label>
                   <FaAsterisk size={10} className="text-red-500" />
                 </div>
-                <input placeholder="price" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.price ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                  value={formData.price}
-                  type="number"
-                  onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if (errors.price) setErrors({ ...errors, price: null }); }}
+                <textarea placeholder="Describe your product (min 10 characters)" rows="3"
+                  className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none resize-none ${errors.description ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
+                  value={formData.description}
+                  onChange={(e) => { setFormData({ ...formData, description: e.target.value }); if (errors.description) setErrors({ ...errors, description: null }); }}
                 />
-                <ErrorMsg msg={errors.price} />
+                <ErrorMsg msg={errors.description} />
               </div>
             )}
-            {!initialData && (
-              <div className="space-y-1 col-span-2">
-                <div className="flex items-center gap-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Stock</label>
-                  <FaAsterisk size={10} className="text-red-500" />
-                </div>
-                <input placeholder="stock" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.stock ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                  value={formData.stock}
-                  type="number"
-                  onChange={(e) => { setFormData({ ...formData, stock: e.target.value }); if (errors.stock) setErrors({ ...errors, stock: null }); }}
-                />
-                <ErrorMsg msg={errors.stock} />
-              </div>
-            )}
-
-            {!initialData && (
-              <div className="space-y-1 col-span-2">
-                <div className="flex items-center gap-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Color</label>
-                  <FaAsterisk size={10} className="text-red-500" />
-                </div>
-                <input placeholder="Color" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.color ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                  value={formData.color}
-                  type="text"
-                  onChange={(e) => { setFormData({ ...formData, color: e.target.value }); if (errors.color) setErrors({ ...errors, color: null }); }}
-                />
-                <ErrorMsg msg={errors.color} />
-              </div>
-            )}
-
-            {!initialData && (
-              <div className="space-y-1 col-span-2">
-                <div className="flex items-center gap-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Size</label>
-                  <FaAsterisk size={10} className="text-red-500" />
-                </div>
-                <input placeholder="Size" className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none transition-all ${errors.size ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                  value={formData.size}
-                  type="text"
-                  onChange={(e) => { setFormData({ ...formData, size: e.target.value }); if (errors.size) setErrors({ ...errors, size: null }); }}
-                />
-                <ErrorMsg msg={errors.size} />
-              </div>
-            )}
-
-            <div className="space-y-1 col-span-2">
-              <div className="flex items-center gap-1">
-                <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Description</label>
-                <FaAsterisk size={10} className="text-red-500" />
-              </div>
-              <textarea placeholder="Describe your product (min 10 characters)" rows="3"
-                className={`w-full p-3 bg-[#F1F4F9] rounded-xl outline-none resize-none ${errors.description ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-blue-500'}`}
-                value={formData.description}
-                onChange={(e) => { setFormData({ ...formData, description: e.target.value }); if (errors.description) setErrors({ ...errors, description: null }); }}
-              />
-              <ErrorMsg msg={errors.description} />
-            </div>
             <div className="space-y-2 col-span-2">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Product Features</label>
@@ -858,13 +887,19 @@ const ProductModal = ({ onClose, onSave, initialData }) => {
               productId={initialData.id}
               variantToEdit={variantFormOpen.mode === 'edit' ? variantFormOpen.variant : null}
               onClose={() => setVariantFromOpen(false)}
-              onSave={() => {
-                // Refetch the product to get updated variants
+              onSave={async () => {
                 setVariantFromOpen(false);
-                // Trigger parent onSave to refresh product list
-                setTimeout(() => {
+                // Fetch updated product data to show new/updated variants immediately
+                try {
+                  const response = await api.get(`/vendor/products/${initialData.id}`);
+                  if (response.data.success && response.data.product) {
+                    // Update initialData with new variants
+                    onSave();
+                  }
+                } catch (err) {
+                  console.error('Failed to fetch updated product:', err);
                   onSave();
-                }, 500);
+                }
               }}
             />
           )}

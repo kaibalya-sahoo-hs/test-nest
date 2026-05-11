@@ -44,7 +44,6 @@ function Products() {
           // Use normal product list endpoint
           const response = await api.get("/products");
           if (response.data.success) {
-            console.log(response.data.data)
             setProducts(response.data.data);
           }
         }
@@ -252,14 +251,6 @@ function Products() {
                           {images.map((_, idx) => (
                             <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-[#4379EE] w-3' : 'bg-gray-300'}`} />
                           ))}
-                        </div>
-                      )}
-
-                      {/* Upload status badge */}
-                      {item.imageUploadStatus === 'processing' && (
-                        <div className="absolute top-2 right-2 bg-yellow-100 border border-yellow-300 text-yellow-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                          Uploading...
                         </div>
                       )}
                     </div>

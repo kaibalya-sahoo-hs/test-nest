@@ -34,7 +34,6 @@ function CheckoutPage() {
       const { data } = await api.get("/addresses");
       setAddresses(data);
       const defaultAdd = data.find((i) => i.isDefault);
-      console.log(defaultAdd)
       setDefaultAddress(defaultAdd);
     } catch (err) {
       toast.error("Failed to load addresses");
@@ -321,12 +320,12 @@ function CheckoutPage() {
             <div className="space-y-3 mb-4">
               {cart.items?.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg">
-                  <img src={item.product.image} alt="" className="w-12 h-12 rounded-md object-cover" />
+                  <img src={item.variant.image} alt="" className="w-12 h-12 rounded-md object-cover" />
                   <div className="flex-1">
                     <div className="text-sm font-bold text-gray-800 line-clamp-1">{item.product.name}</div>
                     <div className="text-xs text-gray-500">{item.quantity} items</div>
                   </div>
-                  <div className="text-sm font-bold">₹{(item.product.price * item.quantity).toLocaleString('en-IN')}</div>
+                  <div className="text-sm font-bold">₹{(item.variant.price * item.quantity).toLocaleString('en-IN')}</div>
                 </div>
               ))}
             </div>

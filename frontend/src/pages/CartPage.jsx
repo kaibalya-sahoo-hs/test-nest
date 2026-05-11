@@ -24,7 +24,7 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState("");
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
-
+console.log(cart)
   const handleCheckout = () => {
     if(!user){
       toast.error("Please login before checkout")
@@ -131,7 +131,7 @@ const CartPage = () => {
               {/* Product */}
               <div className="col-span-4 flex justify-start items-center gap-4 md:mb-0 mb-4">
                 <div className="w-17 h-17 sm:w-20 sm:h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0 border border-gray-50">
-                  <img src={item.product?.image} alt={'Product image'} className="w-full h-full object-cover mix-blend-multiply" />
+                  <img src={item.variant.image} alt={'Product image'} className="w-full h-full object-cover mix-blend-multiply" />
                 </div>
                 <div>
                   <h3 className="text-xs sm:text-sm md:text-lg font-bold text-[#202224]">{item.product?.name}</h3>
@@ -140,7 +140,7 @@ const CartPage = () => {
 
               {/* Price */}
               <div className="col-span-2 text-center">
-                <div className="text-[#4379EE] font-extrabold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{Number(item.variant?.price || item.product?.price).toLocaleString('en-IN')}</div>
+                <div className="text-[#4379EE] font-extrabold text-xs sm:text-lg">{<FaRupeeSign className="text-sm inline" />}{Number(item.variant.price || item.product?.price).toLocaleString('en-IN')}</div>
               </div>
 
               {/* Quantity */}

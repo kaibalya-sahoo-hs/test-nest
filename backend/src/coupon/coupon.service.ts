@@ -19,7 +19,7 @@ export class CouponsService {
 
     async applyCoupon(couponCode, cartId) {
         try {
-            const cart = await this.cartRepo.findOne({ where: { id: cartId }, relations: ['cartItems', 'cartItems.product', 'cartItems.product.vendor'] })
+            const cart = await this.cartRepo.findOne({ where: { id: cartId }, relations: ['cartItems', 'cartItems.product', 'cartItems.product.vendor', 'cartItems.variant'] })
             if (!cart) {
                 return { message: 'Invalid cart id', success: false }
             }
@@ -30,7 +30,7 @@ export class CouponsService {
             cart.discountedAmount = cart.totalAmount - result.discountAmount;
 
             const savedCart = await this.cartRepo.save(cart)
-
+            console.log(savedCart)
             return { success: true, message: 'Coupon applied successfully', savedCart }
         } catch (error) {
             console.log("Error while applying coupon", error)
@@ -92,10 +92,8 @@ export class CouponsService {
         let validCartItems: any[] = [];
 
         if (coupon.scope === 'global') {
-            // Global coupons apply to all items
             validCartItems = cart.cartItems;
         } else if (coupon.scope === 'vendor') {
-            // Vendor coupons apply to items from the coupon's vendor
             if (!coupon.vendor) {
                 throw new BadRequestException('Vendor coupon is misconfigured');
             }
@@ -116,7 +114,7 @@ export class CouponsService {
 
         // Calculate the eligible subtotal (items the coupon applies to)
         const eligibleSubtotal = validCartItems.reduce((sum, item) => {
-            return sum + Number(item.product.price) * item.quantity;
+            return sum + Number(item.variant.price) * item.quantity;
         }, 0);
 
         // Check minimum amount requirement
@@ -129,11 +127,11 @@ export class CouponsService {
 
         if (coupon.type === 'percentage') {
             discountAmount = (eligibleSubtotal * Number(coupon.discountValue)) / 100;
+            console.log(discountAmount)
         } else {
             // Fixed discount
             discountAmount = Number(coupon.discountValue);
         }
-
         // Cap discount at max discount amount if set
         if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
             discountAmount = coupon.maxDiscountAmount;
