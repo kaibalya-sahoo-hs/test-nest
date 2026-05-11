@@ -120,6 +120,7 @@ export class ProductService {
     try {
       let qb = await this.productRepo.createQueryBuilder('product')
         .leftJoinAndSelect('product.vendor', 'vendor')
+        .leftJoinAndSelect('product.variants', 'variants');
 
       if (filters.name) {
         console.log(filters.name)
@@ -128,11 +129,11 @@ export class ProductService {
 
 
       if (filters.maxAmount !== undefined && filters.maxAmount !== null) {
-        qb.andWhere('product.price <= :maxPrice', { maxPrice: filters.maxAmount });
+        qb.andWhere('variants.price <= :maxPrice', { maxPrice: filters.maxAmount });
       }
 
       if (filters.minAmount !== undefined && filters.minAmount !== null) {
-        qb.andWhere('product.price >= :minPrice', { minPrice: filters.minAmount });
+        qb.andWhere('variants.price >= :minPrice', { minPrice: filters.minAmount });
       }
 
       if (filters.features && filters.features.length > 0) {

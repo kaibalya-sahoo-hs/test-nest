@@ -69,7 +69,6 @@ export class CouponsService {
      * - 'product': applies only to cart items in coupon.products
      */
     async validateCoupon(code: string, cart: any) {
-
         const coupon = await this.couponRepo.findOne({
             where: { displayName: code.toLowerCase(), isActive: true },
             relations: ['vendor', 'products']

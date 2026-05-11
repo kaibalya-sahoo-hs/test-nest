@@ -95,7 +95,9 @@ export class AiService {
                                                      (Call the tool 'getTopVendorsByProductName' with parameters {filter: {productName: 'watch'}})
                 - getProducts : Call this tool when user query for some product or ask to find some product with specific filters like minAmount, features
                                 Example 1 - user asks about laptop under 200000 and should has 144hz display then the tool call should be with parameters  {name: 'laptop', maxAmount: 200000, features: ['144hz', 'display']}
-                                Example 2 -If user asks about show me watches then the tool call should be with parameters {filter: {name: 'watch'}}
+                                Example 2 - If user asks about show me watches then the tool call should be with parameters {filter: {name: 'watch'}}
+                                Example 3 - User - Show me Guitars
+                                            AI - Here are some guitar (Show the user guitars obtained from th tool call)
 
 
 

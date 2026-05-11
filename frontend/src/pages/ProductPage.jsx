@@ -170,6 +170,7 @@ function ProductPage() {
           setSelectedImageIndex(0);
           // Set the first variant as selected by default
           if (response.data.product.variants && response.data.product.variants.length > 0) {
+            console.log(response.data.product.variants[0])
             setSelectedVariant(response.data.product.variants[0]);
           }
           await fetchProductReviews(response.data.product.id);
@@ -247,7 +248,7 @@ function ProductPage() {
             <div className="w-80 h-80 md:w-[560px] md:h-125 overflow-hidden relative bg-white rounded-2xl  border border-gray-100 shadow-sm w-full flex flex-wrap items-center justify-center">
 
               <img
-                src={selectedVariant.images?.[selectedImageIndex]}
+                src={selectedVariant.images[selectedImageIndex]}
                 alt={product.name}
                 className="h-full w-full object-contain mix-blend-multiply transition-all duration-300"
               />
